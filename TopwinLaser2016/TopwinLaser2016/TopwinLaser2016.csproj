@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{235A250E-BC2A-4573-971F-035889A39EBB}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TopwinLaser2016</RootNamespace>
+    <AssemblyName>TopwinLaser2016</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ESI.SymphonyAPI">
+      <HintPath>lib\ESI.SymphonyAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="NPlot">
+      <HintPath>lib\NPlot.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="method\CWhblist.cs" />
+    <Compile Include="ExceptionDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ExceptionDialog.Designer.cs">
+      <DependentUpon>ExceptionDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormMainWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormMainWindow.Designer.cs">
+      <DependentUpon>FormMainWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="method\SymponySettings.cs" />
+    <Compile Include="UserControlAxis.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserControlAxis.Designer.cs">
+      <DependentUpon>UserControlAxis.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UserControlGalvo.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserControlGalvo.Designer.cs">
+      <DependentUpon>UserControlGalvo.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UserControlGraphpaper.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserControlGraphpaper.Designer.cs">
+      <DependentUpon>UserControlGraphpaper.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UserControlIO.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserControlIO.Designer.cs">
+      <DependentUpon>UserControlIO.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UserControlLaser.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserControlLaser.Designer.cs">
+      <DependentUpon>UserControlLaser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UserControlMachining.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserControlMachining.Designer.cs">
+      <DependentUpon>UserControlMachining.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UserControlStage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserControlStage.Designer.cs">
+      <DependentUpon>UserControlStage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UserControlXYMover.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserControlXYMover.Designer.cs">
+      <DependentUpon>UserControlXYMover.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UserControlZMover.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserControlZMover.Designer.cs">
+      <DependentUpon>UserControlZMover.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="FormMainWindow.resx">
+      <DependentUpon>FormMainWindow.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="UserControlAxis.resx">
+      <DependentUpon>UserControlAxis.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserControlGalvo.resx">
+      <DependentUpon>UserControlGalvo.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserControlGraphpaper.resx">
+      <DependentUpon>UserControlGraphpaper.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserControlIO.resx">
+      <DependentUpon>UserControlIO.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserControlLaser.resx">
+      <DependentUpon>UserControlLaser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserControlMachining.resx">
+      <DependentUpon>UserControlMachining.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserControlStage.resx">
+      <DependentUpon>UserControlStage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserControlXYMover.resx">
+      <DependentUpon>UserControlXYMover.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserControlZMover.resx">
+      <DependentUpon>UserControlZMover.cs</DependentUpon>
+    </EmbeddedResource>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
