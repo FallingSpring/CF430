@@ -1424,4 +1424,388 @@ namespace TopwinLaser2016
         public CWhPointD m_ptdBtmRight = new CWhPointD();        
     }
 
+    public class CWhLine : CWhVirtual
+    {
+        public static AFX_CORE_DATA CRuntimeClass classclass_name = new AFX_CORE_DATA();
+        //C++ TO C# CONVERTER WARNING: 'const' methods are not available in C#:
+        //ORIGINAL LINE: virtual CRuntimeClass GetRuntimeClass() const
+        public override CRuntimeClass GetRuntimeClass()
+        {
+            return ((CRuntimeClass)(GlobalMembersWhLine.CWhLine.classCWhLine));
+        }
+#endif static CObject __stdcall CreateObject(); friend CArchive& __stdcall operator >>(CArchive& ar, CWhLine &pOb); public: CWhLine();
+        public CWhLine(CPoint ptStart, CPoint ptEnd)
+        {
+            m_ptStart = ptStart;
+            m_ptEnd = ptEnd;
+            m_nObjType = DefineConstantsWhLine.WH_TYPE_LINE;
+            SetObjDefaultProperty();
+            UpdateBoundRect();
+        }
+        public override void Dispose()
+        {
+
+            base.Dispose();
+        }
+
+        public CPoint m_ptStart = new CPoint();
+        public CPoint m_ptEnd = new CPoint();
+
+        public void Serialize(ref CArchive ar)
+        {
+            GlobalMembersWhLine.CWhVirtual.Serialize(ar);
+
+            if (ar.IsStoring() != 0)
+            {
+                ar << m_ptStart << m_ptEnd;
+            }
+            else
+            {
+                ar >> m_ptStart >> m_ptEnd;
+            }
+        }
+        public new void UpdateBoundRect()
+        {
+            m_rcBound.SetRect(m_ptStart, m_ptEnd);
+            m_rcBound.NormalizeRect();
+            if (m_rcBound.IsRectEmpty())
+            {
+                m_rcBound.InflateRect(m_rcBound.Width() ? 0 : 1, m_rcBound.Height() ? 0 : 1);
+            }
+        }
+        public void Draw(ref CDC pDC, CRect rcClient)
+        {
+
+            if (m_bIsShow)
+            {
+
+                CRect rcInterSectRect = new CRect(0, 0, 0, 0);
+                CRect rcClientReal = TransDPtoRP(rcClient, pDC);
+                if (!rcInterSectRect.IntersectRect(m_rcBound, rcClientReal))
+                {
+                    return;
+                }
+
+                CPoint ptStart = new CPoint();
+                CPoint ptEnd = new CPoint();
+
+                ptStart = TransRPtoLP(m_ptStart);
+                ptEnd = TransRPtoLP(m_ptEnd);
+
+                CPen pOldPen = (IntPtr)0;
+                CPen penLine = new CPen();
+                penLine.CreatePen(PS_SOLID, m_nPenWidth, m_colPenColor);
+                pOldPen = pDC.SelectObject(penLine);
+
+                pDC.MoveTo(ptStart);
+                pDC.LineTo(ptEnd);
+                pDC.SelectObject(pOldPen);
+
+                if (m_bIsShowHandle)
+                {
+                    DrawHandle(ref pDC);
+                }
+            }
+        }
+        public void DrawHandle(ref CDC pDC)
+        {
+            CPoint ptStart = new CPoint();
+            CPoint ptEnd = new CPoint();
+
+            ptStart = TransRPtoLP(m_ptStart);
+            ptEnd = TransRPtoLP(m_ptEnd);
+
+            CRect rcHandle = new CRect(0, 0, 2, 2);
+            pDC.DPtoLP(rcHandle);
+            CRect rcStart = new CRect(ptStart.x, ptStart.y, ptStart.x, ptStart.y);
+            CRect rcEnd = new CRect(ptEnd.x, ptEnd.y, ptEnd.x, ptEnd.y);
+
+            rcStart.InflateRect(rcHandle.Width(), rcHandle.Height());
+            rcEnd.InflateRect(rcHandle.Width(), rcHandle.Height());
+
+
+            //设置画笔
+            CPen pOldPen = (IntPtr)0;
+            CPen pen = new CPen();
+            pen.CreatePen(PS_SOLID, rcHandle.Width()  2, RGB(0, 0, 255));
+            pOldPen = pDC.SelectObject(pen);
+            //pDC->Rectangle(rcStart);
+            pDC.Rectangle(rcEnd);
+            //还原画笔
+            pDC.SelectObject(pOldPen);
+
+            //设置画笔
+            CPen pOldPen1 = (IntPtr)0;
+            CPen pen1 = new CPen();
+            pen1.CreatePen(PS_SOLID, rcHandle.Width()  2, RGB(255, 0, 0));
+            pOldPen1 = pDC.SelectObject(pen1);
+            pDC.Rectangle(rcStart);
+            //还原画笔
+            pDC.SelectObject(pOldPen1);
+        }
+        public void DrawArrow(ref CDC pDC)
+        {
+
+        }
+        public void DrawStartPoint(ref CDC pDC)
+        {
+            CPoint ptStart = new CPoint();
+
+            ptStart = TransRPtoLP(m_ptStart);
+
+            CRect rcHandle = new CRect(0, 0, 3, 3);
+            pDC.DPtoLP(rcHandle);
+            CRect rcStart = new CRect(ptStart.x, ptStart.y, ptStart.x, ptStart.y);
+            rcStart.InflateRect(rcHandle.Width(), rcHandle.Height());
+
+
+            CBrush pOldBrush = (IntPtr)0;
+            IntPtr hGdi = GetStockObject(NULL_BRUSH);
+            CBrush pBrush = CBrush.FromHandle((IntPtr)hGdi);
+            pOldBrush = pDC.SelectObject(pBrush);
+            CPen pOldPen = (IntPtr)0;
+            CPen pen = new CPen();
+            pen.CreatePen(PS_SOLID, 0, RGB(255, 0, 0));
+            pOldPen = pDC.SelectObject(pen);
+            pDC.Rectangle(rcStart);
+
+            pDC.SelectObject(pOldPen);
+            pDC.SelectObject(pOldBrush);
+        }
+        public new int IsValid()
+        {
+            if (m_ptStart == m_ptEnd)
+            {
+                return DefineConstantsWhLine.FALSE;
+            }
+            return DefineConstantsWhLine.TRUE;
+        }
+        public new void Move(int nX, int nY)
+        {
+            CPoint ptMove = new CPoint(nX, nY);
+            m_ptStart += ptMove;
+            m_ptEnd += ptMove;
+            UpdateBoundRect();
+        }
+        public new void ExchangeStartToEnd()
+        {
+            CPoint ptTem = new CPoint(0, 0);
+            ptTem = m_ptStart;
+            SetStartPoint(m_ptEnd);
+            SetEndPoint(ptTem);
+            UpdateBoundRect();
+        }
+        public void DrawNumber(ref CDC pDC)
+        {
+            string strNum;
+            strNum.Format("%d", m_lID);
+            CPoint pt = TransRPtoLP(m_ptStart);
+            pDC.TextOut(pt.x, pt.y, strNum);
+        }
+
+        public new int IsSelected(CPoint ptClick, int nLimit)
+        {
+            int bRet = DefineConstantsWhLine.FALSE;
+
+            CRect rcBound = new CRect(m_rcBound);
+            rcBound.InflateRect(nLimit, nLimit); //wuhao
+
+            if (rcBound.PtInRect(ptClick))
+            {
+
+                int nDisTance = GlobalMembersWhLine.PointToLineDistance(m_ptStart, m_ptEnd, ptClick);
+                if (nDisTance <= nLimit)
+                {
+                    bRet = DefineConstantsWhLine.TRUE;
+                    return bRet;
+                }
+            }
+
+            return bRet;
+        }
+        public new int IsSelected(CRect rcClick, int bFlagMode)
+        {
+            int bRet = DefineConstantsWhLine.FALSE;
+
+            CRect rcBound = new CRect(m_rcBound);
+            CRect rcInterSectRect = new CRect(0, 0, 0, 0);
+            rcBound.InflateRect(1, 1);
+
+            if (bFlagMode == -1)
+            {
+                if (rcInterSectRect.IntersectRect(m_rcBound, rcClick))
+                {
+                    bRet = DefineConstantsWhLine.TRUE;
+                    return bRet;
+                }
+            }
+            else if (bFlagMode == 1)
+            {
+                rcInterSectRect.IntersectRect(m_rcBound, rcClick);
+                if (rcInterSectRect == m_rcBound)
+                {
+                    bRet = DefineConstantsWhLine.TRUE;
+                    return bRet;
+                }
+            }
+
+            return bRet;
+        }
+        public int IsPointSnap(ref CPoint ptSnap, CPoint ptInput, double fDiatance)
+        {
+            int bRet = DefineConstantsWhLine.FALSE;
+            CRect rcSnap = m_rcBound;
+            rcSnap.InflateRect(2 * (int)fDiatance, 2 * (int)fDiatance);
+
+
+            if (!rcSnap.PtInRect(ptInput))
+            {
+                return DefineConstantsWhLine.FALSE;
+            }
+
+            CRect[] rc = new CRect[3];
+            rc[0] = CRect(m_ptStart, m_ptStart);
+            rc[1] = CRect(m_ptEnd, m_ptEnd);
+            rc[2] = CRect(CPoint((int)((m_ptStart.x + m_ptEnd.x) / 2.0), (int)((m_ptStart.y + m_ptEnd.y) / 2.0)), CPoint((int)((m_ptStart.x + m_ptEnd.x) / 2.0), (int)((m_ptStart.y + m_ptEnd.y) / 2.0)));
+
+            for (int i = 0; i < 3; i++)
+            {
+                rc[i].InflateRect((int)fDiatance, (int)fDiatance);
+            }
+
+            if (rc[0].PtInRect(ptInput))
+            {
+                ptSnap = m_ptStart;
+                bRet = DefineConstantsWhLine.TRUE;
+                return bRet;
+            }
+            else if (rc[1].PtInRect(ptInput))
+            {
+                ptSnap = m_ptEnd;
+                bRet = DefineConstantsWhLine.TRUE;
+                return bRet;
+            }
+            else if (rc[2].PtInRect(ptInput))
+            {
+                ptSnap = CPoint((int)((m_ptStart.x + m_ptEnd.x) / 2.0), (int)((m_ptStart.y + m_ptEnd.y) / 2.0));
+                bRet = DefineConstantsWhLine.TRUE;
+                return bRet;
+            }
+
+            return bRet;
+        }
+        public int IsPointSelect(ref CPoint ptSnap, ref int nSnap, CPoint ptInput, double fDiatance)
+        {
+            int bRet = DefineConstantsWhLine.FALSE;
+
+            CRect rcSnap = m_rcBound;
+            rcSnap.InflateRect((int)fDiatance, (int)fDiatance);
+            if (!rcSnap.PtInRect(ptInput))
+            {
+                return bRet;
+            }
+
+
+            CRect[] rc = new CRect[3];
+            rc[0] = CRect(m_ptStart, m_ptStart);
+            rc[1] = CRect(m_ptEnd, m_ptEnd);
+            rc[2] = CRect(CPoint((int)((m_ptStart.x + m_ptEnd.x) / 2.0), (int)((m_ptStart.y + m_ptEnd.y) / 2.0)), CPoint((int)((m_ptStart.x + m_ptEnd.x) / 2.0), (int)((m_ptStart.y + m_ptEnd.y) / 2.0)));
+
+            for (int i = 0; i < 3; i++)
+            {
+                rc[i].InflateRect((int)fDiatance, (int)fDiatance);
+            }
+
+
+            if (rc[0].PtInRect(ptInput))
+            {
+                ptSnap = m_ptStart;
+                nSnap = 1;
+                bRet = DefineConstantsWhLine.TRUE;
+                return bRet;
+            }
+            else if (rc[1].PtInRect(ptInput))
+            {
+                ptSnap = m_ptEnd;
+                nSnap = 2;
+                bRet = DefineConstantsWhLine.TRUE;
+                return bRet;
+            }
+            else if (rc[2].PtInRect(ptInput))
+            {
+                return bRet;
+            }
+
+            return bRet;
+        }
+        public int IsStartPointSelect(ref CPoint ptRet, CPoint ptInput, double fDiatance)
+        {
+            int bRet = DefineConstantsWhLine.FALSE;
+            CRect rcSnap = m_rcBound;
+            rcSnap.InflateRect(2 * (int)fDiatance, 2 * (int)fDiatance);
+
+            if (!rcSnap.PtInRect(ptInput))
+            {
+                return DefineConstantsWhLine.FALSE;
+            }
+
+            CRect rcStart = new CRect();
+            rcStart = CRect(m_ptStart, m_ptStart);
+            rcStart.InflateRect((int)fDiatance, (int)fDiatance);
+            if (rcStart.PtInRect(ptInput))
+            {
+                ptRet = m_ptStart;
+                bRet = DefineConstantsWhLine.TRUE;
+                return bRet;
+            }
+            return bRet;
+        }
+
+        public void SetStartPoint(CPoint ptStart)
+        {
+            m_ptStart = ptStart;
+            UpdateBoundRect();
+        }
+        public void SetEndPoint(CPoint ptEnd)
+        {
+            m_ptEnd = ptEnd;
+            UpdateBoundRect();
+        }
+        public void SetStartPoint(int x, int y)
+        {
+            m_ptStart.x = x;
+            m_ptStart.y = y;
+            UpdateBoundRect();
+        }
+        public void SetEndPoint(int x, int y)
+        {
+            m_ptEnd.x = x;
+            m_ptEnd.y = y;
+            UpdateBoundRect();
+        }
+        public new CPoint GetStartPoint()
+        {
+            return m_ptStart;
+        }
+        public new CPoint GetEndPoint()
+        {
+            return m_ptEnd;
+        }
+        public new int IsObjValid()
+        {
+            if (m_ptStart == m_ptEnd)
+            {
+                return DefineConstantsWhLine.FALSE;
+            }
+            else
+            {
+                return DefineConstantsWhLine.TRUE;
+            }
+        }
+
+        public new void SetObjDefaultProperty()
+        {
+            m_colPenColor = RGB(0, 0, 0);
+        }
+    }
 }
