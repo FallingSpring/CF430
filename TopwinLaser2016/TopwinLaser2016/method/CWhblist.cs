@@ -1,6 +1,11 @@
 ﻿using System.Drawing;
 using System.Data;
 using System.IO;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Diagnostics;
 using System.Runtime.Serialization.Formatters.Binary;
 namespace TopwinLaser2016
 {
@@ -1361,6 +1366,424 @@ namespace TopwinLaser2016
         public const double PI = 3.14159265358979323846;
         public const double TRANSRATIO = 1000.0;
     }
+    public class DefineTypes
+    {
+        //----------------------------------------------------------------------
+        public struct tagWHY_SEG
+        {
+            long fX;
+            long fY;
+            bool bIsUsed;
+            unsafe tagWHY_SEG* pPrev;
+            unsafe tagWHY_SEG* pNext;
+        };
+
+
+        //----------------------------------------------------------------------
+        public struct tagWHY_SEG_LIST
+        {
+            unsafe tagWHY_SEG pHeadSeg;
+            unsafe tagWHY_SEG_LIST* pNext;
+        };
+
+
+        //----------------------------------------------------------------------
+        public struct tagWHY_FREE_MAN
+        {
+            long nObjectLabel;
+            long nStartX;
+            long nStartY;
+            long nStepNum;
+            bool bIsOutBorder;
+            long pXChain;
+            long pYChain;
+            Byte pChain;
+            unsafe tagWHY_FREE_MAN* pNext;
+        };
+
+
+        //----------------------------------------------------------------------
+        public struct tagWHY_RUN_LEN
+        {
+            long nStartX;
+            long nEndX;
+            long nLabel;
+            long nLeftLabel;
+            long nRightLabel;
+            long nUpNum;
+            long nDownNum;
+        };
+
+
+        //----------------------------------------------------------------------
+        public struct tagWHY_RUN_LIST
+        {
+            long nSegNum;
+            unsafe tagWHY_RUN_LEN pHead;
+        };
+
+
+        //----------------------------------------------------------------------
+        // Run Length Label List
+        public struct tagWHY_RUN_LABEL
+        {
+            long nLabel;
+            long nNewLabel;
+            unsafe tagWHY_RUN_LABEL* pNewRunLabel;
+            unsafe tagWHY_RUN_LABEL* pNext;
+        };
+
+
+        //----------------------------------------------------------------------
+        // Chain Code Segment 
+        // The ChainCode with the Same Direction Will Be Merged
+        public struct tagWHY_CHAIN_SEG
+        {
+            Byte nDir;
+            long nLen;
+            unsafe tagWHY_CHAIN_SEG* pNext;
+        };
+
+
+        //----------------------------------------------------------------------
+        public struct tagWHY_CHAIN
+        {
+            long nStartX;
+            long nStartY;
+            long nObjectLabel;
+            long nStepNum;
+            long nPrevLabel;
+            long nNextLabel;
+            Byte nUsedTimes;
+            bool bIsTop;
+
+            // used only when m_bTraceMethod==TRUE
+            long nMemNum;
+            Byte pChain;
+
+            // used only when m_bTraceMethod==FALSE
+            tagWHY_CHAIN_SEG pHeadChainSeg;
+            tagWHY_CHAIN_SEG pTailChainSeg;
+        };
+
+
+        //----------------------------------------------------------------------
+        public struct tagWHY_CHAIN_LIST
+        {
+            long nStartX;
+            long nStartY;
+            long nPointNum;
+            long pXChain;
+            long pYChain;
+            Byte pChain;
+
+        };
+
+
+        //----------------------------------------------------------------------
+        public struct tagWHY_PITCH
+        {
+            long nLabel;
+            //double		M00,M01,M10,M11,M02,M20;
+            float fA, fB, fC;
+            float fXc, fYc;
+            float fAngle;
+            float fWidth;
+            float fArea;
+            unsafe tagWHY_PITCH* pNext;
+        };
+
+
+        //----------------------------------------------------------------------
+        public struct tagWHY_LINE
+        {
+            float fA, fB, fC;
+            float fXc, fYc;
+            float fWidth;
+        };
+
+
+        //----------------------------------------------------------------------
+        public struct tagWHY_LINE_SEG
+        {
+            long nStartX;
+            long nStartY;
+            long nEndX;
+            long nEndY;
+            unsafe tagWHY_LINE_SEG* pNext;
+        };
+
+
+        //----------------------------------------------------------------
+        public struct tagWHY_REGION
+        {
+            long nRegionType;
+            long nPointNum;
+            POINTD pPointList;
+        };
+
+
+        //----------------------------------------------------------------
+        public struct tagWHY_POINT_OBJECT
+        {
+            long nPointType;
+            tagWHY_REGION pRegion1;
+            tagWHY_REGION pRegion2;
+        };
+
+
+        //----------------------------------------------------------------
+        public struct tagWHY_LINE_OBJECT
+        {
+            long nLineType;
+            tagWHY_REGION pRegion1;
+            tagWHY_REGION pRegion2;
+        };
+
+
+        //----------------------------------------------------------------
+        public struct tagWHY_INSTRUCTION
+        {
+            long nMeasureType;
+
+            tagWHY_REGION pRegion;
+            tagWHY_POINT_OBJECT pPointObject1;
+            tagWHY_LINE_OBJECT pLineObject1;
+
+            tagWHY_POINT_OBJECT pPointObject2;
+            tagWHY_LINE_OBJECT pLineObject2;
+
+            unsafe tagWHY_INSTRUCTION* pNext;
+        };
+
+
+        public struct tagWHY_FEATURE
+        {
+            long nLabel;
+            long nHoleNum;
+
+            double fXc, fYc;
+            double fA, fB, fC;
+            double fAngle;
+            double fArea;
+            double fPerimeter;
+            tagWHY_RUN_LEN pRunLen;
+            tagWHY_FREE_MAN pOuterHeadFreeMan;
+            tagWHY_FREE_MAN pInnerHeadFreeMan;
+            unsafe tagWHY_FEATURE* pNext;
+        };
+
+
+        // This structure for passing data into LineDDA
+        public struct tagWHY_PTS
+        {
+            long nPos;
+            LPPOINTD lpPoints;
+        };
+
+        // This structure for passing data into LineDDA
+        public struct tagWHY_PTS2
+        {
+            long nPos;
+            long pXList;
+            long pYList;
+        };
+
+        public struct tagWHY_FILTER
+        {
+            short nMethod;
+            short ppMask;
+            short nMaskSize;
+            short nOrientation;
+            short nStrength;
+            float fVariant;
+            float fAngle;
+            float fAlpha;
+            float fMean;
+            float fPeriod;
+            unsafe fixed char Reserve[32];
+        };
+
+
+        public struct tagWHY_SIGMA
+        {
+            bool bFlag;
+            double fS00;
+            double fS10;
+            double fS01;
+            double fS20;
+            double fS11;
+            double fS02;
+            double fS30;
+            double fS21;
+            double fS12;
+            double fS03;
+        };
+
+
+        // float 
+        public struct tagRECTF
+        {
+            float left;
+            float top;
+            float right;
+            float bottom;
+        };
+
+        public struct RECTF
+        {
+            float left;
+            float top;
+            float right;
+            float bottom;
+        };
+        public struct PRECTF
+        {
+            float left;
+            float top;
+            float right;
+            float bottom;
+        };
+        public struct LPRECTF
+        {
+            float left;
+            float top;
+            float right;
+            float bottom;
+        };
+
+        public struct tagPOINTF
+        {
+            float x;
+            float y;
+        };
+
+        public struct POINTF
+        {
+            float x;
+            float y;
+        };
+
+        public struct PPOINTF
+        {
+            float x;
+            float y;
+        };
+
+        public struct LPPOINTF
+        {
+            float x;
+            float y;
+        };
+
+        public struct tagSIZEF
+        {
+            float cx;
+            float cy;
+        };
+        public struct SIZEF
+        {
+            float cx;
+            float cy;
+        };
+        public struct PSIZEF
+        {
+            float cx;
+            float cy;
+        };
+        public struct LPSIZEF
+        {
+            float cx;
+            float cy;
+        };
+
+        // double 
+        public struct tagRECTD
+        {
+            double left;
+            double top;
+            double right;
+            double bottom;
+        };
+        public struct RECTD
+        {
+            double left;
+            double top;
+            double right;
+            double bottom;
+        };
+        public struct PRECTD
+        {
+            double left;
+            double top;
+            double right;
+            double bottom;
+        };
+        public struct LPRECTD
+        {
+            double left;
+            double top;
+            double right;
+            double bottom;
+        };
+
+        public struct CPoint
+        {
+            double x;
+            double y;
+        };
+        public struct CPointD
+        {
+            double x;
+            double y;
+        };
+        public struct tagPOINTD
+        {
+            double x;
+            double y;
+        };
+        public struct POINTD
+        {
+            double x;
+            double y;
+        };
+        public struct PPOINTD
+        {
+            double x;
+            double y;
+        };
+        public struct LPPOINTD
+        {
+            double x;
+            double y;
+        };
+
+        public struct CSize
+        {
+            double cx;
+            double cy;
+        };
+        public struct tagSIZED
+        {
+            double cx;
+            double cy;
+        };
+        public struct SIZED
+        {
+            double cx;
+            double cy;
+        };
+        public struct PSIZED
+        {
+            double cx;
+            double cy;
+        };
+        public struct LPSIZED
+        {
+            double cx;
+            double cy;
+        };
+    }
     public class CWhPointD : CWhVirtual
     {
 
@@ -1423,7 +1846,6 @@ namespace TopwinLaser2016
         public CWhPointD m_ptdTopLeft = new CWhPointD();
         public CWhPointD m_ptdBtmRight = new CWhPointD();        
     }
-
     public class CWhLine : CWhVirtual
     {
         public static AFX_CORE_DATA CRuntimeClass classclass_name = new AFX_CORE_DATA();
@@ -1808,4 +2230,2527 @@ namespace TopwinLaser2016
             m_colPenColor = RGB(0, 0, 0);
         }
     }
+    public class CWhLayer : CWhVirtual
+    {
+        public static AFX_CORE_DATA CRuntimeClass classclass_name = new AFX_CORE_DATA();
+        //C++ TO C# CONVERTER WARNING: 'const' methods are not available in C#:
+        //ORIGINAL LINE: virtual CRuntimeClass GetRuntimeClass() const
+        public override CRuntimeClass GetRuntimeClass()
+        {
+            return ((CRuntimeClass)(GlobalMembersWhLayer.CWhLayer.classCWhLayer));
+        }
+#endif static CObject __stdcall CreateObject(); friend CArchive& __stdcall operator >>(CArchive& ar, CWhLayer &pOb); public: CWhLayer();
+        public override void Dispose()
+        {
+
+            m_pListLayer.Dispose();
+            m_pListLayer = (IntPtr)0;
+            base.Dispose();
+        }
+
+        public void Serialize(ref CArchive ar)
+        {
+            GlobalMembersWhLayer.CWhVirtual.Serialize(ar);
+            m_pListLayer.Serialize(ref ar);
+            if (ar.IsLoading() != 0)
+            {
+                ar >> m_strLayerName;
+            }
+            else
+            {
+                ar << m_strLayerName;
+            }
+        }
+        public new void UpdateBoundRect()
+        {
+            m_pListLayer.UpdateBoundRect();
+            m_rcBound = m_pListLayer.m_rcBound;
+        }
+        public new void Move(int nX, int nY)
+        {
+            GlobalMembersWhLayer.CWhVirtual pObj = (IntPtr)0;
+            if (m_pListLayer.IsEmpty() == 0)
+            {
+                __POSITION pos = m_pListLayer.GetHeadPosition();
+                while (pos != null)
+                {
+                    pObj = m_pListLayer.GetNext(ref pos);
+
+                    pObj.Move(nX, nY);
+                }
+            }
+            UpdateBoundRect();
+        }
+        public void DrawHandle(ref CDC pDC)
+        {
+            CRect rcHandle = new CRect(0, 0, 2, 2);
+            pDC.DPtoLP(rcHandle);
+            CRect rcBoundLog = TransRPtoLP(m_rcBound);
+            CRect[] rcHandPoint = new CRect[5];
+
+            rcHandPoint[0].SetRect(rcBoundLog.left, rcBoundLog.top, rcBoundLog.left, rcBoundLog.top);
+            rcHandPoint[1].SetRect(rcBoundLog.right, rcBoundLog.top, rcBoundLog.right, rcBoundLog.top);
+            rcHandPoint[2].SetRect(rcBoundLog.right, rcBoundLog.bottom, rcBoundLog.right, rcBoundLog.bottom);
+            rcHandPoint[3].SetRect(rcBoundLog.left, rcBoundLog.bottom, rcBoundLog.left, rcBoundLog.bottom);
+            rcHandPoint[4].SetRect(rcBoundLog.CenterPoint().x, rcBoundLog.CenterPoint().y, rcBoundLog.CenterPoint().x, rcBoundLog.CenterPoint().y);
+            for (int i = 0; i < 5; i++)
+            {
+                rcHandPoint[i].InflateRect(rcHandle.Width(), rcHandle.Height());
+            }
+
+            CPen pOldPen = (IntPtr)0;
+            CPen pen = new CPen();
+            pen.CreatePen(PS_SOLID, rcHandle.Width()  2, RGB(255, 0, 0));
+            pOldPen = pDC.SelectObject(pen);
+
+            for (int j = 0; j < 5; j++)
+            {
+                pDC.Rectangle(rcHandPoint[j]);
+            }
+            pDC.SelectObject(pOldPen);
+        }
+        public void DrawArrow(ref CDC pDC)
+        {
+
+        }
+        public void DrawStartPoint(ref CDC pDC)
+        {
+            GlobalMembersWhLayer.CWhVirtual pObj = (IntPtr)0;
+            __POSITION pos = m_pListLayer.GetHeadPosition();
+            while (pos != null)
+            {
+                pObj = m_pListLayer.GetNext(ref pos);
+                pObj.DrawStartPoint(ref pDC);
+            }
+        }
+        public void Draw(ref CDC pDC, CRect rcClient)
+        {
+            if (m_bIsShow)
+            {
+
+                CRect rcInterSectRect = new CRect(0, 0, 0, 0);
+                CRect rcClientReal = TransDPtoRP(rcClient, pDC);
+                if (!rcInterSectRect.IntersectRect(m_rcBound, rcClientReal))
+                {
+                    return;
+                }
+
+
+                GlobalMembersWhLayer.CWhVirtual pObj = (IntPtr)0;
+                __POSITION pos = m_pListLayer.GetHeadPosition();
+                while (pos != null)
+                {
+                    pObj = m_pListLayer.GetNext(ref pos);
+                    pObj.Draw(ref pDC, rcClient);
+                }
+
+
+                if (m_bIsShowHandle)
+                {
+                    DrawHandle(ref pDC);
+                }
+            }
+        }
+        public void DrawNumber(ref CDC pDC)
+        {
+            GlobalMembersWhLayer.CWhVirtual pObj = (IntPtr)0;
+            __POSITION pos = m_pListLayer.GetHeadPosition();
+            while (pos != null)
+            {
+                pObj = m_pListLayer.GetNext(ref pos);
+                pObj.DrawNumber(ref pDC);
+            }
+        }
+        public new CPoint GetStartPoint()
+        {
+            CPoint ptRet = new CPoint(0, 0);
+            GlobalMembersWhLayer.CWhVirtual pObj = m_pListLayer.GetHead();
+            ptRet = pObj.GetStartPoint();
+            return ptRet;
+        }
+        public new CPoint GetEndPoint()
+        {
+            CPoint ptRet = new CPoint(0, 0);
+            GlobalMembersWhLayer.CWhVirtual pObj = m_pListLayer.GetTail();
+            ptRet = pObj.GetEndPoint();
+            return ptRet;
+        }
+
+        public new void SetPenColor(uint colRef)
+        {
+            GlobalMembersWhLayer.CWhVirtual pObj = (IntPtr)0;
+            __POSITION posObj = m_pListLayer.GetHeadPosition();
+            while (posObj != null)
+            {
+                pObj = m_pListLayer.GetNext(ref posObj);
+                pObj.SetPenColor(colRef);
+            }
+        }
+        public new void SetObjDefaultProperty()
+        {
+            GlobalMembersWhLayer.CWhVirtual pObj = (IntPtr)0;
+            __POSITION posObj = m_pListLayer.GetHeadPosition();
+            while (posObj != null)
+            {
+                pObj = m_pListLayer.GetNext(ref posObj);
+                pObj.SetObjDefaultProperty();
+            }
+        }
+        public new void SetMachineCount(int nMachineCount)
+        {
+
+            m_nMachineCount = nMachineCount;
+
+            GlobalMembersWhLayer.CWhVirtual pObj = (IntPtr)0;
+            __POSITION posObj = m_pListLayer.GetHeadPosition();
+            while (posObj != null)
+            {
+                pObj = m_pListLayer.GetNext(ref posObj);
+                pObj.SetMachineCount(nMachineCount);
+            }
+        }
+        public new void SetMachineFrequence(int nMachineFrequence)
+        {
+
+            m_nMachineFrequence = nMachineFrequence;
+
+            GlobalMembersWhLayer.CWhVirtual pObj = (IntPtr)0;
+            __POSITION posObj = m_pListLayer.GetHeadPosition();
+            while (posObj != null)
+            {
+                pObj = m_pListLayer.GetNext(ref posObj);
+                pObj.SetMachineCount(nMachineFrequence);
+            }
+        }
+        public new void SetMachineStyle(int bMachineStyle)
+        {
+
+            m_bMachineStyle = bMachineStyle;
+
+            GlobalMembersWhLayer.CWhVirtual pObj = (IntPtr)0;
+            __POSITION posObj = m_pListLayer.GetHeadPosition();
+            while (posObj != null)
+            {
+                pObj = m_pListLayer.GetNext(ref posObj);
+                pObj.SetMachineStyle(bMachineStyle);
+            }
+        }
+
+        public new int IsSelected(CPoint ptClick, int nLimit)
+        {
+            int bRet = DefineConstantsWhLayer.FALSE;
+
+            CRect rcBound = new CRect(m_rcBound);
+            rcBound.InflateRect(nLimit, nLimit);
+            if (m_pListLayer.IsEmpty() == 0)
+            {
+                if (rcBound.PtInRect(ptClick))
+                {
+                    bRet = DefineConstantsWhLayer.TRUE;
+                    return bRet;
+                }
+            }
+
+            return bRet;
+        }
+        public new int IsSelected(CRect rcClick, int bFlagMode)
+        {
+            int bRet = DefineConstantsWhLayer.FALSE;
+
+            if (m_pListLayer.IsEmpty() != 0)
+            {
+                return bRet;
+            }
+
+            CRect rcBound = new CRect(m_rcBound);
+            CRect rcInterSectRect = new CRect(0, 0, 0, 0);
+
+            if (rcInterSectRect.IntersectRect(m_rcBound, rcClick))
+            {
+                bRet = DefineConstantsWhLayer.TRUE;
+                return bRet;
+            }
+
+            return bRet;
+        }
+        public int IsPointSnap(ref CPoint ptSnap, CPoint ptInput, double fDiatance)
+        {
+            int bRet = DefineConstantsWhLayer.FALSE;
+            if (m_rcBound.PtInRect(ptInput))
+            {
+                bRet = DefineConstantsWhLayer.TRUE;
+                return bRet;
+            }
+            return bRet;
+        }
+        public int IsStartPointSelect(ref CPoint ptRet, CPoint ptInput, double fDiatance)
+        {
+            int bRet = DefineConstantsWhLayer.FALSE;
+            return bRet;
+        }
+
+        public CWhListContainer GetListLayer()
+        {
+            return m_pListLayer;
+        }
+        public int FindObject(CWhVirtual pObj)
+        {
+            return m_pListLayer.FindObject(pObj);
+        }
+        public CWhVirtual FindObjectFromID(int lID)
+        {
+            return m_pListLayer.FindObjectFromID(lID);
+        }
+        public void MoveObjNext(CWhVirtual pObj)
+        {
+            m_pListLayer.MoveObjNext(pObj);
+        }
+        public void MoveObjPrev(CWhVirtual pObj)
+        {
+            m_pListLayer.MoveObjPrev(pObj);
+        }
+
+        public void AddObject(CWhVirtual pObj)
+        {
+            m_pListLayer.AddObject(pObj);
+            m_rcBound = m_pListLayer.m_rcBound;
+        }
+        public void AddObjects(CWhListContainer pListObj)
+        {
+            m_pListLayer.AddObjects(pListObj);
+            m_rcBound = m_pListLayer.m_rcBound;
+        }
+
+        public int RemoveObject(CWhVirtual pObj)
+        {
+            return RemoveObject(pObj, DefineConstantsWhLayer.FALSE);
+        }
+        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
+        //ORIGINAL LINE: int RemoveObject(CWhVirtual pObj, int bFlagDepth = DefineConstantsWhLayer.FALSE)
+        public int RemoveObject(CWhVirtual pObj, int bFlagDepth)
+        {
+            return m_pListLayer.RemoveObject(pObj, bFlagDepth);
+        }
+        public void RemoveObjects(CWhListContainer pListObj)
+        {
+            RemoveObjects(pListObj, DefineConstantsWhLayer.FALSE);
+        }
+        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
+        //ORIGINAL LINE: void RemoveObjects(CWhListContainer pListObj, int bFlagDepth = DefineConstantsWhLayer.FALSE)
+        public void RemoveObjects(CWhListContainer pListObj, int bFlagDepth)
+        {
+            m_pListLayer.RemoveObjects(pListObj, bFlagDepth);
+        }
+        public void RemoveAll()
+        {
+            RemoveAll(DefineConstantsWhLayer.FALSE);
+        }
+        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
+        //ORIGINAL LINE: void RemoveAll(int bFlagDepth = DefineConstantsWhLayer.FALSE)
+        public void RemoveAll(int bFlagDepth)
+        {
+            m_pListLayer.RemoveAll(bFlagDepth);
+        }
+        public void DeleteObject(CWhVirtual pObj)
+        {
+            DeleteObject(pObj, DefineConstantsWhLayer.FALSE);
+        }
+        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
+        //ORIGINAL LINE: void DeleteObject(CWhVirtual pObj, int bFlagDepth = DefineConstantsWhLayer.FALSE)
+        public void DeleteObject(CWhVirtual pObj, int bFlagDepth)
+        {
+            m_pListLayer.DeleteObject(pObj, bFlagDepth);
+        }
+        public void DeleteObjects(CWhListContainer pListObj)
+        {
+            DeleteObjects(pListObj, DefineConstantsWhLayer.FALSE);
+        }
+        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
+        //ORIGINAL LINE: void DeleteObjects(CWhListContainer pListObj, int bFlagDepth = DefineConstantsWhLayer.FALSE)
+        public void DeleteObjects(CWhListContainer pListObj, int bFlagDepth)
+        {
+            m_pListLayer.DeleteObjects(pListObj, bFlagDepth);
+        }
+        public void DeleteAll()
+        {
+            DeleteAll(DefineConstantsWhLayer.FALSE);
+        }
+        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
+        //ORIGINAL LINE: void DeleteAll(int bFlagDepth = DefineConstantsWhLayer.FALSE)
+        public void DeleteAll(int bFlagDepth)
+        {
+            m_pListLayer.DeleteAll(bFlagDepth);
+        }
+
+        public void SetLayerName(string strLayerName)
+        {
+            m_strLayerName = strLayerName;
+        }
+        public string GetLayerName()
+        {
+            return m_strLayerName;
+        }
+
+        public GlobalMembersWhLayer.CWhListContainer m_pListLayer;
+        public string m_strLayerName;
+    }
+    public class CWhGroup : CWhVirtual
+    {
+        public static AFX_CORE_DATA CRuntimeClass classclass_name = new AFX_CORE_DATA();
+        //C++ TO C# CONVERTER WARNING: 'const' methods are not available in C#:
+        //ORIGINAL LINE: virtual CRuntimeClass GetRuntimeClass() const
+        public override CRuntimeClass GetRuntimeClass()
+        {
+            return ((CRuntimeClass)(GlobalMembersWhGroup.CWhGroup.classCWhGroup));
+        }
+#endif static CObject __stdcall CreateObject(); friend CArchive& __stdcall operator >>(CArchive& ar, CWhGroup &pOb); public: CWhGroup();
+        public override void Dispose()
+        {
+
+            m_pListGroup.Dispose();
+            m_pListGroup = (IntPtr)0;
+            base.Dispose();
+        }
+
+        public void Serialize(ref CArchive ar)
+        {
+            GlobalMembersWhGroup.CWhVirtual.Serialize(ar);
+            m_pListGroup.Serialize(ref ar);
+            if (ar.IsStoring() != 0)
+            {
+                ar << m_rcGridBound;
+            }
+            else
+            {
+                ar >> m_rcGridBound;
+            }
+        }
+        public new void UpdateBoundRect()
+        {
+            m_pListGroup.UpdateBoundRect();
+            m_rcBound = m_pListGroup.m_rcBound;
+        }
+        public new void Move(int nX, int nY)
+        {
+            GlobalMembersWhGroup.CWhVirtual pObj = (IntPtr)0;
+            if (m_pListGroup.IsEmpty() == 0)
+            {
+                __POSITION pos = m_pListGroup.GetHeadPosition();
+                while (pos != null)
+                {
+                    pObj = m_pListGroup.GetNext(ref pos);
+
+                    pObj.Move(nX, nY);
+                }
+            }
+            UpdateBoundRect();
+        }
+        public void DrawHandle(ref CDC pDC)
+        {
+            GlobalMembersWhGroup.CWhVirtual pObjFirst = m_pListGroup.GetHead();
+            GlobalMembersWhGroup.CWhVirtual pObjEnd = m_pListGroup.GetTail();
+
+            CPoint ptStart = new CPoint();
+            CPoint ptEnd = new CPoint();
+
+            ptStart = TransRPtoLP(pObjFirst.GetStartPoint());
+            ptEnd = TransRPtoLP(pObjEnd.GetEndPoint());
+
+            CRect rcHandle = new CRect(0, 0, 2, 2);
+            pDC.DPtoLP(rcHandle);
+            CRect rcStart = new CRect(ptStart.x, ptStart.y, ptStart.x, ptStart.y);
+            CRect rcEnd = new CRect(ptEnd.x, ptEnd.y, ptEnd.x, ptEnd.y);
+            rcStart.InflateRect(rcHandle.Width(), rcHandle.Height());
+            rcEnd.InflateRect(rcHandle.Width(), rcHandle.Height());
+
+
+            CPen pOldPen = (IntPtr)0;
+            CPen pen = new CPen();
+            pen.CreatePen(PS_SOLID, rcHandle.Width()  2, RGB(0, 0, 255));
+            pOldPen = pDC.SelectObject(pen);
+            pDC.Rectangle(rcEnd);
+
+            pDC.SelectObject(pOldPen);
+
+
+            CPen pOldPen1 = (IntPtr)0;
+            CPen pen1 = new CPen();
+            pen1.CreatePen(PS_SOLID, rcHandle.Width()  2, RGB(255, 0, 0));
+            pOldPen1 = pDC.SelectObject(pen1);
+            pDC.Rectangle(rcStart);
+
+            pDC.SelectObject(pOldPen1);
+        }
+        public void DrawArrow(ref CDC pDC)
+        {
+
+        }
+        public void DrawStartPoint(ref CDC pDC)
+        {
+            GlobalMembersWhGroup.CWhVirtual pObjStart = m_pListGroup.GetHead();
+            if (pObjStart != null)
+            {
+                pObjStart.DrawStartPoint(ref pDC);
+            }
+        }
+        public void DrawNumber(ref CDC pDC)
+        {
+            GlobalMembersWhGroup.CWhVirtual pObjFirst = m_pListGroup.GetHead();
+            string strNum;
+            strNum.Format("%d", m_lID);
+            CPoint pt = TransRPtoLP(pObjFirst.GetStartPoint());
+            pDC.TextOut(pt.x, pt.y, strNum);
+        }
+        public void Draw(ref CDC pDC, CRect rcClient)
+        {
+            if (m_bIsShow)
+            {
+
+                CRect rcInterSectRect = new CRect(0, 0, 0, 0);
+                CRect rcClientReal = TransDPtoRP(rcClient, pDC);
+                if (!rcInterSectRect.IntersectRect(m_rcBound, rcClientReal))
+                {
+                    return;
+                }
+
+                GlobalMembersWhGroup.CWhVirtual pObj = (IntPtr)0;
+                __POSITION pos = m_pListGroup.GetHeadPosition();
+                while (pos != null)
+                {
+                    pObj = m_pListGroup.GetNext(ref pos);
+                    pObj.Draw(ref pDC, rcClient);
+                }
+
+
+                if (m_bIsShowHandle)
+                {
+                    DrawHandle(ref pDC);
+                }
+            }
+        }
+        public new void ExchangeStartToEnd()
+        {
+
+            GlobalMembersWhGroup.CWhVirtual pObj = (IntPtr)0;
+            __POSITION posObj = m_pListGroup.GetHeadPosition();
+            while (posObj != null)
+            {
+                pObj = m_pListGroup.GetNext(ref posObj);
+                pObj.ExchangeStartToEnd();
+            }
+
+            m_pListGroup.AntiList();
+        }
+        public new CPoint GetStartPoint()
+        {
+            CPoint ptRet = new CPoint(0, 0);
+            GlobalMembersWhGroup.CWhVirtual pObj = m_pListGroup.GetHead();
+            ptRet = pObj.GetStartPoint();
+            return ptRet;
+        }
+        public new CPoint GetEndPoint()
+        {
+            CPoint ptRet = new CPoint(0, 0);
+            GlobalMembersWhGroup.CWhVirtual pObj = m_pListGroup.GetTail();
+            ptRet = pObj.GetEndPoint();
+            return ptRet;
+        }
+
+        public new void SetPenColor(uint colRef)
+        {
+            GlobalMembersWhGroup.CWhVirtual pObj = (IntPtr)0;
+            __POSITION posObj = m_pListGroup.GetHeadPosition();
+            while (posObj != null)
+            {
+                pObj = m_pListGroup.GetNext(ref posObj);
+                pObj.SetPenColor(colRef);
+            }
+        }
+        public new void SetObjDefaultProperty()
+        {
+            GlobalMembersWhGroup.CWhVirtual pObj = (IntPtr)0;
+            __POSITION posObj = m_pListGroup.GetHeadPosition();
+            while (posObj != null)
+            {
+                pObj = m_pListGroup.GetNext(ref posObj);
+                pObj.SetObjDefaultProperty();
+            }
+        }
+        public new void SetMachineCount(int nMachineCount)
+        {
+
+            m_nMachineCount = nMachineCount;
+
+            GlobalMembersWhGroup.CWhVirtual pObj = (IntPtr)0;
+            __POSITION posObj = m_pListGroup.GetHeadPosition();
+            while (posObj != null)
+            {
+                pObj = m_pListGroup.GetNext(ref posObj);
+                pObj.SetMachineCount(nMachineCount);
+            }
+        }
+        public new void SetMachineFrequence(int nMachineFrequence)
+        {
+
+            m_nMachineFrequence = nMachineFrequence;
+
+            GlobalMembersWhGroup.CWhVirtual pObj = (IntPtr)0;
+            __POSITION posObj = m_pListGroup.GetHeadPosition();
+            while (posObj != null)
+            {
+                pObj = m_pListGroup.GetNext(ref posObj);
+                pObj.SetMachineCount(nMachineFrequence);
+            }
+        }
+        public new void SetMachineStyle(int bMachineStyle)
+        {
+
+            m_bMachineStyle = bMachineStyle;
+
+            GlobalMembersWhGroup.CWhVirtual pObj = (IntPtr)0;
+            __POSITION posObj = m_pListGroup.GetHeadPosition();
+            while (posObj != null)
+            {
+                pObj = m_pListGroup.GetNext(ref posObj);
+                pObj.SetMachineStyle(bMachineStyle);
+            }
+        }
+
+        public new int IsSelected(CPoint ptClick, int nLimit)
+        {
+            int bRet = DefineConstantsWhGroup.FALSE;
+            if (m_pListGroup.IsEmpty() == 0)
+            {
+
+                CRect rcBound = new CRect(m_rcBound);
+                rcBound.InflateRect(nLimit, nLimit);
+
+                if (rcBound.PtInRect(ptClick))
+                {
+
+                    GlobalMembersWhGroup.CWhVirtual pObjSelect = (IntPtr)0;
+                    __POSITION posSelect = m_pListGroup.GetHeadPosition();
+                    while (posSelect != null)
+                    {
+                        pObjSelect = m_pListGroup.GetNext(ref posSelect);
+
+                        if (pObjSelect.IsSelected(ptClick, nLimit) != 0)
+                        {
+                            bRet = DefineConstantsWhGroup.TRUE;
+                            return bRet;
+                        }
+                    }
+                }
+            }
+
+            return bRet;
+        }
+        public new int IsSelected(CRect rcClick, int bFlagMode)
+        {
+            int bRet = DefineConstantsWhGroup.FALSE;
+            CRect rcBound = new CRect(m_rcBound);
+            CRect rcInterSectRect = new CRect(0, 0, 0, 0);
+
+            if (bFlagMode == -1)
+            {
+                if (rcInterSectRect.IntersectRect(m_rcBound, rcClick))
+                {
+                    GlobalMembersWhGroup.CWhVirtual pObjSelect = (IntPtr)0;
+                    __POSITION posSelect = m_pListGroup.GetHeadPosition();
+                    while (posSelect != null)
+                    {
+                        pObjSelect = m_pListGroup.GetNext(ref posSelect);
+
+                        if (pObjSelect.IsSelected(rcClick, bFlagMode) != 0)
+                        {
+                            bRet = DefineConstantsWhGroup.TRUE;
+                            return bRet;
+                        }
+                    }
+                }
+            }
+            else if (bFlagMode == 1)
+            {
+                rcInterSectRect.IntersectRect(m_rcBound, rcClick);
+                if (rcInterSectRect == m_rcBound)
+                {
+                    bRet = DefineConstantsWhGroup.TRUE;
+                    return bRet;
+                }
+            }
+
+            return bRet;
+        }
+        public int IsPointSnap(ref CPoint ptSnap, CPoint ptInput, double fDiatance)
+        {
+            int bRet = DefineConstantsWhGroup.FALSE;
+            if (m_rcBound.PtInRect(ptInput))
+            {
+                bRet = DefineConstantsWhGroup.TRUE;
+                return bRet;
+            }
+            return bRet;
+        }
+        public int IsStartPointSelect(ref CPoint ptRet, CPoint ptInput, double fDiatance)
+        {
+            int bRet = DefineConstantsWhGroup.FALSE;
+            CRect rcSnap = m_rcBound;
+            rcSnap.InflateRect(2 * (int)fDiatance, 2 * (int)fDiatance);
+
+            if (!rcSnap.PtInRect(ptInput))
+            {
+                return DefineConstantsWhGroup.FALSE;
+            }
+
+            GlobalMembersWhGroup.CWhVirtual pObj = (IntPtr)0;
+            __POSITION posObj = m_pListGroup.GetHeadPosition();
+            pObj = m_pListGroup.GetNext(ref posObj);
+            if (pObj.IsStartPointSelect(ref ptRet, ptInput, fDiatance) != 0)
+            {
+                bRet = DefineConstantsWhGroup.TRUE;
+                return bRet;
+            }
+            return bRet;
+        }
+
+        public int FindObject(CWhVirtual pObj)
+        {
+            return m_pListGroup.FindObject(pObj);
+        }
+        public CWhListContainer GetListGroup()
+        {
+            return m_pListGroup;
+        }
+
+        public void AddObject(CWhVirtual pObj)
+        {
+            m_pListGroup.AddObject(pObj);
+            m_rcBound = m_pListGroup.m_rcBound;
+        }
+        public void AddObjects(CWhListContainer pListObj)
+        {
+            m_pListGroup.AddObjects(pListObj);
+            m_rcBound = m_pListGroup.m_rcBound;
+        }
+
+        public int RemoveObject(CWhVirtual pObj)
+        {
+            return RemoveObject(pObj, DefineConstantsWhGroup.FALSE);
+        }
+        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
+        //ORIGINAL LINE: int RemoveObject(CWhVirtual pObj, int bFlagDepth = DefineConstantsWhGroup.FALSE)
+        public int RemoveObject(CWhVirtual pObj, int bFlagDepth)
+        {
+            return m_pListGroup.RemoveObject(pObj, bFlagDepth);
+        }
+        public void RemoveObjects(CWhListContainer pListObj)
+        {
+            RemoveObjects(pListObj, DefineConstantsWhGroup.FALSE);
+        }
+        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
+        //ORIGINAL LINE: void RemoveObjects(CWhListContainer pListObj, int bFlagDepth = DefineConstantsWhGroup.FALSE)
+        public void RemoveObjects(CWhListContainer pListObj, int bFlagDepth)
+        {
+            m_pListGroup.RemoveObjects(pListObj, bFlagDepth);
+        }
+        public void RemoveAll()
+        {
+            RemoveAll(DefineConstantsWhGroup.FALSE);
+        }
+        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
+        //ORIGINAL LINE: void RemoveAll(int bFlagDepth = DefineConstantsWhGroup.FALSE)
+        public void RemoveAll(int bFlagDepth)
+        {
+            m_pListGroup.RemoveAll(bFlagDepth);
+        }
+        public void DeleteObject(CWhVirtual pObj)
+        {
+            DeleteObject(pObj, DefineConstantsWhGroup.FALSE);
+        }
+        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
+        //ORIGINAL LINE: void DeleteObject(CWhVirtual pObj, int bFlagDepth = DefineConstantsWhGroup.FALSE)
+        public void DeleteObject(CWhVirtual pObj, int bFlagDepth)
+        {
+            m_pListGroup.DeleteObject(pObj, bFlagDepth);
+        }
+        public void DeleteObjects(CWhListContainer pListObj)
+        {
+            DeleteObjects(pListObj, DefineConstantsWhGroup.FALSE);
+        }
+        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
+        //ORIGINAL LINE: void DeleteObjects(CWhListContainer pListObj, int bFlagDepth = DefineConstantsWhGroup.FALSE)
+        public void DeleteObjects(CWhListContainer pListObj, int bFlagDepth)
+        {
+            m_pListGroup.DeleteObjects(pListObj, bFlagDepth);
+        }
+        public void DeleteAll()
+        {
+            DeleteAll(DefineConstantsWhGroup.FALSE);
+        }
+        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
+        //ORIGINAL LINE: void DeleteAll(int bFlagDepth = DefineConstantsWhGroup.FALSE)
+        public void DeleteAll(int bFlagDepth)
+        {
+            m_pListGroup.DeleteAll(bFlagDepth);
+        }
+
+        public void ConnectHeadToEnd()
+        {
+
+        }
+        public void Apart()
+        {
+            GlobalMembersWhGroup.CWhVirtual pObj = (IntPtr)0;
+            __POSITION posObj = m_pListGroup.GetHeadPosition();
+            while (posObj != null)
+            {
+                pObj = m_pListGroup.GetNext(ref posObj);
+                m_pParentList.AddObject(pObj);
+
+                pObj.m_pParentList = m_pParentList;
+            }
+        }
+
+        public GlobalMembersWhGroup.CWhListContainer m_pListGroup;
+        public CRect m_rcGridBound = new CRect();
+        public string m_strParentLayerName;
+    }
+    public class CWhEllipse : CWhVirtual
+    { //圆和矩形,椭圆类
+        public static AFX_CORE_DATA CRuntimeClass classclass_name = new AFX_CORE_DATA();
+        //C++ TO C# CONVERTER WARNING: 'const' methods are not available in C#:
+        //ORIGINAL LINE: virtual CRuntimeClass GetRuntimeClass() const
+        public override CRuntimeClass GetRuntimeClass()
+        {
+            return ((CRuntimeClass)(GlobalMembersWhEllipse.CWhEllipse.classCWhEllipse));
+        }
+#endif static CObject __stdcall CreateObject(); friend CArchive& __stdcall operator >>(CArchive& ar, CWhEllipse &pOb); public: CWhEllipse();
+        public CWhEllipse(CRect rcEllipse) : this(rcEllipse, 0)
+        {
+        }
+        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
+        //ORIGINAL LINE: CWhEllipse(CRect rcEllipse, int nTypeObj = 0)
+        public CWhEllipse(CRect rcEllipse, int nTypeObj)
+        {
+            m_nObjType = DefineConstantsWhEllipse.WH_TYPE_ELLIPSE;
+            m_nEllipseType = nTypeObj;
+
+            m_rcBound = rcEllipse;
+            m_nRadium = (int)((m_rcBound.Width() + m_rcBound.Height()) / 4.0);
+            SetObjDefaultProperty();
+        }
+        public override void Dispose()
+        {
+            m_nRadium = 0;
+            base.Dispose();
+        }
+
+        public int m_nRadium;
+        public int m_nEllipseType;
+
+        public void Serialize(ref CArchive ar)
+        {
+            GlobalMembersWhEllipse.CWhVirtual.Serialize(ar);
+
+            if (ar.IsStoring() != 0)
+            {
+                ar << m_nEllipseType << m_nRadium;
+            }
+            else
+            {
+                ar >> m_nEllipseType >> m_nRadium;
+            }
+        }
+        public new void UpdateBoundRect()
+        {
+            m_rcBound.NormalizeRect();
+            m_nRadium = (int)((m_rcBound.Width() + m_rcBound.Height()) / 4.0);
+        }
+        public void Draw(ref CDC pDC, CRect rcClient)
+        {
+
+            if (m_bIsShow)
+            {
+
+                CRect rcInterSectRect = new CRect(0, 0, 0, 0);
+                CRect rcClientReal = TransDPtoRP(rcClient, pDC);
+                if (!rcInterSectRect.IntersectRect(m_rcBound, rcClientReal))
+                {
+                    return;
+                }
+
+
+                CRect rcEllipse = new CRect();
+
+                rcEllipse = TransRPtoLP(m_rcBound);
+
+
+                CPen pOldPen = (IntPtr)0;
+                CPen penEllipse = new CPen();
+                penEllipse.CreatePen(PS_SOLID, m_nPenWidth, m_colPenColor);
+                pOldPen = pDC.SelectObject(penEllipse);
+
+
+                CBrush pOldBrush = (IntPtr)0;
+                CBrush brushEllipse = new CBrush();
+                if (m_bIsFilled)
+                {
+
+                    int bRet = brushEllipse.CreateSolidBrush(m_colBrush);
+                    pOldBrush = pDC.SelectObject(brushEllipse);
+                }
+                else
+                {
+                    IntPtr hGdi = GetStockObject(NULL_BRUSH);
+                    CBrush pBrush = CBrush.FromHandle((IntPtr)hGdi);
+                    pOldBrush = pDC.SelectObject(pBrush);
+                }
+
+
+                if (m_nEllipseType == 0)
+                {
+                    pDC.Ellipse(rcEllipse);
+                }
+                else if (m_nEllipseType == 1)
+                {
+                    pDC.Rectangle(rcEllipse);
+                }
+
+                pDC.SelectObject(pOldPen);
+                pDC.SelectObject(pOldBrush);
+
+
+                if (m_bIsShowHandle)
+                {
+                    DrawHandle(ref pDC);
+                }
+            }
+        }
+        public void DrawHandle(ref CDC pDC)
+        {
+            CRect rcBound = new CRect();
+
+            rcBound = TransRPtoLP(m_rcBound);
+
+            CRect rcHandle = new CRect(0, 0, 2, 2);
+            pDC.DPtoLP(rcHandle);
+            CRect rcBottom = new CRect((int)((rcBound.left + rcBound.right) / 2), rcBound.bottom, (int)((rcBound.left + rcBound.right) / 2), rcBound.bottom);
+            CRect rcCenter = new CRect(rcBound.CenterPoint(), rcBound.CenterPoint());
+            rcBottom.InflateRect(rcHandle.Width(), rcHandle.Height());
+            rcCenter.InflateRect(rcHandle.Width(), rcHandle.Height());
+            //设置画笔
+            CPen pOldPen = (IntPtr)0;
+            CPen pen = new CPen();
+            pen.CreatePen(PS_SOLID, rcHandle.Width()  2, RGB(0, 0, 255));
+            pOldPen = pDC.SelectObject(pen);
+            pDC.Rectangle(rcCenter);
+            //还原画笔
+            pDC.SelectObject(pOldPen);
+
+            //设置画笔
+            CPen pOldPen1 = (IntPtr)0;
+            CPen pen1 = new CPen();
+            pen1.CreatePen(PS_SOLID, rcHandle.Width()  2, RGB(255, 0, 0));
+            pOldPen1 = pDC.SelectObject(pen1);
+            pDC.Rectangle(rcBottom);
+            //还原画笔
+            pDC.SelectObject(pOldPen1);
+        }
+        public void DrawArrow(ref CDC pDC)
+        {
+
+        }
+        public void DrawStartPoint(ref CDC pDC)
+        {
+            CPoint ptStart = new CPoint(0, 0);
+            if (m_nEllipseType == 0)
+            {
+                ptStart = CPoint(m_rcBound.CenterPoint().x, m_rcBound.top);
+            }
+            else if (m_nEllipseType == 1)
+            {
+                ptStart = CPoint(m_rcBound.TopLeft());
+            }
+
+            ptStart = TransRPtoLP(ptStart);
+
+            CRect rcHandle = new CRect(0, 0, 3, 3);
+            pDC.DPtoLP(rcHandle);
+            CRect rcStart = new CRect(ptStart.x, ptStart.y, ptStart.x, ptStart.y);
+            rcStart.InflateRect(rcHandle.Width(), rcHandle.Height());
+
+            //设置画笔
+            CBrush pOldBrush = (IntPtr)0;
+            IntPtr hGdi = GetStockObject(NULL_BRUSH);
+            CBrush pBrush = CBrush.FromHandle((IntPtr)hGdi);
+            pOldBrush = pDC.SelectObject(pBrush);
+            CPen pOldPen = (IntPtr)0;
+            CPen pen = new CPen();
+            pen.CreatePen(PS_SOLID, 0, RGB(255, 0, 0));
+            pOldPen = pDC.SelectObject(pen);
+            pDC.Rectangle(rcStart);
+            //还原画笔
+            pDC.SelectObject(pOldPen);
+            pDC.SelectObject(pOldBrush);
+        }
+        public void DrawNumber(ref CDC pDC)
+        {
+
+            CPoint ptStart = new CPoint();
+            if (m_nEllipseType == 0)
+            {
+                ptStart = CPoint(m_rcBound.CenterPoint().x, m_rcBound.top);
+            }
+            else if (m_nEllipseType == 1)
+            {
+                ptStart = CPoint(m_rcBound.TopLeft());
+            }
+
+            string strNum;
+            strNum.Format("%d", m_lID);
+            CPoint pt = TransRPtoLP(ptStart);
+            pDC.TextOut(pt.x, pt.y, strNum);
+        }
+        public new int IsValid()
+        {
+            return DefineConstantsWhEllipse.TRUE;
+        }
+        public new void Move(int nX, int nY)
+        {
+            CPoint ptMove = new CPoint(nX, nY);
+            m_rcBound.TopLeft() += ptMove;
+            m_rcBound.BottomRight() += ptMove;
+            UpdateBoundRect();
+        }
+
+        public int GetRadium()
+        {
+            return m_nRadium = (int)((m_rcBound.Width() + m_rcBound.Height()) / 4.0);
+        }
+        public void SetEllipseType(int nEllipseType)
+        {
+            m_nEllipseType = nEllipseType;
+        }
+        public int GetEllipseType()
+        {
+            return m_nEllipseType;
+        }
+
+        public new int IsSelected(CPoint ptClick, int nLimit)
+        {
+            int bRet = DefineConstantsWhEllipse.FALSE;
+            int nDistance = 0;
+
+            CRect rcBound = new CRect(m_rcBound);
+            rcBound.InflateRect(nLimit, nLimit);
+
+            if (rcBound.PtInRect(ptClick))
+            {
+                if (m_bIsFilled)
+                {
+                    bRet = DefineConstantsWhEllipse.TRUE;
+                    return bRet;
+                }
+
+                if (m_nEllipseType == 0)
+                {
+                    nDistance = GlobalMembersWhEllipse.PointToPointDistance(m_rcBound.CenterPoint(), ptClick);
+                    if ((nDistance <= m_nRadium + nLimit) && (nDistance) >= m_nRadium - nLimit)
+                    {
+                        bRet = DefineConstantsWhEllipse.TRUE;
+                        return bRet;
+                    }
+                }
+                else if (m_nEllipseType == 1)
+                {
+
+                    CRect rcOut = new CRect(m_rcBound);
+                    CRect rcIn = new CRect(m_rcBound);
+                    rcOut.InflateRect(nLimit, nLimit);
+                    rcIn.DeflateRect(nLimit, nLimit);
+                    if ((rcOut.PtInRect(ptClick)) && (!rcIn.PtInRect(ptClick)))
+                    {
+                        bRet = DefineConstantsWhEllipse.TRUE;
+                        return bRet;
+                    }
+                }
+            }
+
+            return bRet;
+        }
+        public new int IsSelected(CRect rcClick, int bFlagMode)
+        {
+            int bRet = DefineConstantsWhEllipse.FALSE;
+            CRect rcBound = new CRect(m_rcBound);
+            CRect rcInterSectRect = new CRect(0, 0, 0, 0);
+
+            if (bFlagMode == -1)
+            {
+                if (rcInterSectRect.IntersectRect(m_rcBound, rcClick))
+                {
+                    bRet = DefineConstantsWhEllipse.TRUE;
+                    return bRet;
+                }
+            }
+            else if (bFlagMode == 1)
+            {
+                rcInterSectRect.IntersectRect(m_rcBound, rcClick);
+                if (rcInterSectRect == m_rcBound)
+                {
+                    bRet = DefineConstantsWhEllipse.TRUE;
+                    return bRet;
+                }
+            }
+
+            return bRet;
+        }
+        public int IsPointSnap(ref CPoint ptSnap, CPoint ptInput, double fDiatance)
+        {
+            int bRet = DefineConstantsWhEllipse.FALSE;
+            CRect rcSnap = m_rcBound;
+            rcSnap.InflateRect((int)fDiatance, (int)fDiatance);
+
+
+            if (!rcSnap.PtInRect(ptInput))
+            {
+                return DefineConstantsWhEllipse.FALSE;
+            }
+
+            CRect[] rc = new CRect[5];
+            rc[0] = CRect(m_rcBound.left, (int)((m_rcBound.bottom + m_rcBound.top) / 2), m_rcBound.left, (int)((m_rcBound.bottom + m_rcBound.top) / 2));
+            rc[1] = CRect(m_rcBound.right, (int)((m_rcBound.bottom + m_rcBound.top) / 2), m_rcBound.right, (int)((m_rcBound.bottom + m_rcBound.top) / 2));
+            rc[2] = CRect((int)((m_rcBound.bottom + m_rcBound.top) / 2), m_rcBound.top, (int)((m_rcBound.bottom + m_rcBound.top) / 2), m_rcBound.top);
+            rc[3] = CRect((int)((m_rcBound.bottom + m_rcBound.top) / 2), m_rcBound.bottom, (int)((m_rcBound.bottom + m_rcBound.top) / 2), m_rcBound.bottom);
+            rc[4] = CRect(m_rcBound.CenterPoint(), m_rcBound.CenterPoint());
+
+            for (int i = 0; i < 5; i++)
+            {
+                rc[i].InflateRect((int)fDiatance, (int)fDiatance);
+            }
+
+            if (rc[0].PtInRect(ptInput))
+            {
+                ptSnap = CPoint(m_rcBound.left, (int)((m_rcBound.bottom + m_rcBound.top) / 2));
+                bRet = DefineConstantsWhEllipse.TRUE;
+                return bRet;
+            }
+            else if (rc[1].PtInRect(ptInput))
+            {
+                ptSnap = CPoint(m_rcBound.right, (int)((m_rcBound.bottom + m_rcBound.top) / 2));
+                bRet = DefineConstantsWhEllipse.TRUE;
+                return bRet;
+            }
+            else if (rc[2].PtInRect(ptInput))
+            {
+                ptSnap = CPoint((int)((m_rcBound.bottom + m_rcBound.top) / 2), m_rcBound.top);
+                bRet = DefineConstantsWhEllipse.TRUE;
+                return bRet;
+            }
+            else if (rc[3].PtInRect(ptInput))
+            {
+                ptSnap = CPoint((int)((m_rcBound.bottom + m_rcBound.top) / 2), m_rcBound.bottom);
+                bRet = DefineConstantsWhEllipse.TRUE;
+                return bRet;
+            }
+            else if (rc[4].PtInRect(ptInput))
+            {
+                ptSnap = m_rcBound.CenterPoint();
+                bRet = DefineConstantsWhEllipse.TRUE;
+                return bRet;
+            }
+
+            return bRet;
+        }
+        public int IsStartPointSelect(ref CPoint ptRet, CPoint ptInput, double fDiatance)
+        {
+            int bRet = DefineConstantsWhEllipse.FALSE;
+            CRect rcSnap = m_rcBound;
+            rcSnap.InflateRect(2 * (int)fDiatance, 2 * (int)fDiatance);
+
+            if (!rcSnap.PtInRect(ptInput))
+            {
+                return DefineConstantsWhEllipse.FALSE;
+            }
+
+            CRect rcStart = new CRect();
+            if (m_nEllipseType == 0)
+            {
+                rcStart = CRect(CPoint(m_rcBound.CenterPoint().x, m_rcBound.top), CPoint(m_rcBound.CenterPoint().x, m_rcBound.top));
+            }
+            else if (m_nEllipseType == 1)
+            {
+                rcStart = CRect(CPoint(m_rcBound.TopLeft()), CPoint(m_rcBound.TopLeft()));
+            }
+            rcStart.InflateRect((int)fDiatance, (int)fDiatance);
+            if (rcStart.PtInRect(ptInput))
+            {
+                ptRet = rcStart.CenterPoint();
+                bRet = DefineConstantsWhEllipse.TRUE;
+                return bRet;
+            }
+            return bRet;
+        }
+
+        public new void SetObjDefaultProperty()
+        {
+            m_colPenColor = RGB(0, 255, 0);
+            if (!m_bFlagIsRegister)
+            {
+                m_colBrush = RGB(255, 0, 0); //默认的是红色刷子
+            }
+        }
+    }
+    public class CWhArc : CWhVirtual
+    {
+        public static AFX_CORE_DATA CRuntimeClass classclass_name = new AFX_CORE_DATA();
+        //C++ TO C# CONVERTER WARNING: 'const' methods are not available in C#:
+        //ORIGINAL LINE: virtual CRuntimeClass GetRuntimeClass() const;
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	virtual CRuntimeClass GetRuntimeClass();
+        //C++ TO C# CONVERTER TODO TASK: The following line could not be converted:
+#endif static CObject __stdcall CreateObject(); friend CArchive& __stdcall operator>>(CArchive& ar, CWhArc &pOb); public: CWhArc();
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	CWhArc(CPoint ptCenter, CPoint ptStart, CPoint ptEnd, int nDirection);
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	CWhArc(CRect rcBound, CPoint ptStart, CPoint ptEnd, int nDirection);
+        public override void Dispose()
+
+//C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+//	void Serialize(ref CArchive ar);
+//C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+//	void UpdateBoundRect();
+//C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+//	void Draw(ref CDC pDC, CRect rcClient);
+//C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+//	void DrawArrow(ref CDC pDC);
+//C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+//	void DrawStartPoint(ref CDC pDC);
+//C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+//	void DrawNumber(ref CDC pDC);
+//C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+//	void DrawHandle(ref CDC pDC);
+//C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+//	void Move(int nX, int nY);
+//C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+//	int IsValid();
+//C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+//	void ExchangeStartToEnd();
+
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	int IsSelected(CPoint ptClick, int nLimit);
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	int IsSelected(CRect rcClick, int bFlagMode);
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	int IsPointSnap(ref CPoint ptSnap, CPoint ptInput, double fDiatance);
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	int IsStartPointSelect(ref CPoint ptRet, CPoint ptInput, double fDiatance);
+
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	int IsObjValid();
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	void SetRadium(int nRadium);
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	void SetRadium();
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	int GetRadium();
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	int GetDirection();
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	void SetDirection(int nDirection);
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	void SetStartPoint(CPoint ptStart);
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	void SetEndPoint(CPoint ptEnd);
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	CPoint GetStartPoint();
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	CPoint GetEndPoint();
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	void SetCenterPoint(CPoint ptCenter);
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	CPoint GetCenterPoint();
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	int JustifyArcGoodOrBad();
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	int GetPointInArea(CPoint ptInput, CPoint ptCenter);
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	CRect CalBoundRect(CPoint ptStart, CPoint ptEnd, CPoint ptCenter, int nDirection, int nRadium);
+
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	void SetObjDefaultProperty();
+
+        public CRect m_rcBoundDraw = new CRect();
+        public CPoint m_ptStart = new CPoint();
+        public CPoint m_ptEnd = new CPoint();
+        public CPoint m_ptCenter = new CPoint();
+        public int m_nRadium;
+        public int m_nDirection;
+        public int m_nGoodOrBad;
+
+    }
+    public class CWhDxfClass
+    {
+
+        //////////////////////////////////////////////////////////////////////
+        // Construction/Destruction
+        //////////////////////////////////////////////////////////////////////
+
+        public CWhDxfClass()
+        {
+
+        }
+        public virtual void Dispose()
+        {
+
+        }
+
+    }
+    public class tagUpPara
+    {
+        public CPointD centerPoint = new CPointD();
+        public double fRadium;
+
+        public tagUpPara()
+        {
+            centerPoint = new CPointD(0.0, 0.0);
+            fRadium = 0.0;
+        }
+
+    }
+    public class CWhDxfEntities
+    {
+
+        //////////////////////////////////////////////////////////////////////
+        // Construction/Destruction
+        //////////////////////////////////////////////////////////////////////
+
+        public CWhDxfEntities()
+        {
+            m_pObjList = (IntPtr)0;
+            m_pCurrentLayer = (IntPtr)0;
+            m_nTypeEntities = 0;
+            m_bFlagPolyLineStart = DefineConstantsWhDxfEntities.FALSE;
+            m_nLwPolyCount = 0;
+
+            //临时对象初始化
+            m_pTemGroup = (IntPtr)0;
+            m_pTemLine = (IntPtr)0;
+            m_pTemArc = (IntPtr)0;
+            m_pTemRect = (IntPtr)0;
+
+
+            m_fDxfRatio = 1.0;
+            m_nDirection = 1;
+            m_ptStart = new CPointD(0.0, 0.0);
+            m_ptEnd = new CPointD(0.0, 0.0);
+            m_ptCenter = new CPointD(0.0, 0.0);
+            m_ptTem = new CPointD(0.0, 0.0);
+            m_ptPre = new CPointD(0.0, 0.0);
+            m_fRadium = 0.0;
+            m_fAngleStart = 0.0;
+            m_fAngleEnd = 0.0;
+            m_fUpAngle = 0.0;
+            m_nDxfCount = 0;
+            m_nClosed = 0;
+            m_fEllipseRatio = 1.0;
+        }
+        public virtual void Dispose()
+        {
+            m_pCurrentLayer = (IntPtr)0;
+            m_pTemGroup = (IntPtr)0;
+            m_pTemLine = (IntPtr)0;
+            m_pTemArc = (IntPtr)0;
+            m_pTemRect = (IntPtr)0;
+        }
+
+        public void SetList(CWhListContainer pObjList)
+        {
+            m_pObjList = pObjList;
+        }
+        public void SetEntitiesString(ref tagDXFSTRING strInput)
+        {
+            m_strEntities.strCode = strInput.strCode;
+            m_strEntities.strValue = strInput.strValue;
+        }
+        public int JustifyEntitiesType()
+        {
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringEntitiesName = m_strEntities.strCode;
+            string stringEntitiesName = new @string(m_strEntities.strCode);
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringEntitiesValue = m_strEntities.strValue;
+            string stringEntitiesValue = new @string(m_strEntities.strValue);
+
+
+            if (stringEntitiesName == "0")
+            {
+                //在下一图元开始前将当前图元加入链表
+                AddObject();
+
+                if (stringEntitiesValue == "LINE")
+                {
+                    m_nTypeEntities = 1;
+                    return DefineConstantsWhDxfEntities.TRUE;
+                }
+                else if (stringEntitiesValue == "ARC")
+                {
+                    m_nTypeEntities = 2;
+                    return DefineConstantsWhDxfEntities.TRUE;
+                }
+                else if (stringEntitiesValue == "CIRCLE")
+                {
+                    m_nTypeEntities = 3;
+                    return DefineConstantsWhDxfEntities.TRUE;
+                }
+                else if (stringEntitiesValue == "LWPOLYLINE")
+                {
+                    m_nTypeEntities = 4;
+                    //m_bFlagPolyLineStart = TRUE;
+
+                    //创建一个组并传给m_pTemGroup
+                    m_pTemGroup = DEBUG_NEW GlobalMembersWhDxfEntities.CWhGroup;
+                    return DefineConstantsWhDxfEntities.TRUE;
+                }
+                else if (stringEntitiesValue == "POLYLINE")
+                {
+                    m_nTypeEntities = 5;
+                    m_bFlagPolyLineStart = DefineConstantsWhDxfEntities.TRUE;
+
+                    //创建一个组并传给m_pTemGroup
+                    m_pTemGroup = DEBUG_NEW GlobalMembersWhDxfEntities.CWhGroup;
+                    return DefineConstantsWhDxfEntities.TRUE;
+                }
+                else if (stringEntitiesValue == "SEQEND")
+                {
+                    m_nTypeEntities = 5;
+                    m_bFlagPolyLineStart = DefineConstantsWhDxfEntities.FALSE;
+                    return DefineConstantsWhDxfEntities.TRUE;
+                }
+                else if (stringEntitiesValue == "VERTEX")
+                {
+                    m_nTypeEntities = 6;
+                    return DefineConstantsWhDxfEntities.TRUE;
+                }
+                else if (stringEntitiesValue == "POINT")
+                {
+                    m_nTypeEntities = 7;
+                    return DefineConstantsWhDxfEntities.TRUE;
+                }
+                else if (stringEntitiesValue == "ELLIPSE")
+                {
+                    m_nTypeEntities = 8;
+                    return DefineConstantsWhDxfEntities.TRUE;
+                }
+                else
+                {
+                    m_nTypeEntities = 0;
+                    return DefineConstantsWhDxfEntities.TRUE;
+                }
+
+
+            }
+
+            int ret = true;
+            switch (m_nTypeEntities)
+            {
+                case 1:
+                    ret = AnalyseLine(ref m_strEntities);
+
+                    break;
+                case 2:
+                    ret = AnalyseArc(ref m_strEntities);
+
+                    break;
+                case 3:
+                    ret = AnalyseCircle(ref m_strEntities);
+
+                    break;
+                case 4:
+                    ret = AnalyseLwPolyLine(ref m_strEntities);
+
+                    break;
+                case 5:
+                    ret = AnalysePolyLine(ref m_strEntities);
+
+                    break;
+                case 6:
+                    ret = AnalyseVertex(ref m_strEntities);
+
+                    break;
+                case 7:
+                    ret = AnalysePoint(ref m_strEntities);
+
+                    break;
+                case 8:
+                    ret = AnalyseEllipse(ref m_strEntities);
+                    break;
+            }
+
+            return ret;
+        }
+        public void ReSetPara()
+        {
+            m_ptStart = new CPointD(0.0, 0.0);
+            m_ptEnd = new CPointD(0.0, 0.0);
+            m_ptCenter = new CPointD(0.0, 0.0);
+            m_fRadium = 0.0;
+            m_nDirection = 1;
+        }
+
+        public int AnalyseLine(ref tagDXFSTRING strEntities)
+        {
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringLineName = strEntities.strCode;
+            string stringLineName = new @string(strEntities.strCode);
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringLineValue = strEntities.strValue;
+            string stringLineValue = new @string(strEntities.strValue);
+
+            if (stringLineName == "5" || stringLineName == "330" || stringLineName == "100") //handle ,ignore
+            {
+                return false;
+            }
+            else
+            if (stringLineName == "8")
+            {
+                string strLayerName;
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                strLayerName.Format("%s", stringLineValue.c_str());
+
+
+                m_pCurrentLayer = SearchLayer(ref strLayerName);
+                if (m_pCurrentLayer == null)
+                {
+
+                    m_pCurrentLayer = DEBUG_NEW GlobalMembersWhDxfEntities.CWhLayer;
+
+                    m_pObjList.AddTail(m_pCurrentLayer);
+                    m_pCurrentLayer.SetLayerName(strLayerName);
+                }
+
+
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringLineName == "10")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptStart.x = Convert.Todouble(stringLineValue.c_str())  m_fDxfRatio; //m_fDxfRatio
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringLineName == "20")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptStart.y = Convert.Todouble(stringLineValue.c_str())  m_fDxfRatio;
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringLineName == "11")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptEnd.x = Convert.Todouble(stringLineValue.c_str())  m_fDxfRatio;
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringLineName == "21")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptEnd.y = Convert.Todouble(stringLineValue.c_str())  m_fDxfRatio;
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+
+            return DefineConstantsWhDxfEntities.TRUE;
+        }
+        public int AnalyseArc(ref tagDXFSTRING strEntities)
+        {
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringArcName = strEntities.strCode;
+            string stringArcName = new @string(strEntities.strCode);
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringArcValue = strEntities.strValue;
+            string stringArcValue = new @string(strEntities.strValue);
+
+            if (stringArcName == "5" || stringArcName == "330" || stringArcName == "100") //handle ,ignore
+            {
+                return false;
+            }
+            else if (stringArcName == "8")
+            {
+                string strLayerName;
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                strLayerName.Format("%s", stringArcValue.c_str());
+
+
+                m_pCurrentLayer = SearchLayer(ref strLayerName);
+                if (m_pCurrentLayer == null)
+                {
+
+                    m_pCurrentLayer = DEBUG_NEW GlobalMembersWhDxfEntities.CWhLayer;
+
+                    m_pObjList.AddTail(m_pCurrentLayer);
+                    m_pCurrentLayer.SetLayerName(strLayerName);
+                }
+
+
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringArcName == "10")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptCenter.x = Convert.Todouble(stringArcValue.c_str())  m_fDxfRatio;
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringArcName == "20")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptCenter.y = Convert.Todouble(stringArcValue.c_str())  m_fDxfRatio;
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringArcName == "40")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_fRadium = Convert.Todouble(stringArcValue.c_str())  m_fDxfRatio;
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringArcName == "50")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_fAngleStart = (Convert.Todouble(stringArcValue.c_str()) / 180)  DefineConstantsWhDxfEntities.PI;
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringArcName == "51")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_fAngleEnd = (Convert.Todouble(stringArcValue.c_str()) / 180)  DefineConstantsWhDxfEntities.PI;
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+
+            return DefineConstantsWhDxfEntities.TRUE;
+        }
+        public int AnalyseCircle(ref tagDXFSTRING strEntities)
+        {
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringCircleName = strEntities.strCode;
+            string stringCircleName = new @string(strEntities.strCode);
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringCircleValue = strEntities.strValue;
+            string stringCircleValue = new @string(strEntities.strValue);
+
+            if (stringCircleName == "5" || stringCircleName == "330" || stringCircleName == "100") //handle ,ignore
+            {
+                return false;
+            }
+            else if (stringCircleName == "8")
+            {
+                string strLayerName;
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                strLayerName.Format("%s", stringCircleValue.c_str());
+
+
+                m_pCurrentLayer = SearchLayer(ref strLayerName);
+                if (m_pCurrentLayer == null)
+                {
+
+                    m_pCurrentLayer = DEBUG_NEW GlobalMembersWhDxfEntities.CWhLayer;
+
+                    m_pObjList.AddTail(m_pCurrentLayer);
+                    m_pCurrentLayer.SetLayerName(strLayerName);
+                }
+
+
+
+            }
+            else if (stringCircleName == "10")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptCenter.x = Convert.Todouble(stringCircleValue.c_str())  m_fDxfRatio; //m_fDxfRatio
+
+            }
+            else if (stringCircleName == "20")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptCenter.y = Convert.Todouble(stringCircleValue.c_str())  m_fDxfRatio;
+                //return TRUE;
+            }
+            else if (stringCircleName == "40")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_fRadium = Convert.Todouble(stringCircleValue.c_str())  m_fDxfRatio;
+                //return TRUE;
+            }
+
+            return DefineConstantsWhDxfEntities.TRUE;
+        }
+        public int AnalyseRect(ref tagDXFSTRING strEntities)
+        {
+            return DefineConstantsWhDxfEntities.TRUE;
+        }
+
+        ///////////////////////////////////////////////////////////////////////////////
+
+        public int AnalyseLwPolyLine(ref tagDXFSTRING strEntities)
+        {
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringLwPolyLineName = strEntities.strCode;
+            string stringLwPolyLineName = new @string(strEntities.strCode);
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringLwPolyLineValue = strEntities.strValue;
+            string stringLwPolyLineValue = new @string(strEntities.strValue);
+
+            if (stringLwPolyLineName == "5" || stringLwPolyLineName == "330") //handle ,ignore
+            {
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringLwPolyLineName == "8")
+            {
+                string strLayerName;
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                strLayerName.Format("%s", stringLwPolyLineValue.c_str());
+
+                m_pCurrentLayer = SearchLayer(ref strLayerName);
+                if (m_pCurrentLayer == null)
+                {
+                    m_pCurrentLayer = DEBUG_NEW GlobalMembersWhDxfEntities.CWhLayer;
+
+                    m_pObjList.AddTail(m_pCurrentLayer);
+                    m_pCurrentLayer.SetLayerName(strLayerName);
+                }
+
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringLwPolyLineName == "90")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_nLwPolyCount = Convert.ToInt32(stringLwPolyLineValue.c_str());
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringLwPolyLineName == "10")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptTem.x = Convert.Todouble(stringLwPolyLineValue.c_str())  m_fDxfRatio;
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringLwPolyLineName == "20")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptTem.y = Convert.Todouble(stringLwPolyLineValue.c_str())  m_fDxfRatio;
+
+                if (m_nDxfCount == 0)
+                {
+                    m_nDxfCount++;
+                    //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created if it does not yet exist:
+                    //ORIGINAL LINE: m_ptStart = m_ptTem;
+                    m_ptStart.CopyFrom(m_ptTem);
+                    //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created if it does not yet exist:
+                    //ORIGINAL LINE: m_ptPre = m_ptTem;
+                    m_ptPre.CopyFrom(m_ptTem);
+                    return DefineConstantsWhDxfEntities.TRUE;
+                }
+
+                AddObjectWithUpAngle(m_pTemGroup, ref m_ptPre, ref m_ptTem, ref m_fUpAngle);
+                m_fUpAngle = 0;
+                m_nDxfCount++;
+                //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created if it does not yet exist:
+                //ORIGINAL LINE: m_ptPre = m_ptTem;
+                m_ptPre.CopyFrom(m_ptTem);
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringLwPolyLineName == "42" || stringLwPolyLineName == "43")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_fUpAngle = Convert.Todouble(stringLwPolyLineValue.c_str());
+                if (m_fUpAngle > 0)
+                {
+                    m_nDirection = 1;
+                }
+                else if (m_fUpAngle < 0)
+                {
+                    m_nDirection = 2;
+                }
+                //绝对值
+                m_fUpAngle = Math.Abs(m_fUpAngle);
+
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringLwPolyLineName == "70")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_nClosed = Convert.ToInt32(stringLwPolyLineValue.c_str());
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+
+            return DefineConstantsWhDxfEntities.TRUE;
+        }
+        public int AnalysePolyLine(ref tagDXFSTRING strEntities)
+        {
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringPolyLineName = strEntities.strCode;
+            string stringPolyLineName = new @string(strEntities.strCode);
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringPolyLineValue = strEntities.strValue;
+            string stringPolyLineValue = new @string(strEntities.strValue);
+
+            if (stringPolyLineName == "5" || stringPolyLineName == "330" || stringPolyLineName == "100") //handle ,ignore
+            {
+                return false;
+            }
+            else if (stringPolyLineName == "8")
+            {
+                string strLayerName;
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                strLayerName.Format("%s", stringPolyLineValue.c_str());
+
+
+                m_pCurrentLayer = SearchLayer(ref strLayerName);
+                if (m_pCurrentLayer == null)
+                {
+
+                    m_pCurrentLayer = DEBUG_NEW GlobalMembersWhDxfEntities.CWhLayer;
+
+                    m_pObjList.AddTail(m_pCurrentLayer);
+                    m_pCurrentLayer.SetLayerName(strLayerName);
+                }
+
+
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringPolyLineName == "70")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_nClosed = Convert.ToInt32(stringPolyLineValue.c_str());
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+
+            return DefineConstantsWhDxfEntities.TRUE;
+        }
+        public int AnalyseEllipse(ref tagDXFSTRING strEntities)
+        {
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringEllipseName = strEntities.strCode;
+            string stringEllipseName = new @string(strEntities.strCode);
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringEllipseValue = strEntities.strValue;
+            string stringEllipseValue = new @string(strEntities.strValue);
+
+            if (stringEllipseName == "5" || stringEllipseName == "330" || stringEllipseName == "100") //handle ,ignore
+            {
+                return false;
+            }
+            else if (stringEllipseName == "8")
+            {
+                string strLayerName;
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                strLayerName.Format("%s", stringEllipseValue.c_str());
+
+
+                m_pCurrentLayer = SearchLayer(ref strLayerName);
+                if (m_pCurrentLayer == null)
+                {
+
+                    m_pCurrentLayer = DEBUG_NEW GlobalMembersWhDxfEntities.CWhLayer;
+
+                    m_pObjList.AddTail(m_pCurrentLayer);
+                    m_pCurrentLayer.SetLayerName(strLayerName);
+                }
+
+
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringEllipseName == "10")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptCenter.x = Convert.Todouble(stringEllipseValue.c_str())  m_fDxfRatio;
+            }
+            else if (stringEllipseName == "20")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptCenter.y = Convert.Todouble(stringEllipseValue.c_str())  m_fDxfRatio;
+            }
+            else if (stringEllipseName == "11")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptStart.x = Convert.Todouble(stringEllipseValue.c_str())  m_fDxfRatio;
+            }
+            else if (stringEllipseName == "21")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptStart.y = Convert.Todouble(stringEllipseValue.c_str())  m_fDxfRatio;
+            }
+            else if (stringEllipseName == "40")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_fEllipseRatio = Convert.Todouble(stringEllipseValue.c_str());
+            }
+            else if (stringEllipseName == "41")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_fAngleStart = Convert.Todouble(stringEllipseValue.c_str());
+            }
+            else if (stringEllipseName == "42")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_fAngleEnd = Convert.Todouble(stringEllipseValue.c_str());
+            }
+
+            return DefineConstantsWhDxfEntities.TRUE;
+        }
+        public int AnalyseVertex(ref tagDXFSTRING strEntities)
+        {
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringVertexName = strEntities.strCode;
+            string stringVertexName = new @string(strEntities.strCode);
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringVertexValue = strEntities.strValue;
+            string stringVertexValue = new @string(strEntities.strValue);
+
+            if (stringVertexName == "5" || stringVertexName == "330" || stringVertexName == "100") //handle ,ignore
+            {
+                return false;
+            }
+            else if (stringVertexName == "10")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptTem.x = Convert.Todouble(stringVertexValue.c_str())  m_fDxfRatio;
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringVertexName == "20")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptTem.y = Convert.Todouble(stringVertexValue.c_str())  m_fDxfRatio;
+
+
+                if (m_bFlagPolyLineStart != 0)
+                {
+                    if (m_nDxfCount == 0)
+                    { //wuhaodxf
+                        m_nDxfCount++;
+                        //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created if it does not yet exist:
+                        //ORIGINAL LINE: m_ptStart = m_ptTem;
+                        m_ptStart.CopyFrom(m_ptTem);
+                        //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created if it does not yet exist:
+                        //ORIGINAL LINE: m_ptPre = m_ptTem;
+                        m_ptPre.CopyFrom(m_ptTem);
+                        return DefineConstantsWhDxfEntities.TRUE;
+                    }
+
+                    if (m_nDxfCount++)
+                    {
+                        AddObjectWithUpAngle(m_pTemGroup, ref m_ptPre, ref m_ptTem, ref m_fUpAngle);
+                        m_fUpAngle = 0;
+                    }
+
+                    //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created if it does not yet exist:
+                    //ORIGINAL LINE: m_ptPre = m_ptTem;
+                    m_ptPre.CopyFrom(m_ptTem);
+                }
+                //////////////////////////////
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringVertexName == "42")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_fUpAngle = Convert.Todouble(stringVertexValue.c_str());
+                if (m_fUpAngle > 0)
+                {
+                    m_nDirection = 1;
+                }
+                else if (m_fUpAngle < 0)
+                {
+                    m_nDirection = 2;
+                }
+
+                m_fUpAngle = Math.Abs(m_fUpAngle);
+
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+
+            return DefineConstantsWhDxfEntities.TRUE;
+        }
+        public int AnalysePoint(ref tagDXFSTRING strEntities)
+        {
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringPointName = strEntities.strCode;
+            string stringPointName = new @string(strEntities.strCode);
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringPointValue = strEntities.strValue;
+            string stringPointValue = new @string(strEntities.strValue);
+
+
+            if (stringPointName == "5" || stringPointName == "330" || stringPointName == "100") //handle ,ignore
+            {
+                return false;
+            }
+            else if (stringPointName == "8")
+            {
+                string strLayerName;
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                strLayerName.Format("%s", stringPointValue.c_str());
+
+
+                m_pCurrentLayer = SearchLayer(ref strLayerName);
+                if (m_pCurrentLayer == null)
+                {
+
+                    m_pCurrentLayer = DEBUG_NEW GlobalMembersWhDxfEntities.CWhLayer;
+
+                    m_pObjList.AddTail(m_pCurrentLayer);
+                    m_pCurrentLayer.SetLayerName(strLayerName);
+                }
+
+
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringPointName == "10")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptTem.x = Convert.Todouble(stringPointValue.c_str())  m_fDxfRatio;
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+            else if (stringPointName == "20")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_ptTem.y = Convert.Todouble(stringPointValue.c_str())  m_fDxfRatio;
+                return DefineConstantsWhDxfEntities.TRUE;
+            }
+
+            return DefineConstantsWhDxfEntities.TRUE;
+        }
+        public CWhLayer SearchLayer(ref string strLayerName)
+        {
+            __POSITION posStart = m_pObjList.GetHeadPosition();
+            GlobalMembersWhDxfEntities.CWhLayer pRtnLayer = (IntPtr)0;
+
+            while (posStart != null)
+            {
+                GlobalMembersWhDxfEntities.CWhVirtual pVirtual = (GlobalMembersWhDxfEntities.CWhVirtual)m_pObjList.GetNext(ref posStart);
+                if (pVirtual.m_nObjType == DefineConstantsWhDxfEntities.WH_TYPE_LAYER)
+                {
+                    if (((GlobalMembersWhDxfEntities.CWhLayer)pVirtual).GetLayerName() == strLayerName)
+                    {
+                        pRtnLayer = (GlobalMembersWhDxfEntities.CWhLayer)pVirtual;
+                        break;
+                    }
+                }
+            }
+
+            return pRtnLayer;
+        }
+        public tagUpPara GetArcUpPara(ref CPointD ptStart, ref CPointD ptEnd, ref double fUpAngle)
+        {
+            tagUpPara paraRtn = new tagUpPara();
+            CPointD ptUpPoint = new CPointD();
+            double fDistance = (ptStart.Distance(ptEnd) / 2)  fUpAngle;
+            int k = 0;
+            ptUpPoint = GetUpPoint(ref ptStart, ref ptEnd, ref fDistance);
+
+
+            CPoint[] ptTem = new CPoint[3];
+            CPoint centerPoint = new CPoint();
+            ptTem[0] = CPoint((int)ptStart.x, (int)ptStart.y);
+            ptTem[1] = CPoint((int)ptEnd.x, (int)ptEnd.y);
+            ptTem[2] = CPoint((int)ptUpPoint.x, (int)ptUpPoint.y);
+
+            centerPoint = GlobalMembersWhDxfEntities.CalCenterPoint(ptTem[0], ptTem[1], ptTem[2]);
+
+            paraRtn.centerPoint = new CPointD(centerPoint.x, centerPoint.y);
+            paraRtn.fRadium = ptEnd.Distance(paraRtn.centerPoint);
+
+            return paraRtn;
+        }
+        public CPointD GetUpPoint(ref CPointD ptStart, ref CPointD ptEnd, ref double fDistance)
+        {
+            CPointD ptRet = new CPointD();
+            CPointD pt1 = new CPointD();
+            CPointD pt2 = new CPointD();
+            CPointD ptRelative1 = new CPointD();
+            CPointD ptRelative2 = new CPointD();
+            double k1 = 0.0;
+            double b2 = 0.0;
+            double a = 0.0;
+            double b = 0.0;
+            double c = 0.0;
+            double fValue = 0.0;
+            double detx = 0.0;
+            double dety = 0.0;
+            double addx = 0.0;
+            double addy = 0.0;
+            double m = 0.0;
+
+            detx = ptEnd.x - ptStart.x;
+            dety = ptEnd.y - ptStart.y;
+            addx = ptEnd.x + ptStart.x;
+            addy = ptStart.y + ptEnd.y;
+
+            k1 = dety / detx;
+            b2 = ((addy) + (1 / k1) * (addx)) / 2;
+            m = (b2 - (addy) / 2);
+            a = 1 / (k1 * k1) + 1;
+            b = -(addx) - 2 * b2 / k1 + (addy) / k1;
+            c = (addx) * (addx) / 4 + (m) * (m) - fDistance  fDistance;
+
+
+
+            if (ptStart.x == ptEnd.x)
+            {
+                pt1.x -= fDistance;
+                pt1.y = (pt1.y + pt2.y) / 2;
+                pt2.x += fDistance;
+                pt2.y = pt1.y;
+            }
+            else
+            {
+                pt1.x = (-b + Math.Pow((b * b - 4 * a * c), 0.5)) / (2 * a);
+                pt1.y = -1 / k1(pt1.x) + b2;
+                pt2.x = (-b - Math.Pow((b * b - 4 * a * c), 0.5)) / (2 * a);
+                pt2.y = -1 / k1(pt2.x) + b2;
+            }
+
+
+            ptRelative1 = pt1 - ptStart, ptRelative2 = ptEnd - ptStart;
+            fValue = ptRelative1.x  ptRelative2.y - ptRelative1.y  ptRelative2.x;
+
+
+
+            if (m_nDirection == 1)
+            {
+                if (fValue > 0)
+                {
+                    //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created if it does not yet exist:
+                    //ORIGINAL LINE: ptRet = pt1;
+                    ptRet.CopyFrom(pt1);
+                }
+                else
+                {
+                    //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created if it does not yet exist:
+                    //ORIGINAL LINE: ptRet = pt2;
+                    ptRet.CopyFrom(pt2);
+                }
+            }
+            else if (m_nDirection == 2)
+            {
+                if (fValue < 0)
+                {
+                    //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created if it does not yet exist:
+                    //ORIGINAL LINE: ptRet = pt1;
+                    ptRet.CopyFrom(pt1);
+                }
+                else
+                {
+                    //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created if it does not yet exist:
+                    //ORIGINAL LINE: ptRet = pt2;
+                    ptRet.CopyFrom(pt2);
+                }
+            }
+
+            return ptRet;
+        }
+        public void AddObject()
+        {
+
+            if (m_nTypeEntities == 1)
+            {
+                m_pTemLine = DEBUG_NEW GlobalMembersWhDxfEntities.CWhLine;
+                m_pTemLine.SetStartPoint(m_ptStart);
+                m_pTemLine.SetEndPoint(m_ptEnd);
+
+                m_pTemLine.SetIsShow(1);
+                m_pTemLine.SetPenWidth(0);
+                //////
+                m_pCurrentLayer.AddObject(m_pTemLine);
+                m_pTemLine = (IntPtr)0;
+
+                m_nTypeEntities = 0;
+                return;
+            }
+            else if (m_nTypeEntities == 2)
+            {
+                /////////////////////////////////////////////
+                CRect rcBound = new CRect(CPoint((int)(m_ptCenter.x - m_fRadium), (int)(m_ptCenter.y + m_fRadium)), CPoint((int)(m_ptCenter.x + m_fRadium), (int)(m_ptCenter.y - m_fRadium)));
+                CPointD ptStart = new CPointD(m_fRadium  Math.Cos(m_fAngleStart), m_fRadium  Math.Sin(m_fAngleStart));
+                CPointD ptEnd = new CPointD(m_fRadium  Math.Cos(m_fAngleEnd), m_fRadium  Math.Sin(m_fAngleEnd));
+                ptStart += m_ptCenter;
+                ptEnd += m_ptCenter;
+
+                m_pTemArc = DEBUG_NEW GlobalMembersWhDxfEntities.CWhArc(rcBound, ptStart, ptEnd, m_nDirection);
+                Debug.Assert(m_pTemArc);
+                m_pTemArc.SetDirection(1);
+
+                m_pTemArc.SetIsShow(1);
+                m_pTemArc.SetPenWidth(0);
+                //////
+                m_pCurrentLayer.AddObject(m_pTemArc);
+                m_pTemArc = (IntPtr)0;
+                /////////////////////////////////////////////
+                m_nTypeEntities = 0;
+                return;
+            }
+            else if (m_nTypeEntities == 3)
+            {
+                CRect rcBound = new CRect(CPoint((int)(m_ptCenter.x - m_fRadium), (int)(m_ptCenter.y + m_fRadium)), CPoint((int)(m_ptCenter.x + m_fRadium), (int)(m_ptCenter.y - m_fRadium)));
+                m_pTemRect = DEBUG_NEW GlobalMembersWhDxfEntities.CWhEllipse(rcBound);
+
+                //m_pTemRect->SetPenColor(COLORREF( RGB(255, 0, 0)));     //颜色设置
+                m_pTemRect.SetIsShow(1);
+                m_pTemRect.SetPenWidth(0);
+                //////
+                m_pCurrentLayer.AddObject(m_pTemRect);
+                m_pTemRect = (IntPtr)0;
+                m_nTypeEntities = 0;
+                return;
+            }
+            else if (m_nTypeEntities == 4)
+            {
+
+
+                if (m_nClosed != 0)
+                {
+                    AddObjectWithUpAngle(m_pTemGroup, ref m_ptPre, ref m_ptStart, ref m_fUpAngle);
+                    m_fUpAngle = 0;
+                }
+                m_pCurrentLayer.AddObject(m_pTemGroup);
+                m_pTemGroup = (IntPtr)0;
+                m_nDxfCount = 0;
+                m_nClosed = 0;
+                m_nTypeEntities = 0;
+                return;
+            }
+            else if (m_nTypeEntities == 5)
+            {
+                if (m_bFlagPolyLineStart != 0)
+                {
+
+                }
+                else
+                {
+                    //封口 wuhaodxf
+                    if (m_nClosed != 0)
+                    {
+                        AddObjectWithUpAngle(m_pTemGroup, ref m_ptPre, ref m_ptStart, ref m_fUpAngle);
+                        m_fUpAngle = 0;
+                    }
+
+                    m_pCurrentLayer.AddObject(m_pTemGroup);
+                    m_pTemGroup = (IntPtr)0;
+                    m_nDxfCount = 0;
+                }
+                m_nTypeEntities = 0;
+                return;
+            }
+            else if (m_nTypeEntities == 6)
+            {
+                m_nTypeEntities = 0;
+                return;
+            }
+            else if (m_nTypeEntities == 7)
+            {
+                m_nTypeEntities = 0;
+                return;
+            }
+            else if (m_nTypeEntities == 8)
+            {
+                m_nTypeEntities = 0;
+                return;
+            }
+
+            return;
+        }
+
+
+        public void AddLastObject()
+        {
+            AddObject();
+        }
+
+        public void AddObjectWithUpAngle(CWhGroup pTemGroup, ref CPointD ptStart, ref CPointD ptEnd, ref double fUpAngle)
+        {
+            if (fUpAngle == 1)
+            {
+                CPoint centerPoint = new CPoint((ptStart.x + ptEnd.x) / 2, (ptStart.y + ptEnd.y) / 2);
+                m_fRadium = (ptStart.Distance(ptEnd)) / 2.0;
+                CRect rcBound = new CRect(CPoint((int)(centerPoint.x - m_fRadium), (int)(centerPoint.y + m_fRadium)), CPoint((int)(centerPoint.x + m_fRadium), (int)(centerPoint.y - m_fRadium)));
+                m_pTemArc = DEBUG_NEW GlobalMembersWhDxfEntities.CWhArc(rcBound, ptStart, ptEnd, m_nDirection);
+                Debug.Assert(m_pTemArc);
+                m_pTemArc.SetDirection(m_nDirection);
+
+                m_pTemArc.SetIsShow(1);
+                m_pTemArc.SetPenWidth(0);
+                pTemGroup.AddObject(m_pTemArc);
+                m_pTemArc = (IntPtr)0;
+            }
+            else if (fUpAngle == 0)
+            {
+                m_pTemLine = DEBUG_NEW GlobalMembersWhDxfEntities.CWhLine;
+                m_pTemLine.SetStartPoint(ptStart);
+                m_pTemLine.SetEndPoint(ptEnd);
+                //m_pTemLine->SetPenColor(COLORREF( RGB(255, 0, 0)));     //颜色设置
+                m_pTemLine.SetIsShow(1);
+                m_pTemLine.SetPenWidth(0);
+                m_pTemGroup.AddObject(m_pTemLine);
+                m_pTemLine = (IntPtr)0;
+            }
+            else
+            { //一般情况
+                tagUpPara upPara = GetArcUpPara(ref ptStart, ref ptEnd, ref fUpAngle);
+                CPoint centerPoint = new CPoint(upPara.centerPoint);
+                m_fRadium = upPara.fRadium;
+                CRect rcBound = new CRect(CPoint((int)(centerPoint.x - m_fRadium), (int)(centerPoint.y + m_fRadium)), CPoint((int)(centerPoint.x + m_fRadium), (int)(centerPoint.y - m_fRadium)));
+                m_pTemArc = DEBUG_NEW GlobalMembersWhDxfEntities.CWhArc(rcBound, ptStart, ptEnd, m_nDirection);
+                Debug.Assert(m_pTemArc);
+                m_pTemArc.SetDirection(m_nDirection);
+                //m_pTemArc->SetPenColor(COLORREF( RGB(255, 0, 0)));     //颜色设置
+                m_pTemArc.SetIsShow(1);
+                m_pTemArc.SetPenWidth(0);
+                pTemGroup.AddObject(m_pTemArc);
+                m_pTemArc = (IntPtr)0;
+            }
+        }
+
+        public void SetRatio(int fRatio)
+        {
+            //	if( fRatio == 0 )
+            //	{
+            //       m_fDxfRatio = 1000  25.4;  //wuhao
+            //	}
+            //	else if( fRatio == 1 )
+            //	{
+            //       m_fDxfRatio = 1000  25.4;
+            //	}
+            //	else if( fRatio == 4 )
+            //	{
+            //       m_fDxfRatio = 1000;
+            //	}
+            //	else if( fRatio == 4 )
+            //	{
+            //       m_fDxfRatio = 1000;
+            //	}
+        }
+
+        private GlobalMembersWhDxfEntities.CWhListContainer m_pObjList;
+        private GlobalMembersWhDxfEntities.CWhLayer m_pCurrentLayer;
+        private GlobalMembersWhDxfEntities.CWhGroup m_pTemGroup;
+
+        private GlobalMembersWhDxfEntities.CWhLine m_pTemLine;
+        private GlobalMembersWhDxfEntities.CWhArc m_pTemArc;
+        private GlobalMembersWhDxfEntities.CWhEllipse m_pTemRect;
+
+        private tagDXFSTRING m_strEntities = new tagDXFSTRING();
+        private int m_bFlagPolyLineStart;
+        private int m_nLwPolyCount;
+        private int m_nTypeEntities;
+
+        private double m_fDxfRatio;
+        private CPointD m_ptTem = new CPointD();
+        private CPointD m_ptPre = new CPointD();
+        private CPointD m_ptStart = new CPointD();
+        private CPointD m_ptEnd = new CPointD();
+        private CPointD m_ptCenter = new CPointD();
+        private double m_fRadium;
+        private int m_nDirection;
+        private int m_nDxfCount;
+        private double m_fAngleStart;
+        private double m_fAngleEnd;
+        private double m_fUpAngle;
+        private int m_nClosed;
+        private double m_fEllipseRatio;
+
+    }
+    public class CWhDxfHeaders
+    {
+
+        //////////////////////////////////////////////////////////////////////
+        // Construction/Destruction
+        //////////////////////////////////////////////////////////////////////
+
+        public CWhDxfHeaders()
+        {
+            m_nTypeHeaders = 0;
+            m_nUnit = 0;
+        }
+        public virtual void Dispose()
+        {
+
+        }
+
+        public void SetHeadersString(ref tagDXFSTRING strHeaders)
+        {
+            m_strHeaders.strCode = strHeaders.strCode;
+            m_strHeaders.strValue = strHeaders.strValue;
+        }
+        public int JustifyHeadersType()
+        {
+
+            if (m_strHeaders.strCode == "9")
+            {
+                if (m_strHeaders.strValue == "$INSUNITS")
+                {
+                    m_nTypeHeaders = 1;
+                    return DefineConstantsWhDxfHeaders.TRUE;
+                }
+                else if (m_strHeaders.strValue == "$ANGDIR")
+                {
+                    m_nTypeHeaders = 2;
+                    return DefineConstantsWhDxfHeaders.TRUE;
+                }
+                else
+                {
+                    m_nTypeHeaders = 0;
+                    return DefineConstantsWhDxfHeaders.TRUE;
+                }
+            }
+
+            switch (m_nTypeHeaders)
+            {
+                case 1:
+                    AnalyseRatio(ref m_strHeaders);
+                    break;
+                case 2:
+
+                    break;
+                case 3:
+
+                    break;
+
+            }
+
+            return DefineConstantsWhDxfHeaders.TRUE;
+        }
+        public void AnalyseRatio(ref tagDXFSTRING strHeaders)
+        {
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringRatioName = strHeaders.strCode;
+            string stringRatioName = new @string(strHeaders.strCode);
+            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
+            //ORIGINAL LINE: string stringRatioValue = strHeaders.strValue;
+            string stringRatioValue = new @string(strHeaders.strValue);
+
+            if (stringRatioName == "70")
+            {
+                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
+                m_nUnit = Convert.ToInt32(stringRatioValue.c_str());
+            }
+        }
+
+        public int GetRatio()
+        {
+            return m_nUnit;
+        }
+
+        private tagDXFSTRING m_strHeaders = new tagDXFSTRING();
+        private int m_nTypeHeaders;
+        private int m_nUnit;
+
+    }
+    public class CWhDxfObjects
+    {
+
+        //////////////////////////////////////////////////////////////////////
+        // Construction/Destruction
+        //////////////////////////////////////////////////////////////////////
+
+        public CWhDxfObjects()
+        {
+
+        }
+        public virtual void Dispose()
+        {
+
+        }
+
+    }
+    public class CWhDxfParse
+    {
+
+        //////////////////////////////////////////////////////////////////////
+        // Construction/Destruction
+        //////////////////////////////////////////////////////////////////////
+
+        //////////////////////////////////////////////////////////////////////
+        // Construction/Destruction
+        //////////////////////////////////////////////////////////////////////
+
+        public CWhDxfParse()
+        {
+            m_pImagicOblist = (IntPtr)0;
+            m_nFlagGroup = 0;
+            m_bFlagSpaceLineCount = DefineConstantsWhDxfParse.FALSE;
+            m_bFalgSectionStart = DefineConstantsWhDxfParse.FALSE;
+            m_nSectionType = 0;
+        }
+        public virtual void Dispose()
+        {
+
+        }
+
+
+        public void SetObjList(CWhListContainer pImagicOblist)
+        {
+
+            m_pImagicOblist = pImagicOblist;
+
+
+        }
+        public int SetString(ref string strDxfLine)
+        {
+
+            if ((strDxfLine == "") && (!m_bFlagSpaceLineCount) && (m_nFlagGroup))
+            {
+                m_bFlagSpaceLineCount = DefineConstantsWhDxfParse.TRUE;
+            }
+            else if ((strDxfLine == "") && (!m_nFlagGroup))
+            {
+                return 0;
+            }
+
+            if (m_nFlagGroup == 0)
+            {
+                m_strInput.strCode = strDxfLine;
+                m_nFlagGroup++;
+                m_bFlagSpaceLineCount = DefineConstantsWhDxfParse.FALSE;
+
+                return 0;
+            }
+            else
+            {
+                m_strInput.strValue = strDxfLine;
+                m_nFlagGroup = 0;
+
+                return 1;
+            }
+        }
+        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
+        //	int JustifyGroupCode();
+        public int JustifyMatch()
+        {
+
+            return DefineConstantsWhDxfParse.TRUE;
+        }
+
+        private GlobalMembersWhDxfParse.CWhListContainer m_pImagicOblist;
+        private tagDXFSTRING m_strInput = new tagDXFSTRING();
+        private int m_nFlagGroup;
+        private int m_bFlagSpaceLineCount;
+        private int m_bFalgSectionStart;
+        private int m_nSectionType;
+
+        private CWhDxfHeaders m_DxfHeaders = new CWhDxfHeaders();
+        private CWhDxfEntities m_DxfEntities = new CWhDxfEntities();
+        private CWhDxfBlocks m_DxfBlocks = new CWhDxfBlocks();
+        private CWhDxfObjects m_DxfObjects = new CWhDxfObjects();
+
+    }
+    public class CWhDxfTables
+    {
+
+        //////////////////////////////////////////////////////////////////////
+        // Construction/Destruction
+        //////////////////////////////////////////////////////////////////////
+
+        public CWhDxfTables()
+        {
+
+        }
+        public virtual void Dispose()
+        {
+
+        }
+
+    }
+
 }
