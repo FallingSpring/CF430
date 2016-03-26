@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Windows.Forms;
+
 namespace TopwinLaser2016
 {
     public struct tagDXFSTRING
@@ -24,11 +26,11 @@ namespace TopwinLaser2016
     public class CWhListContainer
     {        
         private LinkedList<object> m_pListContainer = new LinkedList<object>();
-        public Rectangle m_rcBound = new Rectangle();
+        public RectangleF m_rcBound = new RectangleF();
 
         public void Serialize(ref BinaryFormatter ar)
         {            
-            m_pListContainer.Serialize(ar);
+            m_pListContainer.Serialize(ref ar);
             if (ar.IsLoading() != 0)
             {
                 ar >> m_rcBound;
@@ -39,19 +41,18 @@ namespace TopwinLaser2016
             }
         }
         public void UpdateBoundRect()
-        {
+        {            
+            m_rcBound = new RectangleF(0, 0, 0, 0);
 
-            m_rcBound.SetRect(0, 0, 0, 0);
 
-
-            Rectangle rcUnion = new Rectangle();
+            RectangleF rcUnion = new RectangleF();
             CWhVirtual pObj = null;
-            __POSITION pos = GetHeadPosition();
+            LinkedListNode<object> pos = GetHeadPosition();
             while (pos != null)
             {
                 pObj = GetNext(ref pos);
 
-                if (pObj.GetIsShow() == 0)
+                if (pObj.GetIsShow())
                 {
                     continue;
                 }
@@ -63,25 +64,26 @@ namespace TopwinLaser2016
                 }
                 else
                 {
-                    rcUnion.UnionRect(m_rcBound, pObj.m_rcBound);
-                    m_rcBound.SetRect(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
+                    rcUnion = RectangleF.Union(m_rcBound, pObj.m_rcBound);
+                    m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
                     m_rcBound.NormalizeRect();
                 }
             }
         }
-        public Rectangle GetRcBound()
+        public RectangleF GetRcBound()
         {
             return m_rcBound;
         }
         public void UpdateListObjParent()
         {
             CWhVirtual pObj = null;
-            __POSITION posObj = m_pListContainer.GetHeadPosition();
+            LinkedListNode<object> posObj = m_pListContainer.First;
             while (posObj != null)
             {
-                pObj = m_pListContainer.GetNext(posObj);
+                pObj = (CWhVirtual)posObj.Next.Value;
+
                 pObj.m_pParentList = this;
-                if (pObj.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                 {
                     ((CWhLayer)pObj).m_pListLayer.UpdateListObjParent();
                 }
@@ -91,11 +93,11 @@ namespace TopwinLaser2016
         {
 
             CWhVirtual pObj = null;
-            __POSITION posObj = m_pListContainer.GetHeadPosition();
+            LinkedListNode<object> posObj = m_pListContainer.First;
             while (posObj != null)
             {
-                pObj = m_pListContainer.GetNext(posObj);
-                pObj = posObj.
+                pObj = (CWhVirtual)posObj.Next.Value;
+                pObj = (CWhVirtual)posObj.Value;
                 pObj.m_lID = ++lIDBegin;
                 if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                 {
@@ -121,7 +123,7 @@ namespace TopwinLaser2016
             CWhVirtual pObj = null;
             if (IsEmpty() == 0)
             {
-                pObj = m_pListContainer.Last;
+                pObj = (CWhVirtual)m_pListContainer.Last.Value;
             }
             return pObj;
         }
@@ -130,62 +132,61 @@ namespace TopwinLaser2016
             CWhVirtual pObj = null;
             if (IsEmpty() == 0)
             {
-                pObj = m_pListContainer.GetHead();
+                pObj = (CWhVirtual)m_pListContainer.First.Value;
             }
             return pObj;
         }
-        public __POSITION GetHeadPosition()
+        public LinkedListNode<object> GetHeadPosition()
         {
-            return m_pListContainer.GetHeadPosition();
+            return m_pListContainer.First;
         }
-        public __POSITION GetTailPosition()
+        public LinkedListNode<object> GetTailPosition()
         {
-            return m_pListContainer.GetTailPosition();
+            return m_pListContainer.Last;
         }
-        public CWhVirtual GetNext(ref __POSITION pos)
+        public CWhVirtual GetNext(ref LinkedListNode<object> pos)
         {
-            return m_pListContainer.GetNext(pos);
+            return (CWhVirtual)pos.Next.Value;
         }
-        public CWhVirtual GetPrev(ref __POSITION pos)
+        public CWhVirtual GetPrev(ref LinkedListNode<object> pos)
         {
-            return m_pListContainer.GetPrev(pos);
+            return (CWhVirtual)pos.Previous.Value;
         }
-        public CWhVirtual GetAt(ref __POSITION pos)
+        public CWhVirtual GetAt(ref LinkedListNode<object> pos)
         {
             CWhVirtual pObj = null;
-            pObj = m_pListContainer.GetAt(pos);
+            pObj = (CWhVirtual)pos.Value;
             return pObj;
         }
-        public int IsObjInListContainer(CWhVirtual pObj)
+        public bool IsObjInListContainer(CWhVirtual pObj)
         {
-            if (FindObject(pObj) != 0)
+            if (FindObject(pObj))
             {
-                return DefineConstantsWhListContainer.TRUE;
+                return true;
             }
-            return DefineConstantsWhListContainer.FALSE;
+            return false;
         }
-        public int FindObject(CWhVirtual pObj)
+        public bool FindObject(CWhVirtual pObj)
         {
 
-            int bRet = DefineConstantsWhListContainer.FALSE;
-            __POSITION pos = m_pListContainer.Find(pObj);
+            bool bRet = false;
+            LinkedListNode<object> pos = m_pListContainer.Find(pObj);
             if (pos != null)
             {
-                bRet = DefineConstantsWhListContainer.TRUE;
+                bRet = true;
                 return bRet;
             }
 
             CWhVirtual pObjNext = null;
-            __POSITION posNext = m_pListContainer.GetHeadPosition();
+            LinkedListNode<object> posNext = m_pListContainer.First;
             while (posNext != null)
             {
-                pObjNext = m_pListContainer.GetNext(posNext);
-
-                if (pObjNext.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                pObjNext = (CWhVirtual)posNext.Next.Value;
+                if (pObjNext.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                 {
                     if (((CWhLayer)pObjNext).FindObject(pObj))
                     {
-                        bRet = DefineConstantsWhListContainer.TRUE;
+                        bRet = true;
                         return bRet;
                     }
                 }
@@ -197,18 +198,18 @@ namespace TopwinLaser2016
         {
             CWhVirtual pObjRet = null;
             CWhVirtual pObj = null;
-            __POSITION pos = m_pListContainer.GetHeadPosition();
+            LinkedListNode<object> pos = m_pListContainer.First;
             while (pos != null)
             {
 
-                pObj = m_pListContainer.GetNext(pos);
+                pObj = (CWhVirtual)pos.Next.Value;
                 if (pObj.m_lID == lID)
                 {
                     pObjRet = pObj;
                     return pObjRet;
                 }
 
-                if (pObj.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                 {
                     pObjRet = ((CWhLayer)pObj).FindObjectFromID(lID);
                     if (pObjRet != null)
@@ -224,12 +225,12 @@ namespace TopwinLaser2016
         {
             CWhVirtual pObjRet = null;
             CWhVirtual pObj = null;
-            __POSITION pos = m_pListContainer.GetHeadPosition();
+            LinkedListNode<object> pos = m_pListContainer.First;
             while (pos != null)
             {
 
-                pObj = m_pListContainer.GetNext(pos);
-                if (pObj.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                pObj = (CWhVirtual)pos.Next.Value;
+                if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                 {
                     if (((CWhLayer)pObj).m_strLayerName == strLayerName)
                     {
@@ -241,90 +242,90 @@ namespace TopwinLaser2016
 
             return pObjRet;
         }
-        public __POSITION Find(CWhVirtual pObj)
+        public LinkedListNode<object> Find(CWhVirtual pObj)
         {
-            __POSITION posRet = new __POSITION(null);
+            LinkedListNode<object> posRet = new LinkedListNode<object>(null);
             posRet = m_pListContainer.Find(pObj);
             return posRet;
         }
-        public void SetAt(__POSITION pos, CWhVirtual pObj)
+        public void SetAt(LinkedListNode<object> pos, CWhVirtual pObj)
         {
 
             pObj.AddRef();
 
-            if (!pObj.m_pParentList)
+            if (pObj.m_pParentList==null)
             {
                 pObj.m_pParentList = this;
             }
 
             m_pListContainer.SetAt(pos, pObj);
 
-            Rectangle rcUnion = new Rectangle();
-            if (m_rcBound.IsRectNull())
+            RectangleF rcUnion = new RectangleF();
+            if (m_rcBound.IsEmpty)
             {
                 m_rcBound = pObj.m_rcBound;
             }
             else
-            {
-                rcUnion.UnionRect(m_rcBound, pObj.m_rcBound);
-                m_rcBound.SetRect(rcUnion.Left, m_rcBound.Top, m_rcBound.Right, m_rcBound.Bottom);
+            {                
+                rcUnion = RectangleF.Union(m_rcBound, pObj.m_rcBound);
+                m_rcBound= new RectangleF(rcUnion.Left, m_rcBound.Top, m_rcBound.Right, m_rcBound.Bottom);
                 m_rcBound.NormalizeRect();
             }
         }
         public void InsertAfterObj(CWhVirtual pObj, CWhVirtual pObjAfter)
         {
-            __POSITION posAfter = Find(pObj);
+            LinkedListNode<object> posAfter = Find(pObj);
 
             pObjAfter.AddRef();
 
-            if (!pObjAfter.m_pParentList)
+            if (pObjAfter.m_pParentList==null)
             {
                 pObjAfter.m_pParentList = this;
             }
 
-            m_pListContainer.InsertAfter(posAfter, pObjAfter);
+            m_pListContainer.AddAfter(posAfter, pObjAfter);
 
-            Rectangle rcUnion = new Rectangle();
-            if (m_rcBound.IsRectNull())
+            RectangleF rcUnion = new RectangleF();
+            if (m_rcBound.IsEmpty)
             {
                 m_rcBound = pObjAfter.m_rcBound;
             }
             else
             {
-                rcUnion.UnionRect(m_rcBound, pObjAfter.m_rcBound);
-                m_rcBound.SetRect(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
+                rcUnion = RectangleF.Union(m_rcBound, pObjAfter.m_rcBound);
+                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
                 m_rcBound.NormalizeRect();
             }
         }
         public void InsertPreObj(CWhVirtual pObj, CWhVirtual pObjPre)
         {
-            __POSITION posPre = Find(pObj);
+            LinkedListNode<object> posPre = Find(pObj);
 
             pObjPre.AddRef();
 
-            if (!pObjPre.m_pParentList)
+            if (pObjPre.m_pParentList==null)
             {
                 pObjPre.m_pParentList = this;
             }
 
-            m_pListContainer.InsertBefore(posPre, pObjPre);
+            m_pListContainer.AddBefore(posPre, pObjPre);
 
-            Rectangle rcUnion = new Rectangle();
-            if (m_rcBound.IsRectNull())
+            RectangleF rcUnion = new RectangleF();
+            if (m_rcBound.IsEmpty)
             {
                 m_rcBound = pObjPre.m_rcBound;
             }
             else
             {
-                rcUnion.UnionRect(m_rcBound, pObjPre.m_rcBound);
-                m_rcBound.SetRect(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
-                m_rcBound.NormalizeRect();
+                rcUnion = RectangleF.Union(m_rcBound, pObjPre.m_rcBound);
+                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
+                //m_rcBound.NormalizeRect();
             }
         }
         public CWhVirtual GetAfterObj(CWhVirtual pObj)
         {
             CWhVirtual pObjRet = null;
-            __POSITION posObj = Find(pObj);
+            LinkedListNode<object> posObj = Find(pObj);
             if (posObj != null)
             {
                 pObjRet = GetNext(ref posObj);
@@ -335,7 +336,7 @@ namespace TopwinLaser2016
         public CWhVirtual GetPreObj(CWhVirtual pObj)
         {
             CWhVirtual pObjRet = null;
-            __POSITION posObj = Find(pObj);
+            LinkedListNode<object> posObj = Find(pObj);
             if (posObj != null)
             {
                 pObjRet = GetPrev(ref posObj);
@@ -347,16 +348,16 @@ namespace TopwinLaser2016
         {
 
             CWhVirtual pObjNext = null;
-            __POSITION posMove = Find(pObj);
+            LinkedListNode<object> posMove = Find(pObj);
             if (posMove != null)
             {
 
                 pObjNext = GetNext(ref posMove);
                 if (posMove != null)
                 {
-                    m_pListContainer.InsertAfter(posMove, pObjNext);
+                    m_pListContainer.AddAfter(posMove, pObjNext);
                     pObjNext = GetPrev(ref posMove);
-                    m_pListContainer.RemoveAt(posMove);
+                    m_pListContainer.Remove(posMove.Value);
                 }
                 return;
             }
@@ -365,7 +366,7 @@ namespace TopwinLaser2016
             while (posMove != null)
             {
                 pObjNext = GetNext(ref posMove);
-                if (pObjNext.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                if (pObjNext.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                 {
                     ((CWhLayer)pObjNext).MoveObjNext(pObj);
                 }
@@ -375,17 +376,17 @@ namespace TopwinLaser2016
         {
 
             CWhVirtual pObjPrev = null;
-            __POSITION posMove = Find(pObj);
+            LinkedListNode<object> posMove = Find(pObj);
             if (posMove != null)
             {
 
                 pObjPrev = GetPrev(ref posMove);
                 if (posMove != null)
                 {
-                    m_pListContainer.InsertBefore(posMove, pObjPrev);
+                    m_pListContainer.AddBefore(posMove, pObjPrev);
 
                     pObjPrev = GetNext(ref posMove);
-                    m_pListContainer.RemoveAt(posMove);
+                    m_pListContainer.Remove(posMove.Value);
                 }
                 return;
             }
@@ -394,7 +395,7 @@ namespace TopwinLaser2016
             while (posMove != null)
             {
                 pObjPrev = GetNext(ref posMove);
-                if (pObjPrev.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                if (pObjPrev.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                 {
                     ((CWhLayer)pObjPrev).MoveObjPrev(pObj);
                 }
@@ -404,11 +405,11 @@ namespace TopwinLaser2016
         {
 
             CWhVirtual pObjHead = null;
-            __POSITION posMove = Find(pObj);
+            LinkedListNode<object> posMove = Find(pObj);
             if (posMove != null)
             {
-                m_pListContainer.RemoveAt(posMove);
-                m_pListContainer.AddHead(pObj);
+                m_pListContainer.Remove(posMove.Value);
+                m_pListContainer.AddFirst(pObj);
                 return;
             }
 
@@ -416,7 +417,7 @@ namespace TopwinLaser2016
             while (posMove != null)
             {
                 pObjHead = GetNext(ref posMove);
-                if (pObjHead.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                if (pObjHead.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                 {
                     ((CWhLayer)pObjHead).m_pListLayer.MoveObjHead(pObj);
                 }
@@ -426,11 +427,11 @@ namespace TopwinLaser2016
         {
 
             CWhVirtual pObjEnd = null;
-            __POSITION posMove = Find(pObj);
+            LinkedListNode<object> posMove = Find(pObj);
             if (posMove != null)
             {
-                m_pListContainer.RemoveAt(posMove);
-                m_pListContainer.AddTail(pObj);
+                m_pListContainer.Remove(posMove.Value);
+                m_pListContainer.AddLast(pObj);
                 return;
             }
 
@@ -438,7 +439,7 @@ namespace TopwinLaser2016
             while (posMove != null)
             {
                 pObjEnd = GetNext(ref posMove);
-                if (pObjEnd.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                if (pObjEnd.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                 {
                     ((CWhLayer)pObjEnd).m_pListLayer.MoveObjEnd(pObj);
                 }
@@ -446,16 +447,16 @@ namespace TopwinLaser2016
         }
         public void AntiList()
         {
-            LinkedList pAntiList = new LinkedList<string>();
+            LinkedList<object> pAntiList = new LinkedList<object>();
             CWhVirtual pObj = null;
-            __POSITION posAnti = GetHeadPosition();
+            LinkedListNode<object> posAnti = GetHeadPosition();
             while (posAnti != null)
             {
                 pObj = GetNext(ref posAnti);
-                pAntiList.AddHead(pObj);
+                pAntiList.AddFirst(pObj);
             }
 
-            m_pListContainer.RemoveAll();
+            m_pListContainer.Clear();
 
             m_pListContainer = null;
 
@@ -471,22 +472,22 @@ namespace TopwinLaser2016
 
             pObj.AddRef();
 
-            if (!pObj.m_pParentList)
+            if (pObj.m_pParentList==null)
             {
                 pObj.m_pParentList = this;
             }
 
-            m_pListContainer.AddHead(pObj);
+            m_pListContainer.AddFirst(pObj);
 
-            Rectangle rcUnion = new Rectangle();
-            if (m_rcBound.IsRectNull())
+            RectangleF rcUnion = new RectangleF();
+            if (m_rcBound.IsEmpty)
             {
                 m_rcBound = pObj.m_rcBound;
             }
             else
             {
-                rcUnion.UnionRect(m_rcBound, pObj.m_rcBound);
-                m_rcBound.SetRect(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
+                rcUnion = RectangleF.Union(m_rcBound, pObj.m_rcBound);
+                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
                 m_rcBound.NormalizeRect();
             }
         }
@@ -495,29 +496,29 @@ namespace TopwinLaser2016
 
             pObj.AddRef();
 
-            if (!pObj.m_pParentList)
+            if (pObj.m_pParentList==null)
             {
                 pObj.m_pParentList = this;
             }
 
-            m_pListContainer.AddTail(pObj);
+            m_pListContainer.AddLast(pObj);
 
-            Rectangle rcUnion = new Rectangle();
-            if (m_rcBound.IsRectNull())
+            RectangleF rcUnion = new RectangleF();
+            if (m_rcBound.IsEmpty)
             {
                 m_rcBound = pObj.m_rcBound;
             }
             else
             {
-                rcUnion.UnionRect(m_rcBound, pObj.m_rcBound);
-                m_rcBound.SetRect(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
+                rcUnion = RectangleF.Union(m_rcBound, pObj.m_rcBound);
+                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
                 m_rcBound.NormalizeRect();
             }
         }
         public void AddObjects(CWhListContainer pList)
         {
             CWhVirtual pObj = null;
-            __POSITION pos = pList.GetHeadPosition();
+            LinkedListNode<object> pos = pList.GetHeadPosition();
             while (pos != null)
             {
                 pObj = pList.GetNext(ref pos);
@@ -525,37 +526,34 @@ namespace TopwinLaser2016
             }
         }
 
-        public int RemoveObject(CWhVirtual pObj)
+        public bool RemoveObject(CWhVirtual pObj)
         {
-            return RemoveObject(pObj, DefineConstantsWhListContainer.FALSE);
+            return RemoveObject(pObj, false);
         }
         //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: int RemoveObject(CWhVirtual pObj, int bFlagDepth = DefineConstantsWhListContainer.FALSE)
-        public int RemoveObject(CWhVirtual pObj, int bFlagDepth)
+        //ORIGINAL LINE: int RemoveObject(CWhVirtual pObj, bool bFlagDepth = false)
+        public bool RemoveObject(CWhVirtual pObj, bool bFlagDepth = false)
         {
-            int bRet = DefineConstantsWhListContainer.FALSE;
-
-
-            __POSITION pos = m_pListContainer.Find(pObj);
+            bool bRet = false;
+            LinkedListNode<object> pos = m_pListContainer.Find(pObj);
             if (pos != null)
             {
 
-                bRet = DefineConstantsWhListContainer.TRUE;
-                if (bFlagDepth != 0)
+                bRet = true;
+                if (bFlagDepth)
                 {
-                    if (pObj.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                    if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                     {
                         ((CWhLayer)pObj).RemoveAll(bFlagDepth);
                     }
                 }
 
-                m_pListContainer.RemoveAt(pos);
+                m_pListContainer.Remove(pos.Value);
 
                 pObj.Release();
 
                 if (pObj.GetRefCount() == 0)
                 {
-                    pObj.Dispose();
                     pObj = null;
                 }
 
@@ -564,16 +562,16 @@ namespace TopwinLaser2016
 
 
             CWhVirtual pObjNext = null;
-            __POSITION posNext = m_pListContainer.GetHeadPosition();
+            LinkedListNode<object> posNext = m_pListContainer.First;
             while (posNext != null)
             {
-                pObjNext = m_pListContainer.GetNext(posNext);
+                pObjNext = (CWhVirtual)posNext.Next.Value;
 
-                if (pObjNext.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                if (pObjNext.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                 {
                     if (((CWhLayer)pObjNext).RemoveObject(pObj, bFlagDepth))
                     {
-                        bRet = DefineConstantsWhListContainer.TRUE;
+                        bRet = true;
                         return bRet;
                     }
                 }
@@ -584,14 +582,14 @@ namespace TopwinLaser2016
         }
         public void RemoveObjects(CWhListContainer pList)
         {
-            RemoveObjects(pList, DefineConstantsWhListContainer.FALSE);
+            RemoveObjects(pList, false);
         }
         //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void RemoveObjects(CWhListContainer pList, int bFlagDepth = DefineConstantsWhListContainer.FALSE)
-        public void RemoveObjects(CWhListContainer pList, int bFlagDepth)
+        //ORIGINAL LINE: void RemoveObjects(CWhListContainer pList, bool bFlagDepth = false)
+        public void RemoveObjects(CWhListContainer pList, bool bFlagDepth = false)
         {
             CWhVirtual pObj = null;
-            __POSITION pos = pList.GetHeadPosition();
+            LinkedListNode<object> pos = pList.GetHeadPosition();
             while (pos != null)
             {
                 pObj = pList.GetNext(ref pos);
@@ -602,43 +600,36 @@ namespace TopwinLaser2016
         }
         public void RemoveAll()
         {
-            RemoveAll(DefineConstantsWhListContainer.FALSE);
+            RemoveAll(false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void RemoveAll(int bFlagDepth = DefineConstantsWhListContainer.FALSE)
-        public void RemoveAll(int bFlagDepth)
+        public void RemoveAll(bool bFlagDepth)
         {
             CWhVirtual pObj = null;
-            __POSITION pos = GetHeadPosition();
+            LinkedListNode<object> pos = GetHeadPosition();
             while (pos != null)
             {
                 pObj = GetNext(ref pos);
                 RemoveObject(pObj, bFlagDepth);
             }
 
-            m_rcBound.SetRect(0, 0, 0, 0);
+            m_rcBound = new RectangleF(0, 0, 0, 0);
         }
         public void DeleteObject(CWhVirtual pObj)
         {
-            DeleteObject(pObj, DefineConstantsWhListContainer.FALSE);
+            DeleteObject(pObj, false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void DeleteObject(CWhVirtual pObj, int bFlagDepth = DefineConstantsWhListContainer.FALSE)
-        public void DeleteObject(CWhVirtual pObj, int bFlagDepth)
-        { //haoge
-            pObj.Dispose();
+        public void DeleteObject(CWhVirtual pObj, bool bFlagDepth = false)
+        {
             pObj = null;
         }
         public void DeleteObjects(CWhListContainer pList)
         {
-            DeleteObjects(pList, DefineConstantsWhListContainer.FALSE);
+            DeleteObjects(pList, false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void DeleteObjects(CWhListContainer pList, int bFlagDepth = DefineConstantsWhListContainer.FALSE)
-        public void DeleteObjects(CWhListContainer pList, int bFlagDepth)
-        { //haoge
+        public void DeleteObjects(CWhListContainer pList, bool bFlagDepth = false)
+        {
             CWhVirtual pObj = null;
-            __POSITION pos = pList.GetHeadPosition();
+            LinkedListNode<object> pos = pList.GetHeadPosition();
             while (pos != null)
             {
                 pObj = GetNext(ref pos);
@@ -647,20 +638,18 @@ namespace TopwinLaser2016
         }
         public void DeleteAll()
         {
-            DeleteAll(DefineConstantsWhListContainer.FALSE);
+            DeleteAll(false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void DeleteAll(int bFlagDepth = DefineConstantsWhListContainer.FALSE)
-        public void DeleteAll(int bFlagDepth)
-        { //haoge
+        public void DeleteAll(bool bFlagDepth)
+        {
             CWhVirtual pObj = null;
-            __POSITION pos = GetHeadPosition();
+            LinkedListNode<object> pos = GetHeadPosition();
             while (pos != null)
             {
                 pObj = GetNext(ref pos);
                 DeleteObject(pObj);
             }
-            m_rcBound.SetRect(0, 0, 0, 0);
+            m_rcBound = new RectangleF(0, 0, 0, 0);
         }
 
         public void GroupObj(CWhListContainer pListObj)
@@ -668,7 +657,7 @@ namespace TopwinLaser2016
 
             CWhGroup pGroup = new CWhGroup();
             CWhVirtual pObj = null;
-            __POSITION posObj = pListObj.GetHeadPosition();
+            LinkedListNode<object> posObj = pListObj.GetHeadPosition();
             while (posObj != null)
             {
                 pObj = pListObj.GetNext(ref posObj);
@@ -684,35 +673,33 @@ namespace TopwinLaser2016
         public void ApartAll()
         {
             CWhVirtual pObj = null;
-            __POSITION posObj = GetHeadPosition();
+            LinkedListNode<object> posObj = GetHeadPosition();
             while (posObj != null)
             {
                 pObj = GetNext(ref posObj);
-                if (pObj.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_GROUP)
+                if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_GROUP)
                 {
                     ((CWhGroup)pObj).Apart();
                     RemoveObject(pObj);
                 }
-                else if (pObj.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                else if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                 {
                     ((CWhLayer)pObj).m_pListLayer.ApartAll();
                 }
             }
         }
 
-        public void FindObjInRect(CWhListContainer pListDestination, Rectangle rcRect)
+        public void FindObjInRect(CWhListContainer pListDestination, RectangleF rcRect)
         {
             CWhVirtual pObjInRect = null;
-            int bFlagInRect = DefineConstantsWhListContainer.FALSE;
-
-            __POSITION posInRect = GetHeadPosition();
+            LinkedListNode<object> posInRect = GetHeadPosition();
             while (posInRect != null)
             {
                 pObjInRect = GetNext(ref posInRect);
                 if (pObjInRect.IsObjInRect(rcRect))
                 {
 
-                    if (pObjInRect.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                    if (pObjInRect.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                     {
                         ((CWhLayer)pObjInRect).m_pListLayer.FindObjInRect(pListDestination, rcRect);
                         continue;
@@ -722,26 +709,26 @@ namespace TopwinLaser2016
                 }
             }
         }
-        public int SelectObj(CWhListContainer pListSelect, Point ptClick, int nLimit, ref Graphics pDC)
+        public bool SelectObj(CWhListContainer pListSelect, PointF ptClick, int nLimit, ref Graphics pDC)
         {
-            int bRet = DefineConstantsWhListContainer.FALSE;
+            bool bRet = false;
             CWhVirtual pObj = null;
-            __POSITION pos = GetHeadPosition();
+            LinkedListNode<object> pos = GetHeadPosition();
             while (pos != null)
             {
                 pObj = GetNext(ref pos);
-                if (pObj.GetIsShow() == 0)
+                if (!pObj.GetIsShow())
                 {
                     continue;
                 }
-                if (pObj.IsSelected(ptClick, nLimit) != 0)
+                if (pObj.IsSelected(ptClick, nLimit))
                 {
 
-                    if (pObj.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                    if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                     {
                         if (((CWhLayer)pObj).m_pListLayer.SelectObj(pListSelect, ptClick, nLimit, ref pDC))
                         {
-                            bRet = DefineConstantsWhListContainer.TRUE;
+                            bRet = true;
                             return bRet;
                         }
                         else
@@ -750,37 +737,37 @@ namespace TopwinLaser2016
                         }
                     }
 
-                    pObj.SetIsShowHandle(DefineConstantsWhListContainer.TRUE);
-                    pObj.SetPenColor(RGB(255, 0, 0));
+                    pObj.SetIsShowHandle(true);
+                    pObj.SetPenColor(Color.FromArgb(255, 0, 0));
 
                     pListSelect.AddObject(pObj);
 
-                    bRet = DefineConstantsWhListContainer.TRUE;
+                    bRet = true;
                     return bRet;
                 }
             }
 
             return bRet;
         }
-        public int SelectObj(CWhListContainer pListSelect, Rectangle rcClick, int bFlagMode, ref Graphics pDC)
+        public bool SelectObj(CWhListContainer pListSelect, RectangleF rcClick, int bFlagMode, ref Graphics pDC)
         {
-            int bRet = DefineConstantsWhListContainer.FALSE;
+            bool bRet = false;
             CWhVirtual pObj = null;
-            __POSITION pos = GetHeadPosition();
+            LinkedListNode<object> pos = GetHeadPosition();
             while (pos != null)
             {
                 pObj = GetNext(ref pos);
-                if (pObj.IsSelected(rcClick, bFlagMode) != 0)
+                if (pObj.IsSelected(rcClick, bFlagMode))
                 {
 
-                    if (pObj.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                    if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                     {
                         ((CWhLayer)pObj).m_pListLayer.SelectObj(pListSelect, rcClick, bFlagMode, ref pDC);
                         continue;
                     }
 
-                    pObj.SetIsShowHandle(DefineConstantsWhListContainer.TRUE);
-                    pObj.SetPenColor(RGB(255, 0, 0));
+                    pObj.SetIsShowHandle(true);
+                    pObj.SetPenColor(Color.FromArgb(255, 0, 0));
 
                     pListSelect.AddObject(pObj);
                 }
@@ -788,44 +775,44 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-        public int SnapPoint(ref Point ptSnap, Point ptInput, double fDiatance)
+        public bool SnapPoint(ref PointF ptSnap, PointF ptInput, float fDiatance)
         {
-            int bRet = DefineConstantsWhListContainer.FALSE;
+            bool bRet = false;
 
             CWhVirtual pObjSnap = null;
-            __POSITION posSnap = GetHeadPosition();
+            LinkedListNode<object> posSnap = GetHeadPosition();
             while (posSnap != null)
             {
                 pObjSnap = GetNext(ref posSnap);
-                if (pObjSnap.IsPointSnap(ref ptSnap, ptInput, fDiatance) != 0)
+                if (pObjSnap.IsPointSnap(ref ptSnap, ptInput, fDiatance))
                 {
 
-                    if (pObjSnap.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                    if (pObjSnap.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                     {
                         if (!((CWhLayer)pObjSnap).m_pListLayer.SnapPoint(ref ptSnap, ptInput, fDiatance))
                         {
                             continue;
                         }
                     }
-                    bRet = DefineConstantsWhListContainer.TRUE;
+                    bRet = true;
                     return bRet;
                 }
             }
 
             return bRet;
         }
-        public int SelectPoint(ref CWhVirtual pSnap, ref Point ptSnap, ref int nSnap, Point ptInput, double fDiatance)
+        public bool SelectPoint(ref CWhVirtual pSnap, ref PointF ptSnap, ref int nSnap, PointF ptInput, float fDiatance)
         {
-            int bRet = DefineConstantsWhListContainer.FALSE;
+            bool bRet = false;
             CWhVirtual pObjSnap = null;
-            __POSITION posSnap = GetHeadPosition();
+            LinkedListNode<object> posSnap = GetHeadPosition();
             while (posSnap != null)
             {
                 pObjSnap = GetNext(ref posSnap);
-                if (pObjSnap.IsPointSelect(ref ptSnap, ref nSnap, ptInput, fDiatance) != 0)
+                if (pObjSnap.IsPointSelect(ref ptSnap, ref nSnap, ptInput, fDiatance))
                 {
 
-                    if (pObjSnap.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                    if (pObjSnap.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                     {
                         if (!((CWhLayer)pObjSnap).m_pListLayer.SelectPoint(ref pSnap, ref ptSnap, ref nSnap, ptInput, fDiatance))
                         {
@@ -833,7 +820,7 @@ namespace TopwinLaser2016
                         }
                     }
                     pSnap = pObjSnap;
-                    bRet = DefineConstantsWhListContainer.TRUE;
+                    bRet = true;
                     return bRet;
                 }
             }
@@ -841,18 +828,18 @@ namespace TopwinLaser2016
             return bRet;
         }
 
-        public int SelectStartPoint(ref CWhVirtual pObj, ref Point ptRet, Point ptInput, double fDiatance)
+        public bool SelectStartPoint(ref CWhVirtual pObj, ref PointF ptRet, PointF ptInput, float fDiatance)
         {
-            int bRet = DefineConstantsWhListContainer.FALSE;
+            bool bRet = false;
             CWhVirtual pObjStart = null;
-            __POSITION posStart = GetHeadPosition();
+            LinkedListNode<object> posStart = GetHeadPosition();
             while (posStart != null)
             {
                 pObjStart = GetNext(ref posStart);
-                if (pObjStart.IsStartPointSelect(ref ptRet, ptInput, fDiatance) != 0)
+                if (pObjStart.IsStartPointSelect(ref ptRet, ptInput, fDiatance))
                 {
 
-                    if (pObjStart.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                    if (pObjStart.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                     {
                         if (!((CWhLayer)pObjStart).m_pListLayer.SelectStartPoint(ref pObj, ref ptRet, ptInput, fDiatance))
                         {
@@ -860,7 +847,7 @@ namespace TopwinLaser2016
                         }
                     }
                     pObj = pObjStart;
-                    bRet = DefineConstantsWhListContainer.TRUE;
+                    bRet = true;
                     return bRet;
                 }
             }
@@ -870,20 +857,16 @@ namespace TopwinLaser2016
 
         public void CopyObjToList(CWhListContainer pList)
         {
-            CopyObjToList(pList, DefineConstantsWhListContainer.FALSE);
+            CopyObjToList(pList, false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void CopyObjToList(CWhListContainer pList, int bFlagSingle = DefineConstantsWhListContainer.FALSE)
-        public void CopyObjToList(CWhListContainer pList, int bFlagSingle)
+        public void CopyObjToList(CWhListContainer pList, bool bFlagSingle = false)
         {
             CWhVirtual pObj = null;
-            CWhGroup pGroup = null;
-            CWhLayer pLayer = null;
-            __POSITION pos = GetHeadPosition();
+            LinkedListNode<object> pos = GetHeadPosition();
             while (pos != null)
             {
                 pObj = GetNext(ref pos);
-                if (bFlagSingle != 0 && pObj.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LAYER)
+                if (bFlagSingle && pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
                 {
                     CWhLayer pLayer = new CWhLayer();
 
@@ -907,13 +890,13 @@ namespace TopwinLaser2016
         public void OptimizeObjOrder()
         {
 
-            if (m_pListContainer.IsEmpty())
+            if (m_pListContainer.Equals(null))
             {
                 return;
             }
 
             CWhListContainer pListDestinate = new CWhListContainer();
-            while (!m_pListContainer.IsEmpty())
+            while (!m_pListContainer.Equals(null))
             {
                 ExtractGroup(this, pListDestinate, 5);
             }
@@ -922,16 +905,15 @@ namespace TopwinLaser2016
 
             ArangeGroupOrder(pListDestinate);
             pListDestinate.RemoveAll();
-            pListDestinate.Dispose();
             pListDestinate = null;
         }
-        public int SearchNearlyNextObj(CWhListContainer pListSource, Point ptInput, double fDistanceGap, ref CWhVirtual pObjRet, int bFlagType)
+        public bool SearchNearlyNextObj(CWhListContainer pListSource, PointF ptInput, float fDistanceGap, ref CWhVirtual pObjRet, bool bFlagType)
         {
-            int bRet = DefineConstantsWhListContainer.FALSE;
-            Point ptstart = new Point(0, 0);
-            Point ptEnd = new Point(0, 0);
+            bool bRet = false;
+            PointF ptstart = new PointF(0, 0);
+            PointF ptEnd = new PointF(0, 0);
             CWhVirtual pObjSearch = null;
-            __POSITION posObjSearch = pListSource.GetHeadPosition();
+            LinkedListNode<object> posObjSearch = pListSource.GetHeadPosition();
             while (posObjSearch != null)
             {
                 pObjSearch = pListSource.GetNext(ref posObjSearch);
@@ -939,36 +921,36 @@ namespace TopwinLaser2016
                 ptEnd = pObjSearch.GetEndPoint();
 
 
-                if (PointToPointDistance(ptInput, ptstart) < fDistanceGap)
+                if (CWhSysFunction.PointToPointDistance(ptInput, ptstart) < fDistanceGap)
                 {
-                    if (bFlagType == 0)
+                    if (bFlagType)
                     {
                         pObjSearch.ExchangeStartToEnd();
 
                     }
                     pObjRet = pObjSearch;
-                    bRet = DefineConstantsWhListContainer.TRUE;
+                    bRet = true;
                     break;
                 }
-                else if (PointToPointDistance(ptInput, ptEnd) < fDistanceGap)
+                else if (CWhSysFunction.PointToPointDistance(ptInput, ptEnd) < fDistanceGap)
                 {
-                    if (bFlagType != 0)
+                    if (bFlagType)
                     {
                         pObjSearch.ExchangeStartToEnd();
                     }
                     pObjRet = pObjSearch;
-                    bRet = DefineConstantsWhListContainer.TRUE;
+                    bRet = true;
                     break;
                 }
             }
 
             return bRet;
         }
-        public int ExtractGroup(CWhListContainer pListSource, CWhListContainer pListDestinate, double fDistanceGap)
+        public bool ExtractGroup(CWhListContainer pListSource, CWhListContainer pListDestinate, float fDistanceGap)
         {
-            int bRet = DefineConstantsWhListContainer.FALSE;
-            Point ptStartSearch = new Point(0, 0);
-            Point ptEndSearch = new Point(0, 0);
+            bool bRet = false;
+            PointF ptStartSearch = new PointF(0, 0);
+            PointF ptEndSearch = new PointF(0, 0);
             CWhGroup pGroup = new CWhGroup();
             pListDestinate.AddObject(pGroup);
             CWhVirtual pObjOptimize = null;
@@ -980,20 +962,20 @@ namespace TopwinLaser2016
                 pGroup.AddObject(pObjOptimize);
                 pListSource.RemoveObject(pObjOptimize);
             }
-            if ((pObjOptimize.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_LINE) || (pObjOptimize.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_ARC))
+            if ((pObjOptimize.m_nObjType == DefineConstantsFdxf.WH_TYPE_LINE) || (pObjOptimize.m_nObjType == DefineConstantsFdxf.WH_TYPE_ARC))
             {
                 ptStartSearch = pObjOptimize.GetStartPoint();
                 ptEndSearch = pObjOptimize.GetEndPoint();
             }
 
-            while (SearchNearlyNextObj(pListSource, ptEndSearch, fDistanceGap, ref pObjRet, DefineConstantsWhListContainer.TRUE) != 0)
+            while (SearchNearlyNextObj(pListSource, ptEndSearch, fDistanceGap, ref pObjRet, true))
             {
                 pGroup.AddObject(pObjRet);
                 pListSource.RemoveObject(pObjRet);
                 ptEndSearch = pObjRet.GetEndPoint();
             }
 
-            while (SearchNearlyNextObj(pListSource, ptStartSearch, fDistanceGap, ref pObjRet, DefineConstantsWhListContainer.FALSE) != 0)
+            while (SearchNearlyNextObj(pListSource, ptStartSearch, fDistanceGap, ref pObjRet, false))
             {
                 pGroup.m_pListGroup.AddHead(pObjRet);
                 pListSource.RemoveObject(pObjRet);
@@ -1002,10 +984,10 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-        public int OptimizeGroup(CWhListContainer pList)
+        public bool OptimizeGroup(CWhListContainer pList)
         {
             CWhListContainer pListGroup = new CWhListContainer();
-            Rectangle rcSearch = new Rectangle(0, 0, 0, 0);
+            RectangleF rcSearch = new RectangleF(0, 0, 0, 0);
             CWhVirtual pObj = null;
 
             pList.UpdateBoundRect();
@@ -1026,25 +1008,24 @@ namespace TopwinLaser2016
 
             pList.AddObjects(pListGroup);
             pListGroup.RemoveAll();
-            pListGroup.Dispose();
             pListGroup = null;
 
-            return DefineConstantsWhListContainer.TRUE;
+            return true;
         }
-        public void SearchNearlyNextGroup(ref Rectangle rcInPut, CWhListContainer pList, CWhListContainer pListDestinate)
+        public void SearchNearlyNextGroup(ref RectangleF rcInPut, CWhListContainer pList, CWhListContainer pListDestinate)
         {
             CWhVirtual pObjRet = null;
-            double fDistancePre;
-            double fDistanceCur = 0;
+            float fDistancePre = 0;
+            float fDistanceCur = 0;
             int i = 0;
-            Rectangle rcCurrent = new Rectangle(0, 0, 0, 0);
+            RectangleF rcCurrent = new RectangleF(0, 0, 0, 0);
             CWhVirtual pObj = null;
-            __POSITION posObj = pList.GetHeadPosition();
+            LinkedListNode<object> posObj = pList.GetHeadPosition();
             while (posObj != null)
             {
                 pObj = pList.GetNext(ref posObj);
                 rcCurrent = pObj.m_rcBound;
-                fDistanceCur = PointToPointDistance(rcInPut.CenterPoint(), rcCurrent.CenterPoint());
+                fDistanceCur = CWhSysFunction.PointToPointDistance(rcInPut.CenterPoint(), rcCurrent.CenterPoint());
                 if (i == 0)
                 {
                     fDistancePre = fDistanceCur;
@@ -1068,11 +1049,11 @@ namespace TopwinLaser2016
         public void ArangeGroupOrder(CWhListContainer pList)
         {
             CWhVirtual pObj = null;
-            __POSITION posObj = pList.GetHeadPosition();
+            LinkedListNode<object> posObj = pList.GetHeadPosition();
             while (posObj != null)
             {
                 pObj = pList.GetNext(ref posObj);
-                if (pObj.m_nObjType == DefineConstantsWhListContainer.WH_TYPE_GROUP)
+                if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_GROUP)
                 {
                     AddObjects(((CWhGroup)pObj).m_pListGroup);
                 }
@@ -1101,86 +1082,86 @@ namespace TopwinLaser2016
         public static int s_lID;
         public int m_lID;
         public int m_nObjType;
-        public Rectangle m_rcBound = new Rectangle();
+        public RectangleF m_rcBound = new RectangleF();
         public CWhListContainer m_pParentList;
 
         public int m_nMachineCount; //加工次数
-        public int m_bMachineStyle; //加工方式
+        public bool m_bMachineStyle; //加工方式
         public int m_nMachineFrequence; //加工频率
-        public int m_bIsShow;
-        public int m_bIsShowHandle;
-        public int m_bIsSelect;
-        public int m_bIsFilled;
+        public bool m_bIsShow;
+        public bool m_bIsShowHandle;
+        public bool m_bIsSelect;
+        public bool m_bIsFilled;
 
         public int m_nPenWidth; //线宽
         public int m_nPenType; //线型
-        public uint m_colPenColor; //颜色
+        public Color m_colPenColor; //颜色
 
         public int m_nBrushType;
-        public uint m_colBrush;
-        public int m_bFlagIsRegister;
+        public Color m_colBrush;
+        public bool m_bFlagIsRegister;
 
-        public Point TransRPtoLP(Point ptInput)
+        public PointF TransRPtoLP(PointF ptInput)
         {
-            Point ptRet = new Point();
+            PointF ptRet = new PointF();
 
             ptRet.X = ptInput.X;
             ptRet.Y = -ptInput.Y;
             return ptRet;
         }
-        public Point TransLPtoRP(Point ptInput)
+        public PointF TransLPtoRP(PointF ptInput)
         {
-            Point ptRet = new Point();
+            PointF ptRet = new PointF();
             ptRet.X = ptInput.X;
             ptRet.Y = -ptInput.Y;
             return ptRet;
         }
-        public Point TopLeft(Rectangle rcInput)
+        public PointF TopLeft(RectangleF rcInput)
         {
-            Point oldpoint = new Point();
+            PointF oldpoint = new PointF();
             oldpoint.X = rcInput.Left;
             oldpoint.Y = rcInput.Top;
             return oldpoint;
         }
-        public Rectangle TransRPtoLP(Rectangle rcInput)
+        public RectangleF TransRPtoLP(RectangleF rcInput)
         {
-            Rectangle rcRet = new Rectangle(TransRPtoLP(TopLeft(rcInput)),rcInput.Size);
+            RectangleF rcRet = new RectangleF(TransRPtoLP(TopLeft(rcInput)),rcInput.Size);
             return rcRet;
         }
-        public Rectangle TransLPtoRP(Rectangle rcInput)
+        public RectangleF TransLPtoRP(RectangleF rcInput)
         {
-            Rectangle rcRet = new Rectangle(TransRPtoLP(TopLeft(rcInput)), rcInput.Size);
+            RectangleF rcRet = new RectangleF(TransRPtoLP(TopLeft(rcInput)), rcInput.Size);
             return rcRet;
         }
-        public Point TransDPtoLP(Point ptInput, ref Graphics pDC)
+        public PointF TransDPtoLP(PointF ptInput, ref Graphics pDC)
         {
-            Point[] ptRet ={ ptInput,ptInput};
+            PointF[] ptRet ={ ptInput,ptInput};
             pDC.TransformPoints(System.Drawing.Drawing2D.CoordinateSpace.Page,System.Drawing.Drawing2D.CoordinateSpace.World,ptRet);
             //pDC.DPtoLP(ptRet);
             return ptRet[0];
         }
-        public Rectangle TransDPtoLP(Rectangle rcInput, ref Graphics pDC)
+        public RectangleF TransDPtoLP(RectangleF rcInput, ref Graphics pDC)
         {
-            Rectangle rcRet = rcInput;
-            Point[] ptRet = { TopLeft(rcInput), TopLeft(rcInput)};
+            RectangleF rcRet = rcInput;
+            PointF[] ptRet = { TopLeft(rcInput), TopLeft(rcInput)};
             ptRet[1].X = rcInput.Right;
             ptRet[1].Y = rcInput.Bottom;
             pDC.TransformPoints(System.Drawing.Drawing2D.CoordinateSpace.Page, System.Drawing.Drawing2D.CoordinateSpace.World, ptRet);
-            rcRet = new Rectangle(ptRet[0].X, ptRet[0].Y,ptRet[1].X, ptRet[1].Y);            
+            rcRet = new RectangleF(ptRet[0].X, ptRet[0].Y,ptRet[1].X, ptRet[1].Y);            
             return rcRet;
         }
-        public Point TransDPtoRP(Point ptInput, ref Graphics pDC)
+        public PointF TransDPtoRP(PointF ptInput, ref Graphics pDC)
         {
-            Point ptRet = new Point();
-            Point ptTem = new Point();
+            PointF ptRet = new PointF();
+            PointF ptTem = new PointF();
             ptTem = TransDPtoLP(ptInput, ref pDC);
             ptRet = TransLPtoRP(ptTem);
             return ptRet;
         }
-        public Rectangle TransDPtoRP(Rectangle rcInput, ref Graphics pDC)
+        public RectangleF TransDPtoRP(RectangleF rcInput, ref Graphics pDC)
         {
-            Rectangle rcRet = new Rectangle();
-            Rectangle rcTem = new Rectangle();
+            RectangleF rcRet = new RectangleF();
+            RectangleF rcTem = new RectangleF();
             rcTem = TransDPtoLP(rcInput, ref pDC);
             rcRet = TransLPtoRP(rcTem);
             return rcRet;
@@ -1202,7 +1183,7 @@ namespace TopwinLaser2016
         {
             return true;
         }
-        public virtual void Draw(ref Graphics pDC, Rectangle rcClient)
+        public virtual void Draw(ref Graphics pDC, RectangleF rcClient)
         {
 
         }
@@ -1230,7 +1211,7 @@ namespace TopwinLaser2016
         {
 
         }
-        public virtual void SetIsShowHandle(int bIsShowHandle)
+        public virtual void SetIsShowHandle(bool bIsShowHandle)
         {
             m_bIsShowHandle = bIsShowHandle;
         }
@@ -1238,14 +1219,14 @@ namespace TopwinLaser2016
         {
 
         }
-        public virtual Point GetStartPoint()
+        public virtual PointF GetStartPoint()
         {
-            Point ptRet = new Point(0, 0);
+            PointF ptRet = new PointF(0, 0);
             return ptRet;
         }
-        public virtual Point GetEndPoint()
+        public virtual PointF GetEndPoint()
         {
-            Point ptRet = new Point(0, 0);
+            PointF ptRet = new PointF(0, 0);
             return ptRet;
         }
         public virtual bool IsObjValid()
@@ -1253,39 +1234,39 @@ namespace TopwinLaser2016
             return true;
         }
 
-        public virtual bool IsSelected(Point ptClick, int nLimit)
+        public virtual bool IsSelected(PointF ptClick, int nLimit)
         {
             return false;
         }
-        public virtual bool IsSelected(Rectangle rcClick, int bFlagMode)
+        public virtual bool IsSelected(RectangleF rcClick, int bFlagMode)
         {
             return false;
         }
 
-        public virtual bool IsObjInRect(Rectangle rcClient)
+        public virtual bool IsObjInRect(RectangleF rcClient)
         {
-            return IsObjInRect(rcClient,0);
+            return IsObjInRect(rcClient,false);
         }
-        public virtual bool IsObjInRect(Rectangle rcClient, int bFlagDepth)
+        public virtual bool IsObjInRect(RectangleF rcClient, bool bFlagDepth = false)
         {
-            Rectangle rcInterSectRect = new Rectangle(0, 0, 0, 0);
-            rcInterSectRect = Rectangle.Intersect(m_rcBound, rcClient);
+            RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
+            rcInterSectRect = RectangleF.Intersect(m_rcBound, rcClient);
             if (!rcInterSectRect.IsEmpty)
             {
                 return true;
             }
             return false;
         }
-        public virtual bool IsPointSnap(ref Point ptSnap, Point ptInput, double fDiatance)
+        public virtual bool IsPointSnap(ref PointF ptSnap, PointF ptInput, float fDiatance)
         {
             bool bRet = false;
             return bRet;
         }
-        public virtual bool IsPointSelect(ref Point ptSnap, ref int nSnap, Point ptInput, double fDiatance)
+        public virtual bool IsPointSelect(ref PointF ptSnap, ref int nSnap, PointF ptInput, float fDiatance)
         {
             return false;
         }
-        public virtual bool IsStartPointSelect(ref Point ptRet, Point ptInput, double fDiatance)
+        public virtual bool IsStartPointSelect(ref PointF ptRet, PointF ptInput, float fDiatance)
         {
             return false;
         }
@@ -1294,11 +1275,11 @@ namespace TopwinLaser2016
         {
 
         }
-        public virtual void SetPenColor(uint colRef)
+        public virtual void SetPenColor(Color colRef)
         {
             m_colPenColor = colRef;
         }
-        public virtual void SetBrushColor(uint colRef)
+        public virtual void SetBrushColor(Color colRef)
         {
             m_colBrush = colRef;
         }
@@ -1311,11 +1292,11 @@ namespace TopwinLaser2016
         {
             return m_nObjType;
         }
-        public void SetIsShow(int bIsShow)
+        public void SetIsShow(bool bIsShow)
         {
             m_bIsShow = bIsShow;
         }
-        public int GetIsShow()
+        public bool GetIsShow()
         {
             return m_bIsShow;
         }
@@ -1351,26 +1332,30 @@ namespace TopwinLaser2016
         {
             return m_nPenType;
         }
-        public uint GetPenColor()
+        public Color GetPenColor()
         {
             return m_colPenColor;
         }
-        public void SetIsFilled(int bIsFilled)
+        public void SetIsFilled(bool bIsFilled)
         {
             m_bIsFilled = bIsFilled;
         }
-        public void SetMachineStyle(int bMachineStyle)
+        public void SetMachineStyle(bool bMachineStyle)
         {
             m_bMachineStyle = bMachineStyle;
         }
-        public int GetMachineStyle()
+        public bool GetMachineStyle()
         {
             return m_bMachineStyle;
+        }
+        public RectangleF MyRectangle(PointF m_ptStart, PointF m_ptEnd)
+        {
+            return new RectangleF(m_ptStart.X, m_ptStart.Y, m_ptEnd.X - m_ptStart.X, m_ptStart.Y - m_ptEnd.Y);
         }
     }
     public class CWhSysFunction 
     {
-        public static int PointToLineDistance(Point pt1, Point pt2, Point pt3)
+        public static float PointToLineDistance(PointF pt1, PointF pt2, PointF pt3)
         {
             if (pt1 == pt2)
             {
@@ -1385,25 +1370,25 @@ namespace TopwinLaser2016
 
             if (pt1.X == pt2.X)
             {
-                return (int)System.Math.Abs(pt1.X - pt3.X);
+                return System.Math.Abs(pt1.X - pt3.X);
             }
             else if (pt1.Y == pt2.Y)
             {
-                return (int)System.Math.Abs(pt1.Y - pt3.Y);
+                return System.Math.Abs(pt1.Y - pt3.Y);
             }
 
 
-            double k1 = 0.0;
-            double k2 = 0.0;
-            double x1 = 0.0;
-            double y1 = 0.0;
-            double x2 = 0.0;
-            double y2 = 0.0;
-            double x3 = 0.0;
-            double y3 = 0.0;
-            double xt = 0.0;
-            double yt = 0.0;
-            double fDistance = 0.0;
+            float k1 = 0;
+            float k2 = 0;
+            float x1 = 0;
+            float y1 = 0;
+            float x2 = 0;
+            float y2 = 0;
+            float x3 = 0;
+            float y3 = 0;
+            float xt = 0;
+            float yt = 0;
+            float fDistance = 0;
             x1 = pt1.X / DefineConstantsFdxf.TRANSRATIO;
             y1 = pt1.Y / DefineConstantsFdxf.TRANSRATIO;
             x2 = pt2.X / DefineConstantsFdxf.TRANSRATIO;
@@ -1417,122 +1402,122 @@ namespace TopwinLaser2016
             yt = k2 * xt + y3 - k2 * x3;
 
             fDistance = (x3 - xt) * (x3 - xt) + (y3 - yt) * (y3 - yt);
-            fDistance = System.Math.Sqrt(fDistance);
+            fDistance = (float)System.Math.Sqrt((double)(fDistance));
             fDistance *= DefineConstantsFdxf.TRANSRATIO;
 
-            return (int)fDistance;
+            return fDistance;
         }
 
-        public static int PointToPointDistance(Point pt1, Point pt2)
+        public static float PointToPointDistance(PointF pt1, PointF pt2)
         {
-            double x1 = 0.0;
-            double y1 = 0.0;
-            double x2 = 0.0;
-            double y2 = 0.0;
-            double fDistance = 0.0;
+            float x1 = 0;
+            float y1 = 0;
+            float x2 = 0;
+            float y2 = 0;
+            float fDistance = 0;
             x1 = pt1.X / DefineConstantsFdxf.TRANSRATIO;
             y1 = pt1.Y / DefineConstantsFdxf.TRANSRATIO;
             x2 = pt2.X / DefineConstantsFdxf.TRANSRATIO;
             y2 = pt2.Y / DefineConstantsFdxf.TRANSRATIO;
 
             fDistance = (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
-            fDistance = System.Math.Sqrt(fDistance);
+            fDistance = (float)System.Math.Sqrt((double)(fDistance));
             fDistance *= DefineConstantsFdxf.TRANSRATIO;
 
-            return (int)fDistance;
+            return fDistance;
         }
 
-        public static Point CalCenterPoint(Point pt1, Point pt2, Point pt3)
+        public static PointF CalCenterPoint(PointF pt1, PointF pt2, PointF pt3)
         {
-            Point ptRet = new Point(0, 0);
-            double k1 = 0.0;
-            double k2 = 0.0;
-            double k_1 = 0.0;
-            double k_2 = 0.0;
-            double x_1 = 0.0;
-            double y_1 = 0.0;
-            double x_2 = 0.0;
-            double y_2 = 0.0;
-            double xret = 0.0;
-            double yret = 0.0;
+            PointF ptRet = new PointF(0, 0);
+            float k1 = 0;
+            float k2 = 0;
+            float k_1 = 0;
+            float k_2 = 0;
+            float x_1 = 0;
+            float y_1 = 0;
+            float x_2 = 0;
+            float y_2 = 0;
+            float xret = 0;
+            float yret = 0;
 
-            x_1 = (pt1.X + pt2.X) / 2.0;
-            y_1 = (pt1.Y + pt2.Y) / 2.0;
-            x_2 = (pt2.X + pt3.X) / 2.0;
-            y_2 = (pt2.Y + pt3.Y) / 2.0;
+            x_1 = (pt1.X + pt2.X) / 2;
+            y_1 = (pt1.Y + pt2.Y) / 2;
+            x_2 = (pt2.X + pt3.X) / 2;
+            y_2 = (pt2.Y + pt3.Y) / 2;
 
             if ((pt1.X == pt2.X) && (pt2.Y == pt3.Y))
             {
                 xret = x_2;
                 yret = y_1;
-                ptRet.X = (int)(xret);
-                ptRet.Y = (int)(yret);
+                ptRet.X = (xret);
+                ptRet.Y = (yret);
                 return ptRet;
             }
             else if ((pt1.Y == pt2.Y) & (pt2.X == pt3.X))
             {
                 xret = x_1;
                 yret = y_2;
-                ptRet.X = (int)(xret);
-                ptRet.Y = (int)(yret);
+                ptRet.X = (xret);
+                ptRet.Y = (yret);
                 return ptRet;
             }
             else if (pt1.X == pt2.X)
             {
                 yret = y_1;
 
-                k2 = (double)(pt3.Y - pt2.Y) / (double)(pt3.X - pt2.X);
+                k2 = (float)(pt3.Y - pt2.Y) / (float)(pt3.X - pt2.X);
                 k_2 = -1 / k2;
                 xret = (yret - y_2 + k_2 * x_2) / k_2;
-                ptRet.X = (int)(xret);
-                ptRet.Y = (int)(yret);
+                ptRet.X = (xret);
+                ptRet.Y = (yret);
                 return ptRet;
             }
             else if (pt1.Y == pt2.Y)
             {
                 xret = x_1;
 
-                k2 = (double)(pt3.Y - pt2.Y) / (double)(pt3.X - pt2.X);
+                k2 = (float)(pt3.Y - pt2.Y) / (float)(pt3.X - pt2.X);
                 k_2 = -1 / k2;
                 yret = k_2 * xret + y_2 - k_2 * x_2;
-                ptRet.X = (int)(xret);
-                ptRet.Y = (int)(yret);
+                ptRet.X = (xret);
+                ptRet.Y = (yret);
                 return ptRet;
             }
             else if (pt2.X == pt3.X)
             {
                 yret = y_2;
 
-                k1 = (double)(pt2.Y - pt1.Y) / (double)(pt2.X - pt1.X);
+                k1 = (float)(pt2.Y - pt1.Y) / (float)(pt2.X - pt1.X);
                 k_1 = -1 / k1;
                 xret = (yret - y_1 + k1 * x_1) / k1;
-                ptRet.X = (int)(xret);
-                ptRet.Y = (int)(yret);
+                ptRet.X = (xret);
+                ptRet.Y = (yret);
                 return ptRet;
             }
             else if (pt2.Y == pt3.Y)
             {
                 xret = x_2;
 
-                k1 = (double)(pt2.Y - pt1.Y) / (double)(pt2.X - pt1.X);
+                k1 = (float)(pt2.Y - pt1.Y) / (float)(pt2.X - pt1.X);
                 k_1 = -1 / k1;
                 yret = k_1 * xret + y_1 - k_1 * x_1;
-                ptRet.X = (int)(xret);
-                ptRet.Y = (int)(yret);
+                ptRet.X = (xret);
+                ptRet.Y = (yret);
                 return ptRet;
             }
 
 
-            k1 = (double)(pt2.Y - pt1.Y) / (double)(pt2.X - pt1.X);
+            k1 = (float)(pt2.Y - pt1.Y) / (float)(pt2.X - pt1.X);
             k_1 = -1 / k1;
-            k2 = (double)(pt3.Y - pt2.Y) / (double)(pt3.X - pt2.X);
+            k2 = (float)(pt3.Y - pt2.Y) / (float)(pt3.X - pt2.X);
             k_2 = -1 / k2;
 
             xret = (y_2 - y_1 - k_2 * x_2 + k_1 * x_1) / (k_1 - k_2);
             yret = k_1 * xret + y_1 - k_1 * x_1;
 
-            ptRet.X = (int)(xret);
-            ptRet.Y = (int)(yret);
+            ptRet.X = (xret);
+            ptRet.Y = (yret);
             return ptRet;
         }
     }
@@ -2346,8 +2331,6 @@ namespace TopwinLaser2016
         public const int _IGNORE_BLOCK = 3;
         public const int _CLIENT_BLOCK = 4;
         public const int _MAX_BLOCKS = 5;
-        public const int FALSE = 0;
-        public const int TRUE = 1;
         public const long VERSIONABLE_SCHEMA = 0x80000000;
         public const int AFX_STACK_DUMP_TARGET_TRACE = 0x0001;
         public const int AFX_STACK_DUMP_TARGET_CLIPBOARD = 0x0002;
@@ -2399,8 +2382,8 @@ namespace TopwinLaser2016
         public const int WH_MODIFY_GROUP = 2003;
         public const int WH_HAND_TRANSFORM = 3000;
         public const int WH_AUTO_TRANSFORM = 3001;
-        public const double PI = 3.14159265358979323846;
-        public const double TRANSRATIO = 1000.0;
+        public const float PI = 3.14159265358979323846f;
+        public const float TRANSRATIO = 1000.0f;
     }
     public class DefineTypes:CWhVirtual
     {
@@ -2493,11 +2476,11 @@ namespace TopwinLaser2016
             Byte nUsedTimes;
             bool bIsTop;
 
-            // used only when m_bTraceMethod==TRUE
+            // used only when m_bTraceMethod==true
             long nMemNum;
             Byte pChain;
 
-            // used only when m_bTraceMethod==FALSE
+            // used only when m_bTraceMethod==false
             tagWHY_CHAIN_SEG pHeadChainSeg;
             tagWHY_CHAIN_SEG pTailChainSeg;
         };
@@ -2520,7 +2503,7 @@ namespace TopwinLaser2016
         public struct tagWHY_PITCH
         {
             long nLabel;
-            //double		M00,M01,M10,M11,M02,M20;
+            //float		M00,M01,M10,M11,M02,M20;
             float fA, fB, fC;
             float fXc, fYc;
             float fAngle;
@@ -2598,11 +2581,11 @@ namespace TopwinLaser2016
             long nLabel;
             long nHoleNum;
 
-            double fXc, fYc;
-            double fA, fB, fC;
-            double fAngle;
-            double fArea;
-            double fPerimeter;
+            float fXc, fYc;
+            float fA, fB, fC;
+            float fAngle;
+            float fArea;
+            float fPerimeter;
             tagWHY_RUN_LEN pRunLen;
             tagWHY_FREE_MAN pOuterHeadFreeMan;
             tagWHY_FREE_MAN pInnerHeadFreeMan;
@@ -2644,16 +2627,16 @@ namespace TopwinLaser2016
         public struct tagWHY_SIGMA
         {
             bool bFlag;
-            double fS00;
-            double fS10;
-            double fS01;
-            double fS20;
-            double fS11;
-            double fS02;
-            double fS30;
-            double fS21;
-            double fS12;
-            double fS03;
+            float fS00;
+            float fS10;
+            float fS01;
+            float fS20;
+            float fS11;
+            float fS02;
+            float fS30;
+            float fS21;
+            float fS12;
+            float fS03;
         };
 
 
@@ -2733,91 +2716,91 @@ namespace TopwinLaser2016
             float cy;
         };
 
-        // double 
+        // float 
         public struct tagRECTD
         {
-            double left;
-            double top;
-            double right;
-            double bottom;
+            float left;
+            float top;
+            float right;
+            float bottom;
         };
         public struct RECTD
         {
-            double left;
-            double top;
-            double right;
-            double bottom;
+            float left;
+            float top;
+            float right;
+            float bottom;
         };
         public struct PRECTD
         {
-            double left;
-            double top;
-            double right;
-            double bottom;
+            float left;
+            float top;
+            float right;
+            float bottom;
         };
         public struct LPRECTD
         {
-            double left;
-            double top;
-            double right;
-            double bottom;
+            float left;
+            float top;
+            float right;
+            float bottom;
         };
 
-        public struct Point
+        public struct PointF
         {
-            double x;
-            double y;
+            float x;
+            float y;
         };
-        public struct Point
-        {
-            double x;
-            double y;
-        };
+//         public struct PointF
+//         {
+//             float x;
+//             float y;
+//         };
         public struct tagPOINTD
         {
-            double x;
-            double y;
+            float x;
+            float y;
         };
         public struct POINTD
         {
-            double x;
-            double y;
+            float x;
+            float y;
         };
         public struct PPOINTD
         {
-            double x;
-            double y;
+            float x;
+            float y;
         };
         public struct LPPOINTD
         {
-            double x;
-            double y;
+            float x;
+            float y;
         };
 
         public struct CSize
         {
-            double cx;
-            double cy;
+            float cx;
+            float cy;
         };
         public struct tagSIZED
         {
-            double cx;
-            double cy;
+            float cx;
+            float cy;
         };
         public struct SIZED
         {
-            double cx;
-            double cy;
+            float cx;
+            float cy;
         };
         public struct PSIZED
         {
-            double cx;
-            double cy;
+            float cx;
+            float cy;
         };
         public struct LPSIZED
         {
-            double cx;
-            double cy;
+            float cx;
+            float cy;
         };
     }
     public class CWhPointD : CWhVirtual
@@ -2829,51 +2812,50 @@ namespace TopwinLaser2016
 
         public CWhPointD()
         {
-            m_fx = 0.0;
-            m_fy = 0.0;
+            m_fx = 0;
+            m_fy = 0;
         }
-        public CWhPointD(ref CWhPointD point)
+        public CWhPointD(ref CWhPointD PointF)
         {
-            m_fx = point.m_fx;
-            m_fy = point.m_fy;
+            m_fx = PointF.m_fx;
+            m_fy = PointF.m_fy;
         }
-        public CWhPointD(double x, double y)
+        public CWhPointD(float x, float y)
         {
             m_fx = x;
             m_fy = y;
         }
-        public CWhPointD(Point point)
+        public CWhPointD(PointF PointF)
         {
-            m_fx = point.X;
-            m_fy = point.Y;
+            m_fx = PointF.X;
+            m_fy = PointF.Y;
         }
-        public double m_fx;
-        public double m_fy;        
-        public void CopyFrom(CWhPointD point)
+        public float m_fx;
+        public float m_fy;        
+        public void CopyFrom(CWhPointD PointF)
         {
-            m_fx = point.m_fx;
-            m_fy = point.m_fy;
+            m_fx = PointF.m_fx;
+            m_fy = PointF.m_fy;
         }        
-        public static CWhPointD operator +(CWhPointD ImpliedObject, CWhPointD point)
+        public static CWhPointD operator +(CWhPointD ImpliedObject, CWhPointD PointF)
         {
             CWhPointD ptRet = new CWhPointD();
 
             return ptRet;
         }
-        public static CWhPointD operator -(CWhPointD ImpliedObject, CWhPointD point)
+        public static CWhPointD operator -(CWhPointD ImpliedObject, CWhPointD PointF)
         {
             CWhPointD ptRet = new CWhPointD();
 
             return ptRet;
         }
 
-        public double Distance(ref CWhPointD ptInput)
+        public float Distance(ref CWhPointD ptInput)
         {
-            double fRet = 0.0;
+            float fRet = 0;
 
             fRet = (m_fx - ptInput.m_fx) * (m_fx - ptInput.m_fx) + (m_fy - ptInput.m_fy) * (m_fy - ptInput.m_fy);
-            fRet = System.Math.Sqrt(fRet);
-
+            fRet = (float)System.Math.Sqrt((double)(fRet));
             return fRet;
         }
     }
@@ -2884,7 +2866,15 @@ namespace TopwinLaser2016
     }
     public class CWhLine : CWhVirtual
     {
-        public CWhLine(Point ptStart, Point ptEnd)
+        public CWhLine()
+        {
+            m_ptStart = new PointF();
+            m_ptEnd = new PointF();
+            m_nObjType = DefineConstantsFdxf.WH_TYPE_LINE;
+            SetObjDefaultProperty();
+            UpdateBoundRect();
+        }
+        public CWhLine(PointF ptStart, PointF ptEnd)
         {
             m_ptStart = ptStart;
             m_ptEnd = ptEnd;
@@ -2892,12 +2882,12 @@ namespace TopwinLaser2016
             SetObjDefaultProperty();
             UpdateBoundRect();
         }
-        public Point m_ptStart = new Point();
-        public Point m_ptEnd = new Point();
+        public PointF m_ptStart = new PointF();
+        public PointF m_ptEnd = new PointF();
 
-        public void Serialize(ref BinaryFormatter ar)
+        public override void Serialize(ref BinaryFormatter ar)
         {
-            CWhVirtual.Serialize(ar);
+            CWhVirtual.Serialize(ref ar);
             if (ar.IsStoring() != 0)
             {
                 ar << m_ptStart << m_ptEnd;
@@ -2909,113 +2899,87 @@ namespace TopwinLaser2016
         }
         public new void UpdateBoundRect()
         {
-            m_rcBound.SetRect(m_ptStart, m_ptEnd);
-            m_rcBound.NormalizeRect();
-            if (m_rcBound.IsRectEmpty())
+            m_rcBound= new RectangleF(m_ptStart,new SizeF(m_ptEnd.X-m_ptStart.X, m_ptStart.X- m_ptEnd.Y));
+            //m_rcBound.NormalizeRect();
+            if (m_rcBound.IsEmpty)
             {
-                m_rcBound.InflateRect(m_rcBound.Width() ? 0 : 1, m_rcBound.Height() ? 0 : 1);
+                m_rcBound.Inflate(m_rcBound.Width>0 ? 0 : 1, m_rcBound.Height>0 ? 0 : 1);
             }
         }
-        public void Draw(ref Graphics pDC, Rectangle rcClient)
+        public override void Draw(ref Graphics pDC, RectangleF rcClient)
         {
 
             if (m_bIsShow)
             {
 
-                Rectangle rcInterSectRect = new Rectangle(0, 0, 0, 0);
-                Rectangle rcClientReal = TransDPtoRP(rcClient, pDC);
-                if (!rcInterSectRect.IntersectRect(m_rcBound, rcClientReal))
+                RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
+                RectangleF rcClientReal = TransDPtoRP(rcClient, ref pDC);
+                if (RectangleF.Intersect(m_rcBound, rcClientReal).IsEmpty)
                 {
                     return;
                 }
-
-                Point ptStart = new Point();
-                Point ptEnd = new Point();
+                PointF ptStart = new PointF();
+                PointF ptEnd = new PointF();
 
                 ptStart = TransRPtoLP(m_ptStart);
                 ptEnd = TransRPtoLP(m_ptEnd);
 
-                CPen pOldPen = null;
-                CPen penLine = new CPen();
-                penLine.CreatePen(PS_SOLID, m_nPenWidth, m_colPenColor);
-                pOldPen = pDC.SelectObject(penLine);
-
-                pDC.MoveTo(ptStart);
-                pDC.LineTo(ptEnd);
-                pDC.SelectObject(pOldPen);
-
+                Pen pOldPen = null;
+                Pen penLine = new Pen( m_colPenColor,m_nPenWidth);               
+                pOldPen = penLine;
                 if (m_bIsShowHandle)
                 {
-                    DrawHandle(ref pDC);
+                    pDC.DrawLine(pOldPen, ptStart, ptEnd);
                 }
             }
         }
-        public void DrawHandle(ref Graphics pDC)
+        public override void DrawHandle(ref Graphics pDC)
         {
-            Point ptStart = new Point();
-            Point ptEnd = new Point();
+            PointF ptStart = new PointF();
+            PointF ptEnd = new PointF();
 
             ptStart = TransRPtoLP(m_ptStart);
             ptEnd = TransRPtoLP(m_ptEnd);
 
-            Rectangle rcHandle = new Rectangle(0, 0, 2, 2);
-            pDC.DPtoLP(rcHandle);
-            Rectangle rcStart = new Rectangle(ptStart.x, ptStart.y, ptStart.x, ptStart.y);
-            Rectangle rcEnd = new Rectangle(ptEnd.x, ptEnd.y, ptEnd.x, ptEnd.y);
+            RectangleF rcHandle = new RectangleF(0, 0, 2, 2);
+            //pDC.DPtoLP(rcHandle);
+            RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, ptStart.X, ptStart.Y);
+            RectangleF rcEnd = new RectangleF(ptEnd.X, ptEnd.Y, ptEnd.X, ptEnd.Y);
 
-            rcStart.InflateRect(rcHandle.Width(), rcHandle.Height());
-            rcEnd.InflateRect(rcHandle.Width(), rcHandle.Height());
+            rcStart.Inflate(rcHandle.Width, rcHandle.Height);
+            rcEnd.Inflate(rcHandle.Width, rcHandle.Height);
 
-
-            //设置画笔
-            CPen pOldPen = null;
-            CPen pen = new CPen();
-            pen.CreatePen(PS_SOLID, rcHandle.Width()  ,2, RGB(0, 0, 255));
-            pOldPen = pDC.SelectObject(pen);
-            //pDC->Rectangle(rcStart);
-            pDC.Rectangle(rcEnd);
-            //还原画笔
-            pDC.SelectObject(pOldPen);
 
             //设置画笔
-            CPen pOldPen1 = null;
-            CPen pen1 = new CPen();
-            pen1.CreatePen(PS_SOLID, rcHandle.Width()  ,2, RGB(255, 0, 0));
-            pOldPen1 = pDC.SelectObject(pen1);
-            pDC.Rectangle(rcStart);
-            //还原画笔
-            pDC.SelectObject(pOldPen1);
+            Pen pOldPen = null;
+            Pen pen = new Pen(Color.FromArgb(0, 0, 255),rcHandle.Width*2);
+            pOldPen = pen;
+            pDC.DrawRectangle(pen,rcEnd.X, rcEnd.Y, rcEnd.Width, rcEnd.Height);
+
+            //设置画笔
+            Pen pOldPen1 = null;
+            Pen pen1 = new Pen(Color.FromArgb(255, 0, 0),rcHandle.Width*2);
+            pOldPen1 = pen1;
+            pDC.DrawRectangle(pen, rcStart.X, rcStart.Y, rcStart.Width, rcStart.Height);
         }
-        public void DrawArrow(ref Graphics pDC)
+        public override void DrawArrow(ref Graphics pDC)
         {
 
         }
-        public void DrawStartPoint(ref Graphics pDC)
+        public override void DrawStartPoint(ref Graphics pDC)
         {
-            Point ptStart = new Point();
-
+            PointF ptStart = new PointF();
             ptStart = TransRPtoLP(m_ptStart);
-
-            Rectangle rcHandle = new Rectangle(0, 0, 3, 3);
-            pDC.DPtoLP(rcHandle);
-            Rectangle rcStart = new Rectangle(ptStart.x, ptStart.y, ptStart.x, ptStart.y);
-            rcStart.InflateRect(rcHandle.Width(), rcHandle.Height());
-
-
-            CBrush pOldBrush = null;
-            IntPtr hGdi = GetStockObject(NULL_BRUSH);
-            CBrush pBrush = CBrush.FromHandle((IntPtr)hGdi);
-            pOldBrush = pDC.SelectObject(pBrush);
-            CPen pOldPen = null;
-            CPen pen = new CPen();
-            pen.CreatePen(PS_SOLID, 0, RGB(255, 0, 0));
-            pOldPen = pDC.SelectObject(pen);
-            pDC.Rectangle(rcStart);
-
-            pDC.SelectObject(pOldPen);
-            pDC.SelectObject(pOldBrush);
+            RectangleF rcHandle = new RectangleF(0, 0, 3, 3);
+            //pDC.DPtoLP(rcHandle);
+            RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, ptStart.X, ptStart.Y);
+            rcStart.Inflate(rcHandle.Width, rcHandle.Height);           
+            Pen pOldPen = null;
+            Pen pen = new Pen(Color.FromArgb(255, 0, 0),0);
+            pOldPen = pen;
+            pDC.DrawRectangle(pen, rcStart.X, rcStart.Y, rcStart.Width, rcStart.Height);            
         }
-        public new int IsValid()
+        public new bool IsValid()
         {
             if (m_ptStart == m_ptEnd)
             {
@@ -3025,38 +2989,42 @@ namespace TopwinLaser2016
         }
         public new void Move(int nX, int nY)
         {
-            Point ptMove = new Point(nX, nY);
-            m_ptStart += ptMove;
-            m_ptEnd += ptMove;
+            PointF ptMove = new PointF(nX, nY);
+            m_ptStart.X = m_ptStart.X + ptMove.X;
+            m_ptStart.Y = m_ptStart.Y + ptMove.Y;
+            m_ptEnd.X = m_ptEnd.X + ptMove.X;
+            m_ptEnd.Y = m_ptEnd.Y + ptMove.Y;
             UpdateBoundRect();
         }
         public new void ExchangeStartToEnd()
         {
-            Point ptTem = new Point(0, 0);
+            PointF ptTem = new PointF(0, 0);
             ptTem = m_ptStart;
             SetStartPoint(m_ptEnd);
             SetEndPoint(ptTem);
             UpdateBoundRect();
         }
-        public void DrawNumber(ref Graphics pDC)
+        public override void DrawNumber(ref Graphics pDC)
         {
             string strNum;
-            strNum.Format("%d", m_lID);
-            Point pt = TransRPtoLP(m_ptStart);
-            pDC.TextOut(pt.x, pt.y, strNum);
+            Font drawFont = new Font("Arial", 16);
+            SolidBrush drawBrush = new SolidBrush(Color.Black);
+            strNum = string.Format("%d", m_lID);
+            PointF pt = TransRPtoLP(m_ptStart);
+            pDC.DrawString(strNum, drawFont, drawBrush, pt.X, pt.Y);
         }
 
-        public new int IsSelected(Point ptClick, int nLimit)
+        public new bool IsSelected(PointF ptClick, int nLimit)
         {
-            int bRet = false;
+            bool bRet = false;
 
-            Rectangle rcBound = new Rectangle(m_rcBound);
-            rcBound.InflateRect(nLimit, nLimit); //wuhao
+            RectangleF rcBound = new RectangleF();
+            rcBound.Inflate(nLimit, nLimit); 
 
-            if (rcBound.PtInRect(ptClick))
+            if (rcBound.Contains(ptClick))
             {
 
-                int nDisTance = GlobalMembersWhLine.PointToLineDistance(m_ptStart, m_ptEnd, ptClick);
+                float nDisTance = CWhSysFunction.PointToLineDistance(m_ptStart, m_ptEnd, ptClick);
                 if (nDisTance <= nLimit)
                 {
                     bRet = true;
@@ -3066,17 +3034,17 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-        public new int IsSelected(Rectangle rcClick, int bFlagMode)
+        public new bool IsSelected(RectangleF rcClick, int bFlagMode)
         {
-            int bRet = false;
+            bool bRet = false;
 
-            Rectangle rcBound = new Rectangle(m_rcBound);
-            Rectangle rcInterSectRect = new Rectangle(0, 0, 0, 0);
-            rcBound.InflateRect(1, 1);
+            RectangleF rcBound = new RectangleF();
+            RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
+            rcBound.Inflate(1, 1);
 
             if (bFlagMode == -1)
             {
-                if (rcInterSectRect.IntersectRect(m_rcBound, rcClick))
+                if (RectangleF.Intersect(m_rcBound, rcClick).IsEmpty)
                 {
                     bRet = true;
                     return bRet;
@@ -3084,7 +3052,7 @@ namespace TopwinLaser2016
             }
             else if (bFlagMode == 1)
             {
-                rcInterSectRect.IntersectRect(m_rcBound, rcClick);
+                rcInterSectRect = RectangleF.Intersect(m_rcBound, rcClick);
                 if (rcInterSectRect == m_rcBound)
                 {
                     bRet = true;
@@ -3094,108 +3062,108 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-        public int IsPointSnap(ref Point ptSnap, Point ptInput, double fDiatance)
+        public override bool IsPointSnap(ref PointF ptSnap, PointF ptInput, float fDiatance)
         {
-            int bRet = false;
-            Rectangle rcSnap = m_rcBound;
-            rcSnap.InflateRect(2 * (int)fDiatance, 2 * (int)fDiatance);
+            bool bRet = false;
+            RectangleF rcSnap = m_rcBound;
+            rcSnap.Inflate(2 * fDiatance, 2 * fDiatance);
 
 
-            if (!rcSnap.PtInRect(ptInput))
+            if (!rcSnap.Contains(ptInput))
             {
                 return false;
             }
 
-            Rectangle[] rc = new Rectangle[3];
-            rc[0] = Rectangle(m_ptStart, m_ptStart);
-            rc[1] = Rectangle(m_ptEnd, m_ptEnd);
-            rc[2] = Rectangle(Point((int)((m_ptStart.x + m_ptEnd.x) / 2.0), (int)((m_ptStart.y + m_ptEnd.y) / 2.0)), Point((int)((m_ptStart.x + m_ptEnd.x) / 2.0), (int)((m_ptStart.y + m_ptEnd.y) / 2.0)));
+            RectangleF[] rc = new RectangleF[3];
+            rc[0] = new RectangleF(m_ptStart, new SizeF(m_ptStart) );
+            rc[1] = new RectangleF(m_ptEnd, new SizeF(m_ptEnd));
+            rc[2] = new RectangleF(new PointF((float)((m_ptStart.X + m_ptEnd.X) / 2.0), (float)((m_ptStart.Y + m_ptEnd.Y) / 2.0)), new SizeF(0,0));
 
             for (int i = 0; i < 3; i++)
             {
-                rc[i].InflateRect((int)fDiatance, (int)fDiatance);
+                rc[i].Inflate(fDiatance, fDiatance);
             }
 
-            if (rc[0].PtInRect(ptInput))
+            if (rc[0].Contains(ptInput))
             {
                 ptSnap = m_ptStart;
                 bRet = true;
                 return bRet;
             }
-            else if (rc[1].PtInRect(ptInput))
+            else if (rc[1].Contains(ptInput))
             {
                 ptSnap = m_ptEnd;
                 bRet = true;
                 return bRet;
             }
-            else if (rc[2].PtInRect(ptInput))
+            else if (rc[2].Contains(ptInput))
             {
-                ptSnap = Point((int)((m_ptStart.x + m_ptEnd.x) / 2.0), (int)((m_ptStart.y + m_ptEnd.y) / 2.0));
+                ptSnap = new PointF(((m_ptStart.X + m_ptEnd.X) / 2.0f), ((m_ptStart.Y + m_ptEnd.Y) / 2.0f));
                 bRet = true;
                 return bRet;
             }
 
             return bRet;
         }
-        public int IsPointSelect(ref Point ptSnap, ref int nSnap, Point ptInput, double fDiatance)
+        public override bool IsPointSelect(ref PointF ptSnap, ref int nSnap, PointF ptInput, float fDiatance)
         {
-            int bRet = false;
+            bool bRet = false;
 
-            Rectangle rcSnap = m_rcBound;
-            rcSnap.InflateRect((int)fDiatance, (int)fDiatance);
-            if (!rcSnap.PtInRect(ptInput))
+            RectangleF rcSnap = m_rcBound;
+            rcSnap.Inflate(fDiatance, fDiatance);
+            if (!rcSnap.Contains(ptInput))
             {
                 return bRet;
             }
 
 
-            Rectangle[] rc = new Rectangle[3];
-            rc[0] = Rectangle(m_ptStart, m_ptStart);
-            rc[1] = Rectangle(m_ptEnd, m_ptEnd);
-            rc[2] = Rectangle(Point((int)((m_ptStart.x + m_ptEnd.x) / 2.0), (int)((m_ptStart.y + m_ptEnd.y) / 2.0)), Point((int)((m_ptStart.x + m_ptEnd.x) / 2.0), (int)((m_ptStart.y + m_ptEnd.y) / 2.0)));
+            RectangleF[] rc = new RectangleF[3];
+            rc[0] = new RectangleF(m_ptStart, new SizeF(0,0));
+            rc[1] = new RectangleF(m_ptEnd, new SizeF(0, 0));
+            rc[2] = new RectangleF(new PointF(((m_ptStart.X + m_ptEnd.X) / 2.0f), ((m_ptStart.Y + m_ptEnd.Y) / 2.0f)), new SizeF(0, 0));
 
             for (int i = 0; i < 3; i++)
             {
-                rc[i].InflateRect((int)fDiatance, (int)fDiatance);
+                rc[i].Inflate(fDiatance, fDiatance);
             }
 
 
-            if (rc[0].PtInRect(ptInput))
+            if (rc[0].Contains(ptInput))
             {
                 ptSnap = m_ptStart;
                 nSnap = 1;
                 bRet = true;
                 return bRet;
             }
-            else if (rc[1].PtInRect(ptInput))
+            else if (rc[1].Contains(ptInput))
             {
                 ptSnap = m_ptEnd;
                 nSnap = 2;
                 bRet = true;
                 return bRet;
             }
-            else if (rc[2].PtInRect(ptInput))
+            else if (rc[2].Contains(ptInput))
             {
                 return bRet;
             }
 
             return bRet;
         }
-        public int IsStartPointSelect(ref Point ptRet, Point ptInput, double fDiatance)
+        public override bool IsStartPointSelect(ref PointF ptRet, PointF ptInput, float fDiatance)
         {
-            int bRet = false;
-            Rectangle rcSnap = m_rcBound;
-            rcSnap.InflateRect(2 * (int)fDiatance, 2 * (int)fDiatance);
+            bool bRet = false;
+            RectangleF rcSnap = m_rcBound;
+            rcSnap.Inflate(2 * fDiatance, 2 * fDiatance);
 
-            if (!rcSnap.PtInRect(ptInput))
+            if (!rcSnap.Contains(ptInput))
             {
                 return false;
             }
 
-            Rectangle rcStart = new Rectangle();
-            rcStart = Rectangle(m_ptStart, m_ptStart);
-            rcStart.InflateRect((int)fDiatance, (int)fDiatance);
-            if (rcStart.PtInRect(ptInput))
+            RectangleF rcStart = new RectangleF();
+            rcStart = new RectangleF(m_ptStart, new SizeF(0, 0));
+            rcStart.Inflate(fDiatance, fDiatance);
+            if (rcStart.Contains(ptInput))
             {
                 ptRet = m_ptStart;
                 bRet = true;
@@ -3204,37 +3172,37 @@ namespace TopwinLaser2016
             return bRet;
         }
 
-        public void SetStartPoint(Point ptStart)
+        public void SetStartPoint(PointF ptStart)
         {
             m_ptStart = ptStart;
             UpdateBoundRect();
         }
-        public void SetEndPoint(Point ptEnd)
+        public void SetEndPoint(PointF ptEnd)
         {
             m_ptEnd = ptEnd;
             UpdateBoundRect();
         }
         public void SetStartPoint(int x, int y)
         {
-            m_ptStart.x = x;
-            m_ptStart.y = y;
+            m_ptStart.X = x;
+            m_ptStart.Y = y;
             UpdateBoundRect();
         }
         public void SetEndPoint(int x, int y)
         {
-            m_ptEnd.x = x;
-            m_ptEnd.y = y;
+            m_ptEnd.X = x;
+            m_ptEnd.Y = y;
             UpdateBoundRect();
         }
-        public new Point GetStartPoint()
+        public new PointF GetStartPoint()
         {
             return m_ptStart;
         }
-        public new Point GetEndPoint()
+        public new PointF GetEndPoint()
         {
             return m_ptEnd;
         }
-        public new int IsObjValid()
+        public new bool IsObjValid()
         {
             if (m_ptStart == m_ptEnd)
             {
@@ -3248,14 +3216,14 @@ namespace TopwinLaser2016
 
         public new void SetObjDefaultProperty()
         {
-            m_colPenColor = RGB(0, 0, 0);
+            m_colPenColor = Color.FromArgb(0, 0, 0);
         }
     }
     public class CWhLayer : CWhVirtual
     {
-        public void Serialize(ref BinaryFormatter ar)
+        public override void Serialize(ref BinaryFormatter ar)
         {
-            CWhVirtual.Serialize(ar);
+            CWhVirtual.Serialize(ref ar);
             m_pListLayer.Serialize(ref ar);
             if (ar.IsLoading() != 0)
             {
@@ -3276,7 +3244,7 @@ namespace TopwinLaser2016
             CWhVirtual pObj = null;
             if (m_pListLayer.IsEmpty() == 0)
             {
-                __POSITION pos = m_pListLayer.GetHeadPosition();
+                LinkedListNode<object> pos = m_pListLayer.GetHeadPosition();
                 while (pos != null)
                 {
                     pObj = m_pListLayer.GetNext(ref pos);
@@ -3286,63 +3254,60 @@ namespace TopwinLaser2016
             }
             UpdateBoundRect();
         }
-        public void DrawHandle(ref Graphics pDC)
+        public override void DrawHandle(ref Graphics pDC)
         {
-            Rectangle rcHandle = new Rectangle(0, 0, 2, 2);
-            pDC.DPtoLP(rcHandle);
-            Rectangle rcBoundLog = TransRPtoLP(m_rcBound);
-            Rectangle[] rcHandPoint = new Rectangle[5];
+            RectangleF rcHandle = new RectangleF(0, 0, 2, 2);
+            //pDC.DPtoLP(rcHandle);
+            RectangleF rcBoundLog = TransRPtoLP(m_rcBound);
+            RectangleF[] rcHandPoint = new RectangleF[5];
 
-            rcHandPoint[0].SetRect(rcBoundLog.Left, rcBoundLog.Top, rcBoundLog.Left, rcBoundLog.top);
-            rcHandPoint[1].SetRect(rcBoundLog.Right, rcBoundLog.Top, rcBoundLog.Right, rcBoundLog.top);
-            rcHandPoint[2].SetRect(rcBoundLog.Right, rcBoundLog.bottom, rcBoundLog.Right, rcBoundLog.Bottom);
-            rcHandPoint[3].SetRect(rcBoundLog.Left, rcBoundLog.bottom, rcBoundLog.Left, rcBoundLog.Bottom);
-            rcHandPoint[4].SetRect(rcBoundLog.CenterPoint().x, rcBoundLog.CenterPoint().y, rcBoundLog.CenterPoint().x, rcBoundLog.CenterPoint().y);
+            rcHandPoint[0]= new RectangleF(rcBoundLog.Left, rcBoundLog.Top, rcBoundLog.Left, rcBoundLog.Top);
+            rcHandPoint[1]= new RectangleF(rcBoundLog.Right, rcBoundLog.Top, rcBoundLog.Right, rcBoundLog.Top);
+            rcHandPoint[2]= new RectangleF(rcBoundLog.Right, rcBoundLog.Bottom, rcBoundLog.Right, rcBoundLog.Bottom);
+            rcHandPoint[3]= new RectangleF(rcBoundLog.Left, rcBoundLog.Bottom, rcBoundLog.Left, rcBoundLog.Bottom);
+            rcHandPoint[4]= new RectangleF(rcBoundLog.CenterPoint().X, rcBoundLog.CenterPoint().Y, rcBoundLog.CenterPoint().X, rcBoundLog.CenterPoint().Y);
             for (int i = 0; i < 5; i++)
             {
-                rcHandPoint[i].InflateRect(rcHandle.Width(), rcHandle.Height());
+                rcHandPoint[i].Inflate(rcHandle.Width, rcHandle.Height);
             }
 
-            CPen pOldPen = null;
-            CPen pen = new CPen();
-            pen.CreatePen(PS_SOLID, rcHandle.Width()  ,2, RGB(255, 0, 0));
-            pOldPen = pDC.SelectObject(pen);
-
+            Pen pOldPen = null;
+            Pen pen = new Pen(Color.FromArgb(255, 0, 0),rcHandle.Width*2);
+            pOldPen = pen;
             for (int j = 0; j < 5; j++)
             {
-                pDC.Rectangle(rcHandPoint[j]);
+                pDC.DrawRectangle(pen, rcHandPoint[j].X, rcHandPoint[j].Y, rcHandPoint[j].Width, rcHandPoint[j].Height);
             }
-            pDC.SelectObject(pOldPen);
         }
-        public void DrawArrow(ref Graphics pDC)
+        public override void DrawArrow(ref Graphics pDC)
         {
 
         }
-        public void DrawStartPoint(ref Graphics pDC)
+        public override void DrawStartPoint(ref Graphics pDC)
         {
             CWhVirtual pObj = null;
-            __POSITION pos = m_pListLayer.GetHeadPosition();
+            LinkedListNode<object> pos = m_pListLayer.GetHeadPosition();
             while (pos != null)
             {
                 pObj = m_pListLayer.GetNext(ref pos);
                 pObj.DrawStartPoint(ref pDC);
             }
         }
-        public void Draw(ref Graphics pDC, Rectangle rcClient)
+        public override void Draw(ref Graphics pDC, RectangleF rcClient)
         {
             if (m_bIsShow)
             {
 
-                Rectangle rcInterSectRect = new Rectangle(0, 0, 0, 0);
-                Rectangle rcClientReal = TransDPtoRP(rcClient, pDC);
-                if (!rcInterSectRect.IntersectRect(m_rcBound, rcClientReal))
+                RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
+                RectangleF rcClientReal = TransDPtoRP(rcClient,ref pDC);
+                if (RectangleF.Intersect(m_rcBound, rcClientReal).IsEmpty)
                 {
                     return;
                 }
 
 
                 CWhVirtual pObj = null;
-                __POSITION pos = m_pListLayer.GetHeadPosition();
+                LinkedListNode<object> pos = m_pListLayer.GetHeadPosition();
                 while (pos != null)
                 {
                     pObj = m_pListLayer.GetNext(ref pos);
@@ -3356,35 +3321,35 @@ namespace TopwinLaser2016
                 }
             }
         }
-        public void DrawNumber(ref Graphics pDC)
+        public override void DrawNumber(ref Graphics pDC)
         {
             CWhVirtual pObj = null;
-            __POSITION pos = m_pListLayer.GetHeadPosition();
+            LinkedListNode<object> pos = m_pListLayer.GetHeadPosition();
             while (pos != null)
             {
                 pObj = m_pListLayer.GetNext(ref pos);
                 pObj.DrawNumber(ref pDC);
             }
         }
-        public new Point GetStartPoint()
+        public new PointF GetStartPoint()
         {
-            Point ptRet = new Point(0, 0);
+            PointF ptRet = new PointF(0, 0);
             CWhVirtual pObj = m_pListLayer.GetHead();
             ptRet = pObj.GetStartPoint();
             return ptRet;
         }
-        public new Point GetEndPoint()
+        public new PointF GetEndPoint()
         {
-            Point ptRet = new Point(0, 0);
+            PointF ptRet = new PointF(0, 0);
             CWhVirtual pObj = m_pListLayer.GetTail();
             ptRet = pObj.GetEndPoint();
             return ptRet;
         }
 
-        public new void SetPenColor(uint colRef)
+        public new void SetPenColor(Color colRef)
         {
             CWhVirtual pObj = null;
-            __POSITION posObj = m_pListLayer.GetHeadPosition();
+            LinkedListNode<object> posObj = m_pListLayer.GetHeadPosition();
             while (posObj != null)
             {
                 pObj = m_pListLayer.GetNext(ref posObj);
@@ -3394,7 +3359,7 @@ namespace TopwinLaser2016
         public new void SetObjDefaultProperty()
         {
             CWhVirtual pObj = null;
-            __POSITION posObj = m_pListLayer.GetHeadPosition();
+            LinkedListNode<object> posObj = m_pListLayer.GetHeadPosition();
             while (posObj != null)
             {
                 pObj = m_pListLayer.GetNext(ref posObj);
@@ -3407,7 +3372,7 @@ namespace TopwinLaser2016
             m_nMachineCount = nMachineCount;
 
             CWhVirtual pObj = null;
-            __POSITION posObj = m_pListLayer.GetHeadPosition();
+            LinkedListNode<object> posObj = m_pListLayer.GetHeadPosition();
             while (posObj != null)
             {
                 pObj = m_pListLayer.GetNext(ref posObj);
@@ -3420,20 +3385,20 @@ namespace TopwinLaser2016
             m_nMachineFrequence = nMachineFrequence;
 
             CWhVirtual pObj = null;
-            __POSITION posObj = m_pListLayer.GetHeadPosition();
+            LinkedListNode<object> posObj = m_pListLayer.GetHeadPosition();
             while (posObj != null)
             {
                 pObj = m_pListLayer.GetNext(ref posObj);
                 pObj.SetMachineCount(nMachineFrequence);
             }
         }
-        public new void SetMachineStyle(int bMachineStyle)
+        public new void SetMachineStyle(bool bMachineStyle)
         {
 
             m_bMachineStyle = bMachineStyle;
 
             CWhVirtual pObj = null;
-            __POSITION posObj = m_pListLayer.GetHeadPosition();
+            LinkedListNode<object> posObj = m_pListLayer.GetHeadPosition();
             while (posObj != null)
             {
                 pObj = m_pListLayer.GetNext(ref posObj);
@@ -3441,56 +3406,50 @@ namespace TopwinLaser2016
             }
         }
 
-        public new int IsSelected(Point ptClick, int nLimit)
+        public new bool IsSelected(PointF ptClick, int nLimit)
         {
-            int bRet = DefineConstantsWhLayer.FALSE;
+            bool bRet = false;
 
-            Rectangle rcBound = new Rectangle(m_rcBound);
-            rcBound.InflateRect(nLimit, nLimit);
+            RectangleF rcBound = new RectangleF();
+            rcBound.Inflate(nLimit, nLimit);
             if (m_pListLayer.IsEmpty() == 0)
             {
-                if (rcBound.PtInRect(ptClick))
+                if (rcBound.Contains(ptClick))
                 {
-                    bRet = DefineConstantsWhLayer.TRUE;
+                    bRet = true;
                     return bRet;
                 }
             }
 
             return bRet;
         }
-        public new int IsSelected(Rectangle rcClick, int bFlagMode)
+        public new bool IsSelected(RectangleF rcClick, int bFlagMode)
         {
-            int bRet = DefineConstantsWhLayer.FALSE;
-
+            bool bRet = false;
             if (m_pListLayer.IsEmpty() != 0)
             {
                 return bRet;
-            }
-
-            Rectangle rcBound = new Rectangle(m_rcBound);
-            Rectangle rcInterSectRect = new Rectangle(0, 0, 0, 0);
-
-            if (rcInterSectRect.IntersectRect(m_rcBound, rcClick))
+            }            
+            if (RectangleF.Intersect(m_rcBound, rcClick).IsEmpty)
             {
-                bRet = DefineConstantsWhLayer.TRUE;
-                return bRet;
-            }
-
-            return bRet;
-        }
-        public int IsPointSnap(ref Point ptSnap, Point ptInput, double fDiatance)
-        {
-            int bRet = DefineConstantsWhLayer.FALSE;
-            if (m_rcBound.PtInRect(ptInput))
-            {
-                bRet = DefineConstantsWhLayer.TRUE;
+                bRet = true;
                 return bRet;
             }
             return bRet;
         }
-        public int IsStartPointSelect(ref Point ptRet, Point ptInput, double fDiatance)
+        public new bool IsPointSnap(ref PointF ptSnap, PointF ptInput, float fDiatance)
         {
-            int bRet = DefineConstantsWhLayer.FALSE;
+            bool bRet = false;
+            if (m_rcBound.Contains(ptInput))
+            {
+                bRet = true;
+                return bRet;
+            }
+            return bRet;
+        }
+        public new bool IsStartPointSelect(ref PointF ptRet, PointF ptInput, float fDiatance)
+        {
+            bool bRet = false;
             return bRet;
         }
 
@@ -3498,7 +3457,7 @@ namespace TopwinLaser2016
         {
             return m_pListLayer;
         }
-        public int FindObject(CWhVirtual pObj)
+        public bool FindObject(CWhVirtual pObj)
         {
             return m_pListLayer.FindObject(pObj);
         }
@@ -3526,63 +3485,53 @@ namespace TopwinLaser2016
             m_rcBound = m_pListLayer.m_rcBound;
         }
 
-        public int RemoveObject(CWhVirtual pObj)
+        public bool RemoveObject(CWhVirtual pObj)
         {
-            return RemoveObject(pObj, DefineConstantsWhLayer.FALSE);
+            return RemoveObject(pObj, false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: int RemoveObject(CWhVirtual pObj, int bFlagDepth = DefineConstantsWhLayer.FALSE)
-        public int RemoveObject(CWhVirtual pObj, int bFlagDepth)
+        public bool RemoveObject(CWhVirtual pObj, bool bFlagDepth = false)
         {
             return m_pListLayer.RemoveObject(pObj, bFlagDepth);
         }
         public void RemoveObjects(CWhListContainer pListObj)
         {
-            RemoveObjects(pListObj, DefineConstantsWhLayer.FALSE);
+            RemoveObjects(pListObj, false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void RemoveObjects(CWhListContainer pListObj, int bFlagDepth = DefineConstantsWhLayer.FALSE)
-        public void RemoveObjects(CWhListContainer pListObj, int bFlagDepth)
+        public void RemoveObjects(CWhListContainer pListObj, bool bFlagDepth = false)
         {
             m_pListLayer.RemoveObjects(pListObj, bFlagDepth);
         }
         public void RemoveAll()
         {
-            RemoveAll(DefineConstantsWhLayer.FALSE);
+            RemoveAll(false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void RemoveAll(int bFlagDepth = DefineConstantsWhLayer.FALSE)
-        public void RemoveAll(int bFlagDepth)
+        public void RemoveAll(bool bFlagDepth = false)
         {
             m_pListLayer.RemoveAll(bFlagDepth);
         }
         public void DeleteObject(CWhVirtual pObj)
         {
-            DeleteObject(pObj, DefineConstantsWhLayer.FALSE);
+            DeleteObject(pObj, false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void DeleteObject(CWhVirtual pObj, int bFlagDepth = DefineConstantsWhLayer.FALSE)
-        public void DeleteObject(CWhVirtual pObj, int bFlagDepth)
+        public void DeleteObject(CWhVirtual pObj, bool bFlagDepth = false)
         {
             m_pListLayer.DeleteObject(pObj, bFlagDepth);
         }
         public void DeleteObjects(CWhListContainer pListObj)
         {
-            DeleteObjects(pListObj, DefineConstantsWhLayer.FALSE);
+            DeleteObjects(pListObj, false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void DeleteObjects(CWhListContainer pListObj, int bFlagDepth = DefineConstantsWhLayer.FALSE)
-        public void DeleteObjects(CWhListContainer pListObj, int bFlagDepth)
+        public void DeleteObjects(CWhListContainer pListObj, bool bFlagDepth = false)
         {
             m_pListLayer.DeleteObjects(pListObj, bFlagDepth);
         }
         public void DeleteAll()
         {
-            DeleteAll(DefineConstantsWhLayer.FALSE);
+            DeleteAll(false);
         }
         //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void DeleteAll(int bFlagDepth = DefineConstantsWhLayer.FALSE)
-        public void DeleteAll(int bFlagDepth)
+        //ORIGINAL LINE: void DeleteAll(int bFlagDepth)
+        public void DeleteAll(bool bFlagDepth = false)
         {
             m_pListLayer.DeleteAll(bFlagDepth);
         }
@@ -3602,9 +3551,9 @@ namespace TopwinLaser2016
     public class CWhGroup : CWhVirtual
     {
         
-        public void Serialize(ref BinaryFormatter ar)
+        public new void Serialize(ref BinaryFormatter ar)
         {
-            CWhVirtual.Serialize(ar);
+            CWhVirtual.Serialize(ref ar);
             m_pListGroup.Serialize(ref ar);
             if (ar.IsStoring() != 0)
             {
@@ -3625,7 +3574,7 @@ namespace TopwinLaser2016
             CWhVirtual pObj = null;
             if (m_pListGroup.IsEmpty() == 0)
             {
-                __POSITION pos = m_pListGroup.GetHeadPosition();
+                LinkedListNode<object> pos = m_pListGroup.GetHeadPosition();
                 while (pos != null)
                 {
                     pObj = m_pListGroup.GetNext(ref pos);
@@ -3635,47 +3584,34 @@ namespace TopwinLaser2016
             }
             UpdateBoundRect();
         }
-        public void DrawHandle(ref Graphics pDC)
+        public override void DrawHandle(ref Graphics pDC)
         {
             CWhVirtual pObjFirst = m_pListGroup.GetHead();
             CWhVirtual pObjEnd = m_pListGroup.GetTail();
-
-            Point ptStart = new Point();
-            Point ptEnd = new Point();
-
+            PointF ptStart = new PointF();
+            PointF ptEnd = new PointF();
             ptStart = TransRPtoLP(pObjFirst.GetStartPoint());
             ptEnd = TransRPtoLP(pObjEnd.GetEndPoint());
-
-            Rectangle rcHandle = new Rectangle(0, 0, 2, 2);
-            pDC.DPtoLP(rcHandle);
-            Rectangle rcStart = new Rectangle(ptStart.x, ptStart.y, ptStart.x, ptStart.y);
-            Rectangle rcEnd = new Rectangle(ptEnd.x, ptEnd.y, ptEnd.x, ptEnd.y);
-            rcStart.InflateRect(rcHandle.Width(), rcHandle.Height());
-            rcEnd.InflateRect(rcHandle.Width(), rcHandle.Height());
-
-
-            CPen pOldPen = null;
-            CPen pen = new CPen();
-            pen.CreatePen(PS_SOLID, rcHandle.Width()  ,2, RGB(0, 0, 255));
-            pOldPen = pDC.SelectObject(pen);
-            pDC.Rectangle(rcEnd);
-
-            pDC.SelectObject(pOldPen);
-
-
-            CPen pOldPen1 = null;
-            CPen pen1 = new CPen();
-            pen1.CreatePen(PS_SOLID, rcHandle.Width()  ,2, RGB(255, 0, 0));
-            pOldPen1 = pDC.SelectObject(pen1);
-            pDC.Rectangle(rcStart);
-
-            pDC.SelectObject(pOldPen1);
+            RectangleF rcHandle = new RectangleF(0, 0, 2, 2);
+            //pDC.DPtoLP(rcHandle);
+            RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, ptStart.X, ptStart.Y);
+            RectangleF rcEnd = new RectangleF(ptEnd.X, ptEnd.Y, ptEnd.X, ptEnd.Y);
+            rcStart.Inflate(rcHandle.Width, rcHandle.Height);
+            rcEnd.Inflate(rcHandle.Width, rcHandle.Height);
+            Pen pOldPen = null;
+            Pen pen = new Pen(Color.FromArgb(0, 0, 255),rcHandle.Width*2);
+            pOldPen = pen;
+            pDC.DrawRectangle(pen,rcEnd);
+            Pen pOldPen1 = null;
+            Pen pen1 = new Pen(Color.FromArgb(255, 0, 0),rcHandle.Width*2);
+            pOldPen1 = pen1;
+            pDC.DrawRectangle(pen1,rcStart);
         }
-        public void DrawArrow(ref Graphics pDC)
+        public override void DrawArrow(ref Graphics pDC)
         {
 
         }
-        public void DrawStartPoint(ref Graphics pDC)
+        public override void DrawStartPoint(ref Graphics pDC)
         {
             CWhVirtual pObjStart = m_pListGroup.GetHead();
             if (pObjStart != null)
@@ -3683,35 +3619,33 @@ namespace TopwinLaser2016
                 pObjStart.DrawStartPoint(ref pDC);
             }
         }
-        public void DrawNumber(ref Graphics pDC)
+        public override void DrawNumber(ref Graphics pDC)
         {
             CWhVirtual pObjFirst = m_pListGroup.GetHead();
             string strNum;
-            strNum.Format("%d", m_lID);
-            Point pt = TransRPtoLP(pObjFirst.GetStartPoint());
-            pDC.TextOut(pt.x, pt.y, strNum);
+            Font drawFont = new Font("Arial", 16);
+            SolidBrush drawBrush = new SolidBrush(Color.Black);
+            strNum = string.Format("%d", m_lID);
+            PointF pt = TransRPtoLP(pObjFirst.GetStartPoint());
+            pDC.DrawString(strNum, drawFont, drawBrush,pt.X, pt.Y);
         }
-        public void Draw(ref Graphics pDC, Rectangle rcClient)
+        public override void Draw(ref Graphics pDC, RectangleF rcClient)
         {
             if (m_bIsShow)
             {
-
-                Rectangle rcInterSectRect = new Rectangle(0, 0, 0, 0);
-                Rectangle rcClientReal = TransDPtoRP(rcClient, pDC);
-                if (!rcInterSectRect.IntersectRect(m_rcBound, rcClientReal))
+                RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
+                RectangleF rcClientReal = TransDPtoRP(rcClient,ref pDC);
+                if (RectangleF.Intersect(m_rcBound, rcClientReal).IsEmpty)
                 {
                     return;
                 }
-
                 CWhVirtual pObj = null;
-                __POSITION pos = m_pListGroup.GetHeadPosition();
+                LinkedListNode<object> pos = m_pListGroup.GetHeadPosition();
                 while (pos != null)
                 {
                     pObj = m_pListGroup.GetNext(ref pos);
                     pObj.Draw(ref pDC, rcClient);
                 }
-
-
                 if (m_bIsShowHandle)
                 {
                     DrawHandle(ref pDC);
@@ -3722,7 +3656,7 @@ namespace TopwinLaser2016
         {
 
             CWhVirtual pObj = null;
-            __POSITION posObj = m_pListGroup.GetHeadPosition();
+            LinkedListNode<object> posObj = m_pListGroup.GetHeadPosition();
             while (posObj != null)
             {
                 pObj = m_pListGroup.GetNext(ref posObj);
@@ -3731,25 +3665,25 @@ namespace TopwinLaser2016
 
             m_pListGroup.AntiList();
         }
-        public new Point GetStartPoint()
+        public new PointF GetStartPoint()
         {
-            Point ptRet = new Point(0, 0);
+            PointF ptRet = new PointF(0, 0);
             CWhVirtual pObj = m_pListGroup.GetHead();
             ptRet = pObj.GetStartPoint();
             return ptRet;
         }
-        public new Point GetEndPoint()
+        public new PointF GetEndPoint()
         {
-            Point ptRet = new Point(0, 0);
+            PointF ptRet = new PointF(0, 0);
             CWhVirtual pObj = m_pListGroup.GetTail();
             ptRet = pObj.GetEndPoint();
             return ptRet;
         }
 
-        public new void SetPenColor(uint colRef)
+        public new void SetPenColor(Color colRef)
         {
             CWhVirtual pObj = null;
-            __POSITION posObj = m_pListGroup.GetHeadPosition();
+            LinkedListNode<object> posObj = m_pListGroup.GetHeadPosition();
             while (posObj != null)
             {
                 pObj = m_pListGroup.GetNext(ref posObj);
@@ -3759,7 +3693,7 @@ namespace TopwinLaser2016
         public new void SetObjDefaultProperty()
         {
             CWhVirtual pObj = null;
-            __POSITION posObj = m_pListGroup.GetHeadPosition();
+            LinkedListNode<object> posObj = m_pListGroup.GetHeadPosition();
             while (posObj != null)
             {
                 pObj = m_pListGroup.GetNext(ref posObj);
@@ -3772,7 +3706,7 @@ namespace TopwinLaser2016
             m_nMachineCount = nMachineCount;
 
             CWhVirtual pObj = null;
-            __POSITION posObj = m_pListGroup.GetHeadPosition();
+            LinkedListNode<object> posObj = m_pListGroup.GetHeadPosition();
             while (posObj != null)
             {
                 pObj = m_pListGroup.GetNext(ref posObj);
@@ -3785,20 +3719,20 @@ namespace TopwinLaser2016
             m_nMachineFrequence = nMachineFrequence;
 
             CWhVirtual pObj = null;
-            __POSITION posObj = m_pListGroup.GetHeadPosition();
+            LinkedListNode<object> posObj = m_pListGroup.GetHeadPosition();
             while (posObj != null)
             {
                 pObj = m_pListGroup.GetNext(ref posObj);
                 pObj.SetMachineCount(nMachineFrequence);
             }
         }
-        public new void SetMachineStyle(int bMachineStyle)
+        public new void SetMachineStyle(bool bMachineStyle)
         {
 
             m_bMachineStyle = bMachineStyle;
 
             CWhVirtual pObj = null;
-            __POSITION posObj = m_pListGroup.GetHeadPosition();
+            LinkedListNode<object> posObj = m_pListGroup.GetHeadPosition();
             while (posObj != null)
             {
                 pObj = m_pListGroup.GetNext(ref posObj);
@@ -3806,27 +3740,27 @@ namespace TopwinLaser2016
             }
         }
 
-        public new int IsSelected(Point ptClick, int nLimit)
+        public new bool IsSelected(PointF ptClick, int nLimit)
         {
-            int bRet = DefineConstantsWhGroup.FALSE;
+            bool bRet = false;
             if (m_pListGroup.IsEmpty() == 0)
             {
 
-                Rectangle rcBound = new Rectangle(m_rcBound);
-                rcBound.InflateRect(nLimit, nLimit);
+                RectangleF rcBound = new RectangleF();
+                rcBound.Inflate(nLimit, nLimit);
 
-                if (rcBound.PtInRect(ptClick))
+                if (rcBound.Contains(ptClick))
                 {
 
                     CWhVirtual pObjSelect = null;
-                    __POSITION posSelect = m_pListGroup.GetHeadPosition();
+                    LinkedListNode<object> posSelect = m_pListGroup.GetHeadPosition();
                     while (posSelect != null)
                     {
                         pObjSelect = m_pListGroup.GetNext(ref posSelect);
 
-                        if (pObjSelect.IsSelected(ptClick, nLimit) != 0)
+                        if (!pObjSelect.IsSelected(ptClick, nLimit))
                         {
-                            bRet = DefineConstantsWhGroup.TRUE;
+                            bRet = true;
                             return bRet;
                         }
                     }
@@ -3835,25 +3769,24 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-        public new int IsSelected(Rectangle rcClick, int bFlagMode)
+        public new bool IsSelected(RectangleF rcClick, int bFlagMode)
         {
-            int bRet = DefineConstantsWhGroup.FALSE;
-            Rectangle rcBound = new Rectangle(m_rcBound);
-            Rectangle rcInterSectRect = new Rectangle(0, 0, 0, 0);
+            bool bRet = false;
+            RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
 
             if (bFlagMode == -1)
             {
-                if (rcInterSectRect.IntersectRect(m_rcBound, rcClick))
+                if (!RectangleF.Intersect(m_rcBound, rcClick).IsEmpty)
                 {
                     CWhVirtual pObjSelect = null;
-                    __POSITION posSelect = m_pListGroup.GetHeadPosition();
+                    LinkedListNode<object> posSelect = m_pListGroup.GetHeadPosition();
                     while (posSelect != null)
                     {
                         pObjSelect = m_pListGroup.GetNext(ref posSelect);
 
-                        if (pObjSelect.IsSelected(rcClick, bFlagMode) != 0)
+                        if (!pObjSelect.IsSelected(rcClick, bFlagMode))
                         {
-                            bRet = DefineConstantsWhGroup.TRUE;
+                            bRet = true;
                             return bRet;
                         }
                     }
@@ -3861,49 +3794,48 @@ namespace TopwinLaser2016
             }
             else if (bFlagMode == 1)
             {
-                rcInterSectRect.IntersectRect(m_rcBound, rcClick);
+                rcInterSectRect = RectangleF.Intersect(m_rcBound, rcClick);
                 if (rcInterSectRect == m_rcBound)
                 {
-                    bRet = DefineConstantsWhGroup.TRUE;
+                    bRet = true;
                     return bRet;
                 }
             }
-
             return bRet;
         }
-        public int IsPointSnap(ref Point ptSnap, Point ptInput, double fDiatance)
+        public override bool IsPointSnap(ref PointF ptSnap, PointF ptInput, float fDiatance)
         {
-            int bRet = DefineConstantsWhGroup.FALSE;
-            if (m_rcBound.PtInRect(ptInput))
+            bool bRet = false;
+            if (m_rcBound.Contains(ptInput))
             {
-                bRet = DefineConstantsWhGroup.TRUE;
+                bRet = true;
                 return bRet;
             }
             return bRet;
         }
-        public int IsStartPointSelect(ref Point ptRet, Point ptInput, double fDiatance)
+        public override bool IsStartPointSelect(ref PointF ptRet, PointF ptInput, float fDiatance)
         {
-            int bRet = DefineConstantsWhGroup.FALSE;
-            Rectangle rcSnap = m_rcBound;
-            rcSnap.InflateRect(2 * (int)fDiatance, 2 * (int)fDiatance);
+            bool bRet = false;
+            RectangleF rcSnap = m_rcBound;
+            rcSnap.Inflate(2 * fDiatance, 2 * fDiatance);
 
-            if (!rcSnap.PtInRect(ptInput))
+            if (!rcSnap.Contains(ptInput))
             {
-                return DefineConstantsWhGroup.FALSE;
+                return false;
             }
 
             CWhVirtual pObj = null;
-            __POSITION posObj = m_pListGroup.GetHeadPosition();
+            LinkedListNode<object> posObj = m_pListGroup.GetHeadPosition();
             pObj = m_pListGroup.GetNext(ref posObj);
-            if (pObj.IsStartPointSelect(ref ptRet, ptInput, fDiatance) != 0)
+            if (!pObj.IsStartPointSelect(ref ptRet, ptInput, fDiatance))
             {
-                bRet = DefineConstantsWhGroup.TRUE;
+                bRet = true;
                 return bRet;
             }
             return bRet;
         }
 
-        public int FindObject(CWhVirtual pObj)
+        public bool FindObject(CWhVirtual pObj)
         {
             return m_pListGroup.FindObject(pObj);
         }
@@ -3923,67 +3855,56 @@ namespace TopwinLaser2016
             m_rcBound = m_pListGroup.m_rcBound;
         }
 
-        public int RemoveObject(CWhVirtual pObj)
+        public bool RemoveObject(CWhVirtual pObj)
         {
-            return RemoveObject(pObj, DefineConstantsWhGroup.FALSE);
+            return RemoveObject(pObj, false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: int RemoveObject(CWhVirtual pObj, int bFlagDepth = DefineConstantsWhGroup.FALSE)
-        public int RemoveObject(CWhVirtual pObj, int bFlagDepth)
+        public bool RemoveObject(CWhVirtual pObj, bool bFlagDepth = false)
         {
             return m_pListGroup.RemoveObject(pObj, bFlagDepth);
         }
         public void RemoveObjects(CWhListContainer pListObj)
         {
-            RemoveObjects(pListObj, DefineConstantsWhGroup.FALSE);
+            RemoveObjects(pListObj, false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void RemoveObjects(CWhListContainer pListObj, int bFlagDepth = DefineConstantsWhGroup.FALSE)
-        public void RemoveObjects(CWhListContainer pListObj, int bFlagDepth)
+        public void RemoveObjects(CWhListContainer pListObj, bool bFlagDepth = false)
         {
             m_pListGroup.RemoveObjects(pListObj, bFlagDepth);
         }
         public void RemoveAll()
         {
-            RemoveAll(DefineConstantsWhGroup.FALSE);
+            RemoveAll(false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void RemoveAll(int bFlagDepth = DefineConstantsWhGroup.FALSE)
-        public void RemoveAll(int bFlagDepth)
+        public void RemoveAll(bool bFlagDepth = false)
         {
             m_pListGroup.RemoveAll(bFlagDepth);
         }
         public void DeleteObject(CWhVirtual pObj)
         {
-            DeleteObject(pObj, DefineConstantsWhGroup.FALSE);
+            DeleteObject(pObj, false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void DeleteObject(CWhVirtual pObj, int bFlagDepth = DefineConstantsWhGroup.FALSE)
-        public void DeleteObject(CWhVirtual pObj, int bFlagDepth)
+        public void DeleteObject(CWhVirtual pObj, bool bFlagDepth = false)
         {
             m_pListGroup.DeleteObject(pObj, bFlagDepth);
         }
         public void DeleteObjects(CWhListContainer pListObj)
         {
-            DeleteObjects(pListObj, DefineConstantsWhGroup.FALSE);
+            DeleteObjects(pListObj, false);
         }
         //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void DeleteObjects(CWhListContainer pListObj, int bFlagDepth = DefineConstantsWhGroup.FALSE)
-        public void DeleteObjects(CWhListContainer pListObj, int bFlagDepth)
+        //ORIGINAL LINE: void DeleteObjects(CWhListContainer pListObj, bool bFlagDepth = false)
+        public void DeleteObjects(CWhListContainer pListObj, bool bFlagDepth = false)
         {
             m_pListGroup.DeleteObjects(pListObj, bFlagDepth);
         }
         public void DeleteAll()
         {
-            DeleteAll(DefineConstantsWhGroup.FALSE);
+            DeleteAll(false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void DeleteAll(int bFlagDepth = DefineConstantsWhGroup.FALSE)
-        public void DeleteAll(int bFlagDepth)
+        public void DeleteAll(bool bFlagDepth = false)
         {
             m_pListGroup.DeleteAll(bFlagDepth);
         }
-
         public void ConnectHeadToEnd()
         {
 
@@ -3991,7 +3912,7 @@ namespace TopwinLaser2016
         public void Apart()
         {
             CWhVirtual pObj = null;
-            __POSITION posObj = m_pListGroup.GetHeadPosition();
+            LinkedListNode<object> posObj = m_pListGroup.GetHeadPosition();
             while (posObj != null)
             {
                 pObj = m_pListGroup.GetNext(ref posObj);
@@ -4002,28 +3923,28 @@ namespace TopwinLaser2016
         }
 
         public CWhListContainer m_pListGroup;
-        public Rectangle m_rcGridBound = new Rectangle();
+        public RectangleF m_rcGridBound = new RectangleF();
         public string m_strParentLayerName;
     }
     public class CWhEllipse : CWhVirtual
     { //圆和矩形,椭圆类
        
-        public CWhEllipse(Rectangle rcEllipse, int nTypeObj)
+        public CWhEllipse(RectangleF rcEllipse, int nTypeObj=0)
         {
             m_nObjType = DefineConstantsFdxf.WH_TYPE_ELLIPSE;
             m_nEllipseType = nTypeObj;
 
             m_rcBound = rcEllipse;
-            m_nRadium = (int)((m_rcBound.Width() + m_rcBound.Height()) / 4.0);
+            m_nRadium = ((m_rcBound.Width + m_rcBound.Height) / 4);
             SetObjDefaultProperty();
         }
 
-        public int m_nRadium;
+        public float m_nRadium;
         public int m_nEllipseType;
 
-        public void Serialize(ref BinaryFormatter ar)
+        public override void Serialize(ref BinaryFormatter ar)
         {
-            GlobalMembersWhEllipse.CWhVirtual.Serialize(ar);
+            CWhVirtual.Serialize(ref ar);
 
             if (ar.IsStoring() != 0)
             {
@@ -4036,169 +3957,121 @@ namespace TopwinLaser2016
         }
         public new void UpdateBoundRect()
         {
-            m_rcBound.NormalizeRect();
-            m_nRadium = (int)((m_rcBound.Width() + m_rcBound.Height()) / 4.0);
+            //m_rcBound.NormalizeRect();
+            m_nRadium = ((m_rcBound.Width + m_rcBound.Height) / 4);
         }
-        public void Draw(ref Graphics pDC, Rectangle rcClient)
+        public override void Draw(ref Graphics pDC, RectangleF rcClient)
         {
-
             if (m_bIsShow)
             {
-
-                Rectangle rcInterSectRect = new Rectangle(0, 0, 0, 0);
-                Rectangle rcClientReal = TransDPtoRP(rcClient, pDC);
-                if (!rcInterSectRect.IntersectRect(m_rcBound, rcClientReal))
+                RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
+                RectangleF rcClientReal = TransDPtoRP(rcClient,ref pDC);
+                if (RectangleF.Intersect(m_rcBound, rcClientReal).IsEmpty)
                 {
                     return;
                 }
-
-
-                Rectangle rcEllipse = new Rectangle();
-
+                RectangleF rcEllipse = new RectangleF();
                 rcEllipse = TransRPtoLP(m_rcBound);
-
-
-                CPen pOldPen = null;
-                CPen penEllipse = new CPen();
-                penEllipse.CreatePen(PS_SOLID, m_nPenWidth, m_colPenColor);
-                pOldPen = pDC.SelectObject(penEllipse);
-
-
-                CBrush pOldBrush = null;
-                CBrush brushEllipse = new CBrush();
-                if (m_bIsFilled)
-                {
-
-                    int bRet = brushEllipse.CreateSolidBrush(m_colBrush);
-                    pOldBrush = pDC.SelectObject(brushEllipse);
-                }
-                else
-                {
-                    IntPtr hGdi = GetStockObject(NULL_BRUSH);
-                    CBrush pBrush = CBrush.FromHandle((IntPtr)hGdi);
-                    pOldBrush = pDC.SelectObject(pBrush);
-                }
-
-
+                Pen pOldPen = null;
+                Pen penEllipse = new Pen(m_colPenColor,m_nPenWidth);
+                pOldPen = penEllipse;
                 if (m_nEllipseType == 0)
                 {
-                    pDC.Ellipse(rcEllipse);
+                    pDC.DrawEllipse(penEllipse, rcEllipse);
                 }
                 else if (m_nEllipseType == 1)
                 {
-                    pDC.Rectangle(rcEllipse);
-                }
-
-                pDC.SelectObject(pOldPen);
-                pDC.SelectObject(pOldBrush);
-
-
-                if (m_bIsShowHandle)
-                {
-                    DrawHandle(ref pDC);
+                    pDC.DrawRectangle(penEllipse, rcEllipse);
                 }
             }
         }
-        public void DrawHandle(ref Graphics pDC)
+        public override void DrawHandle(ref Graphics pDC)
         {
-            Rectangle rcBound = new Rectangle();
+            RectangleF rcBound = new RectangleF();
 
             rcBound = TransRPtoLP(m_rcBound);
 
-            Rectangle rcHandle = new Rectangle(0, 0, 2, 2);
-            pDC.DPtoLP(rcHandle);
-            Rectangle rcBottom = new Rectangle((int)((rcBound.left + rcBound.right) / 2), rcBound.bottom, (int)((rcBound.left + rcBound.right) / 2), rcBound.Bottom);
-            Rectangle rcCenter = new Rectangle(rcBound.CenterPoint(), rcBound.CenterPoint());
-            rcBottom.InflateRect(rcHandle.Width(), rcHandle.Height());
-            rcCenter.InflateRect(rcHandle.Width(), rcHandle.Height());
+            RectangleF rcHandle = new RectangleF(0, 0, 2, 2);
+            //pDC.DPtoLP(rcHandle);
+            RectangleF rcBottom = new RectangleF((float)((rcBound.Left + rcBound.Right) / 2), rcBound.Bottom, (float)((rcBound.Left + rcBound.Right) / 2), rcBound.Bottom);
+            RectangleF rcCenter = new RectangleF( new PointF(rcBound.Right-rcBound.Width/2, rcBound.Top - rcBound.Height / 2),new SizeF(0,0));
+            rcBottom.Inflate(rcHandle.Width, rcHandle.Height);
+            rcCenter.Inflate(rcHandle.Width, rcHandle.Height);
             //设置画笔
-            CPen pOldPen = null;
-            CPen pen = new CPen();
-            pen.CreatePen(PS_SOLID, rcHandle.Width()  ,2, RGB(0, 0, 255));
-            pOldPen = pDC.SelectObject(pen);
-            pDC.Rectangle(rcCenter);
-            //还原画笔
-            pDC.SelectObject(pOldPen);
-
+            Pen pOldPen = null;
+            Pen pen = new Pen(Color.FromArgb(0, 0, 255),rcHandle.Width*2);
+            pOldPen = pen;
+            pDC.DrawRectangle(pen,rcCenter);
             //设置画笔
-            CPen pOldPen1 = null;
-            CPen pen1 = new CPen();
-            pen1.CreatePen(PS_SOLID, rcHandle.Width()  ,2, RGB(255, 0, 0));
-            pOldPen1 = pDC.SelectObject(pen1);
-            pDC.Rectangle(rcBottom);
-            //还原画笔
-            pDC.SelectObject(pOldPen1);
+            Pen pOldPen1 = null;
+            Pen pen1 = new Pen(Color.FromArgb(255, 0, 0),rcHandle.Width*2);
+            pOldPen1 = pen1;
+            pDC.DrawRectangle(pen,rcBottom);
         }
-        public void DrawArrow(ref Graphics pDC)
+        public override void DrawArrow(ref Graphics pDC)
         {
 
         }
-        public void DrawStartPoint(ref Graphics pDC)
+        public override void DrawStartPoint(ref Graphics pDC)
         {
-            Point ptStart = new Point(0, 0);
+            PointF ptStart = new PointF(0, 0);
             if (m_nEllipseType == 0)
             {
-                ptStart = Point(m_rcBound.CenterPoint().x, m_rcBound.top);
+                ptStart = new  PointF(m_rcBound.Left+m_rcBound.Width/2, m_rcBound.Top);
             }
             else if (m_nEllipseType == 1)
             {
-                ptStart = Point(m_rcBound.TopLeft());
+                ptStart = new PointF(m_rcBound.Top, m_rcBound.Left);
             }
 
             ptStart = TransRPtoLP(ptStart);
 
-            Rectangle rcHandle = new Rectangle(0, 0, 3, 3);
-            pDC.DPtoLP(rcHandle);
-            Rectangle rcStart = new Rectangle(ptStart.x, ptStart.y, ptStart.x, ptStart.y);
-            rcStart.InflateRect(rcHandle.Width(), rcHandle.Height());
+            RectangleF rcHandle = new RectangleF(0, 0, 3, 3);
+            //pDC.DPtoLP(rcHandle);
+            RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, ptStart.X, ptStart.Y);
+            rcStart.Inflate(rcHandle.Width, rcHandle.Height);
 
             //设置画笔
-            CBrush pOldBrush = null;
-            IntPtr hGdi = GetStockObject(NULL_BRUSH);
-            CBrush pBrush = CBrush.FromHandle((IntPtr)hGdi);
-            pOldBrush = pDC.SelectObject(pBrush);
-            CPen pOldPen = null;
-            CPen pen = new CPen();
-            pen.CreatePen(PS_SOLID, 0, RGB(255, 0, 0));
-            pOldPen = pDC.SelectObject(pen);
-            pDC.Rectangle(rcStart);
-            //还原画笔
-            pDC.SelectObject(pOldPen);
-            pDC.SelectObject(pOldBrush);
+            Pen pOldPen = null;
+            Pen pen = new Pen(Color.FromArgb(255, 0, 0),0);
+            pOldPen = pen;
+            pDC.DrawRectangle(pen,rcStart);
         }
-        public void DrawNumber(ref Graphics pDC)
+        public override void DrawNumber(ref Graphics pDC)
         {
 
-            Point ptStart = new Point();
+            PointF ptStart = new PointF();
             if (m_nEllipseType == 0)
             {
-                ptStart = Point(m_rcBound.CenterPoint().x, m_rcBound.top);
+                ptStart = new  PointF(m_rcBound.Left + m_rcBound.Width / 2, m_rcBound.Top);
             }
             else if (m_nEllipseType == 1)
             {
-                ptStart = Point(m_rcBound.TopLeft());
+                ptStart = new  PointF(m_rcBound.Top, m_rcBound.Left);
             }
 
+            
             string strNum;
-            strNum.Format("%d", m_lID);
-            Point pt = TransRPtoLP(ptStart);
-            pDC.TextOut(pt.x, pt.y, strNum);
+            Font drawFont = new Font("Arial", 16);
+            SolidBrush drawBrush = new SolidBrush(Color.Black);
+            strNum = string.Format("%d", m_lID);
+            PointF pt = TransRPtoLP(ptStart);
+            pDC.DrawString(strNum, drawFont, drawBrush, pt.X, pt.Y);
         }
-        public new int IsValid()
+        public new bool IsValid()
         {
-            return DefineConstantsWhEllipse.TRUE;
+            return true;
         }
         public new void Move(int nX, int nY)
         {
-            Point ptMove = new Point(nX, nY);
-            m_rcBound.TopLeft() += ptMove;
-            m_rcBound.BottomRight() += ptMove;
+            PointF ptMove = new PointF(nX, nY);
+            m_rcBound.Offset(ptMove);
             UpdateBoundRect();
         }
 
-        public int GetRadium()
+        public float GetRadium()
         {
-            return m_nRadium = (int)((m_rcBound.Width() + m_rcBound.Height()) / 4.0);
+            return m_nRadium = ((m_rcBound.Width + m_rcBound.Height) / 4);
         }
         public void SetEllipseType(int nEllipseType)
         {
@@ -4209,41 +4082,41 @@ namespace TopwinLaser2016
             return m_nEllipseType;
         }
 
-        public new int IsSelected(Point ptClick, int nLimit)
+        public new bool IsSelected(PointF ptClick, int nLimit)
         {
-            int bRet = DefineConstantsWhEllipse.FALSE;
+            bool bRet = false;
             int nDistance = 0;
 
-            Rectangle rcBound = new Rectangle(m_rcBound);
-            rcBound.InflateRect(nLimit, nLimit);
+            RectangleF rcBound = new RectangleF(m_rcBound);
+            rcBound.Inflate(nLimit, nLimit);
 
-            if (rcBound.PtInRect(ptClick))
+            if (rcBound.Contains(ptClick))
             {
                 if (m_bIsFilled)
                 {
-                    bRet = DefineConstantsWhEllipse.TRUE;
+                    bRet = true;
                     return bRet;
                 }
 
                 if (m_nEllipseType == 0)
                 {
-                    nDistance = GlobalMembersWhEllipse.PointToPointDistance(m_rcBound.CenterPoint(), ptClick);
+                    nDistance = CWhSysFunction.PointToPointDistance(m_rcBound.CenterPoint(), ptClick);
                     if ((nDistance <= m_nRadium + nLimit) && (nDistance) >= m_nRadium - nLimit)
                     {
-                        bRet = DefineConstantsWhEllipse.TRUE;
+                        bRet = true;
                         return bRet;
                     }
                 }
                 else if (m_nEllipseType == 1)
                 {
 
-                    Rectangle rcOut = new Rectangle(m_rcBound);
-                    Rectangle rcIn = new Rectangle(m_rcBound);
-                    rcOut.InflateRect(nLimit, nLimit);
+                    RectangleF rcOut = new RectangleF(m_rcBound);
+                    RectangleF rcIn = new RectangleF(m_rcBound);
+                    rcOut.Inflate(nLimit, nLimit);
                     rcIn.DeflateRect(nLimit, nLimit);
-                    if ((rcOut.PtInRect(ptClick)) && (!rcIn.PtInRect(ptClick)))
+                    if ((rcOut.Contains(ptClick)) && (!rcIn.Contains(ptClick)))
                     {
-                        bRet = DefineConstantsWhEllipse.TRUE;
+                        bRet = true;
                         return bRet;
                     }
                 }
@@ -4251,114 +4124,114 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-        public new int IsSelected(Rectangle rcClick, int bFlagMode)
+        public new bool IsSelected(RectangleF rcClick, int bFlagMode)
         {
-            int bRet = DefineConstantsWhEllipse.FALSE;
-            Rectangle rcBound = new Rectangle(m_rcBound);
-            Rectangle rcInterSectRect = new Rectangle(0, 0, 0, 0);
+            bool bRet = false;
+            RectangleF rcBound = new RectangleF(m_rcBound);
+            RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
 
             if (bFlagMode == -1)
             {
-                if (rcInterSectRect.IntersectRect(m_rcBound, rcClick))
+                if (!RectangleF.Intersect(m_rcBound, rcClick).IsEmpty)
                 {
-                    bRet = DefineConstantsWhEllipse.TRUE;
+                    bRet = true;
                     return bRet;
                 }
             }
             else if (bFlagMode == 1)
             {
-                rcInterSectRect.IntersectRect(m_rcBound, rcClick);
+                rcInterSectRect = RectangleF.Intersect(m_rcBound, rcClick);
                 if (rcInterSectRect == m_rcBound)
                 {
-                    bRet = DefineConstantsWhEllipse.TRUE;
+                    bRet = true;
                     return bRet;
                 }
             }
 
             return bRet;
         }
-        public int IsPointSnap(ref Point ptSnap, Point ptInput, double fDiatance)
+        public override bool IsPointSnap(ref PointF ptSnap, PointF ptInput, float fDiatance)
         {
-            int bRet = DefineConstantsWhEllipse.FALSE;
-            Rectangle rcSnap = m_rcBound;
-            rcSnap.InflateRect((int)fDiatance, (int)fDiatance);
+            bool bRet = false;
+            RectangleF rcSnap = m_rcBound;
+            rcSnap.Inflate(fDiatance, fDiatance);
 
 
-            if (!rcSnap.PtInRect(ptInput))
+            if (!rcSnap.Contains(ptInput))
             {
-                return DefineConstantsWhEllipse.FALSE;
+                return false;
             }
 
-            Rectangle[] rc = new Rectangle[5];
-            rc[0] = Rectangle(m_rcBound.Left, (int)((m_rcBound.bottom + m_rcBound.top) / 2), m_rcBound.Left, (int)((m_rcBound.bottom + m_rcBound.top) / 2));
-            rc[1] = Rectangle(m_rcBound.Right, (int)((m_rcBound.bottom + m_rcBound.top) / 2), m_rcBound.Right, (int)((m_rcBound.bottom + m_rcBound.top) / 2));
-            rc[2] = Rectangle((int)((m_rcBound.bottom + m_rcBound.top) / 2), m_rcBound.Top, (int)((m_rcBound.bottom + m_rcBound.top) / 2), m_rcBound.top);
-            rc[3] = Rectangle((int)((m_rcBound.bottom + m_rcBound.top) / 2), m_rcBound.bottom, (int)((m_rcBound.bottom + m_rcBound.top) / 2), m_rcBound.Bottom);
-            rc[4] = Rectangle(m_rcBound.CenterPoint(), m_rcBound.CenterPoint());
+            RectangleF[] rc = new RectangleF[5];
+            rc[0] = new RectangleF(m_rcBound.Left, ((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Left, ((m_rcBound.bottom + m_rcBound.Top) / 2));
+            rc[1] = new RectangleF(m_rcBound.Right, ((m_rcBound.bottom + m_rcBound.Top) / 2), m_rcBound.Right, ((m_rcBound.bottom + m_rcBound.Top) / 2));
+            rc[2] = new RectangleF(((m_rcBound.bottom + m_rcBound.Top) / 2), m_rcBound.Top, ((m_rcBound.bottom + m_rcBound.Top) / 2), m_rcBound.Top);
+            rc[3] = new RectangleF(((m_rcBound.bottom + m_rcBound.Top) / 2), m_rcBound.Bottom, ((m_rcBound.bottom + m_rcBound.Top) / 2), m_rcBound.Bottom);
+            rc[4] = new RectangleF(m_rcBound.CenterPoint(), m_rcBound.CenterPoint());
 
             for (int i = 0; i < 5; i++)
             {
-                rc[i].InflateRect((int)fDiatance, (int)fDiatance);
+                rc[i].Inflate(fDiatance, fDiatance);
             }
 
-            if (rc[0].PtInRect(ptInput))
+            if (rc[0].Contains(ptInput))
             {
-                ptSnap = Point(m_rcBound.Left, (int)((m_rcBound.bottom + m_rcBound.top) / 2));
-                bRet = DefineConstantsWhEllipse.TRUE;
+                ptSnap = new  PointF(m_rcBound.Left, ((m_rcBound.bottom + m_rcBound.Top) / 2));
+                bRet = true;
                 return bRet;
             }
-            else if (rc[1].PtInRect(ptInput))
+            else if (rc[1].Contains(ptInput))
             {
-                ptSnap = Point(m_rcBound.Right, (int)((m_rcBound.bottom + m_rcBound.top) / 2));
-                bRet = DefineConstantsWhEllipse.TRUE;
+                ptSnap = new  PointF(m_rcBound.Right, ((m_rcBound.bottom + m_rcBound.Top) / 2));
+                bRet = true;
                 return bRet;
             }
-            else if (rc[2].PtInRect(ptInput))
+            else if (rc[2].Contains(ptInput))
             {
-                ptSnap = Point((int)((m_rcBound.bottom + m_rcBound.top) / 2), m_rcBound.top);
-                bRet = DefineConstantsWhEllipse.TRUE;
+                ptSnap = new PointF(((m_rcBound.bottom + m_rcBound.Top) / 2), m_rcBound.Top);
+                bRet = true;
                 return bRet;
             }
-            else if (rc[3].PtInRect(ptInput))
+            else if (rc[3].Contains(ptInput))
             {
-                ptSnap = Point((int)((m_rcBound.bottom + m_rcBound.top) / 2), m_rcBound.Bottom);
-                bRet = DefineConstantsWhEllipse.TRUE;
+                ptSnap = new PointF(((m_rcBound.bottom + m_rcBound.Top) / 2), m_rcBound.Bottom);
+                bRet = true;
                 return bRet;
             }
-            else if (rc[4].PtInRect(ptInput))
+            else if (rc[4].Contains(ptInput))
             {
                 ptSnap = m_rcBound.CenterPoint();
-                bRet = DefineConstantsWhEllipse.TRUE;
+                bRet = true;
                 return bRet;
             }
 
             return bRet;
         }
-        public int IsStartPointSelect(ref Point ptRet, Point ptInput, double fDiatance)
+        public override bool IsStartPointSelect(ref PointF ptRet, PointF ptInput, float fDiatance)
         {
-            int bRet = DefineConstantsWhEllipse.FALSE;
-            Rectangle rcSnap = m_rcBound;
-            rcSnap.InflateRect(2 * (int)fDiatance, 2 * (int)fDiatance);
+            bool bRet = false;
+            RectangleF rcSnap = m_rcBound;
+            rcSnap.Inflate(2 * fDiatance, 2 * fDiatance);
 
-            if (!rcSnap.PtInRect(ptInput))
+            if (!rcSnap.Contains(ptInput))
             {
-                return DefineConstantsWhEllipse.FALSE;
+                return false;
             }
 
-            Rectangle rcStart = new Rectangle();
+            RectangleF rcStart = new RectangleF();
             if (m_nEllipseType == 0)
             {
-                rcStart = Rectangle(Point(m_rcBound.CenterPoint().x, m_rcBound.top), Point(m_rcBound.CenterPoint().x, m_rcBound.top));
+                rcStart = new  RectangleF( new PointF(m_rcBound.Left+m_rcBound.Width/2, m_rcBound.Top), new SizeF(0, 0));
             }
             else if (m_nEllipseType == 1)
             {
-                rcStart = Rectangle(Point(m_rcBound.TopLeft()), Point(m_rcBound.TopLeft()));
+                rcStart = new  RectangleF( new PointF(m_rcBound.Left,m_rcBound.Top), new  SizeF(0,0));
             }
-            rcStart.InflateRect((int)fDiatance, (int)fDiatance);
-            if (rcStart.PtInRect(ptInput))
+            rcStart.Inflate(fDiatance, fDiatance);
+            if (rcStart.Contains(ptInput))
             {
-                ptRet = rcStart.CenterPoint();
-                bRet = DefineConstantsWhEllipse.TRUE;
+                ptRet = new PointF(rcStart.Left + rcStart.Width / 2, rcStart.Top- rcStart.Height/2);
+                bRet = true;
                 return bRet;
             }
             return bRet;
@@ -4366,19 +4239,19 @@ namespace TopwinLaser2016
 
         public new void SetObjDefaultProperty()
         {
-            m_colPenColor = RGB(0, 255, 0);
+            m_colPenColor = Color.FromArgb(0, 255, 0);
             if (!m_bFlagIsRegister)
             {
-                m_colBrush = RGB(255, 0, 0); //默认的是红色刷子
+                m_colBrush = Color.FromArgb(255, 0, 0); //默认的是红色刷子
             }
         }
     }
     public class CWhArc : CWhVirtual
     {   
-        public Rectangle m_rcBoundDraw = new Rectangle();
-        public Point m_ptStart = new Point();
-        public Point m_ptEnd = new Point();
-        public Point m_ptCenter = new Point();
+        public RectangleF m_rcBoundDraw = new RectangleF();
+        public PointF m_ptStart = new PointF();
+        public PointF m_ptEnd = new PointF();
+        public PointF m_ptCenter = new PointF();
         public int m_nRadium;
         public int m_nDirection;
         public int m_nGoodOrBad;
@@ -4402,13 +4275,13 @@ namespace TopwinLaser2016
     }
     public class tagUpPara
     {
-        public Point centerPoint = new Point();
-        public double fRadium;
+        public PointF centerPoint = new PointF();
+        public float fRadium;
 
         public tagUpPara()
         {
-            centerPoint = new Point(0.0, 0.0);
-            fRadium = 0.0;
+            centerPoint = new PointF(0, 0);
+            fRadium = 0;
         }
 
     }
@@ -4434,20 +4307,20 @@ namespace TopwinLaser2016
             m_pTemRect = null;
 
 
-            m_fDxfRatio = 1.0;
+            m_fDxfRatio = 1.0f;
             m_nDirection = 1;
-            m_ptStart = new Point(0.0, 0.0);
-            m_ptEnd = new Point(0.0, 0.0);
-            m_ptCenter = new Point(0.0, 0.0);
-            m_ptTem = new Point(0.0, 0.0);
-            m_ptPre = new Point(0.0, 0.0);
-            m_fRadium = 0.0;
-            m_fAngleStart = 0.0;
-            m_fAngleEnd = 0.0;
-            m_fUpAngle = 0.0;
+            m_ptStart = new PointF(0, 0);
+            m_ptEnd = new PointF(0, 0);
+            m_ptCenter = new PointF(0, 0);
+            m_ptTem = new PointF(0, 0);
+            m_ptPre = new PointF(0, 0);
+            m_fRadium = 0;
+            m_fAngleStart = 0;
+            m_fAngleEnd = 0;
+            m_fUpAngle = 0;
             m_nDxfCount = 0;
             m_nClosed = 0;
-            m_fEllipseRatio = 1.0;
+            m_fEllipseRatio = 1.0f;
         }
         public virtual void Dispose()
         {
@@ -4467,15 +4340,10 @@ namespace TopwinLaser2016
             m_strEntities.strCode = strInput.strCode;
             m_strEntities.strValue = strInput.strValue;
         }
-        public int JustifyEntitiesType()
+        public bool JustifyEntitiesType()
         {
-            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
-            //ORIGINAL LINE: string stringEntitiesName = m_strEntities.strCode;
-            string stringEntitiesName = new @string(m_strEntities.strCode);
-            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
-            //ORIGINAL LINE: string stringEntitiesValue = m_strEntities.strValue;
-            string stringEntitiesValue = new @string(m_strEntities.strValue);
-
+            string stringEntitiesName = m_strEntities.strCode;
+            string stringEntitiesValue = m_strEntities.strValue;
 
             if (stringEntitiesName == "0")
             {
@@ -4500,7 +4368,7 @@ namespace TopwinLaser2016
                 else if (stringEntitiesValue == "LWPOLYLINE")
                 {
                     m_nTypeEntities = 4;
-                    //m_bFlagPolyLineStart = TRUE;
+                    //m_bFlagPolyLineStart = true;
 
                     //创建一个组并传给m_pTemGroup
                     m_pTemGroup = new CWhGroup();
@@ -4526,7 +4394,7 @@ namespace TopwinLaser2016
                     m_nTypeEntities = 6;
                     return true;
                 }
-                else if (stringEntitiesValue == "POINT")
+                else if (stringEntitiesValue == "PointF")
                 {
                     m_nTypeEntities = 7;
                     return true;
@@ -4545,7 +4413,7 @@ namespace TopwinLaser2016
 
             }
 
-            int ret = true;
+            bool ret = true;
             switch (m_nTypeEntities)
             {
                 case 1:
@@ -4585,10 +4453,10 @@ namespace TopwinLaser2016
         }
         public void ReSetPara()
         {
-            m_ptStart = new Point(0.0, 0.0);
-            m_ptEnd = new Point(0.0, 0.0);
-            m_ptCenter = new Point(0.0, 0.0);
-            m_fRadium = 0.0;
+            m_ptStart = new PointF(0, 0);
+            m_ptEnd = new PointF(0, 0);
+            m_ptCenter = new PointF(0, 0);
+            m_fRadium = 0;
             m_nDirection = 1;
         }
 
@@ -4617,22 +4485,22 @@ namespace TopwinLaser2016
             }
             else if (stringLineName == "10")
             {
-                m_ptStart.x = float.Parse(stringLineValue);
+                m_ptStart.X = float.Parse(stringLineValue);
                 return true;
             }
             else if (stringLineName == "20")
             {
-                m_ptStart.y = float.Parse(stringLineValue);
+                m_ptStart.Y = float.Parse(stringLineValue);
                 return true;
             }
             else if (stringLineName == "11")
             {
-                m_ptEnd.x = float.Parse(stringLineValue);
+                m_ptEnd.X = float.Parse(stringLineValue);
                 return true;
             }
             else if (stringLineName == "21")
             {
-                m_ptEnd.y = float.Parse(stringLineValue);
+                m_ptEnd.Y = float.Parse(stringLineValue);
                 return true;
             }
             return true;
@@ -4661,12 +4529,12 @@ namespace TopwinLaser2016
             }
             else if (stringArcName == "10")
             {
-                m_ptCenter.x = float.Parse(stringArcValue);
+                m_ptCenter.X = float.Parse(stringArcValue);
                 return true;
             }
             else if (stringArcName == "20")
             {
-                m_ptCenter.y = float.Parse(stringArcValue);
+                m_ptCenter.Y = float.Parse(stringArcValue);
                 return true;
             }
             else if (stringArcName == "40")
@@ -4710,11 +4578,11 @@ namespace TopwinLaser2016
             }
             else if (stringCircleName == "10")
             {
-                m_ptCenter.x = float.Parse(stringCircleValue);
+                m_ptCenter.X = float.Parse(stringCircleValue);
             }
             else if (stringCircleName == "20")
             {
-                m_ptCenter.y = float.Parse(stringCircleValue);
+                m_ptCenter.Y = float.Parse(stringCircleValue);
             }
             else if (stringCircleName == "40")
             {
@@ -4756,12 +4624,12 @@ namespace TopwinLaser2016
             }
             else if (stringLwPolyLineName == "10")
             {
-                m_ptTem.x = float.Parse(stringLwPolyLineValue);
+                m_ptTem.X = float.Parse(stringLwPolyLineValue);
                 return true;
             }
             else if (stringLwPolyLineName == "20")
             {
-                m_ptTem.y = float.Parse(stringLwPolyLineValue);
+                m_ptTem.Y = float.Parse(stringLwPolyLineValue);
 
                 if (m_nDxfCount == 0)
                 {
@@ -4852,19 +4720,19 @@ namespace TopwinLaser2016
             }
             else if (stringEllipseName == "10")
             {
-                m_ptCenter.x = float.Parse(stringEllipseValue);
+                m_ptCenter.X = float.Parse(stringEllipseValue);
             }
             else if (stringEllipseName == "20")
             {
-                m_ptCenter.y = float.Parse(stringEllipseValue);
+                m_ptCenter.Y = float.Parse(stringEllipseValue);
             }
             else if (stringEllipseName == "11")
             {
-                m_ptStart.x = float.Parse(stringEllipseValue);
+                m_ptStart.X = float.Parse(stringEllipseValue);
             }
             else if (stringEllipseName == "21")
             {
-                m_ptStart.y = float.Parse(stringEllipseValue);
+                m_ptStart.Y = float.Parse(stringEllipseValue);
             }
             else if (stringEllipseName == "40")
             {
@@ -4891,13 +4759,13 @@ namespace TopwinLaser2016
             }
             else if (stringVertexName == "10")
             {
-                m_ptTem.x = float.Parse(stringVertexValue);
+                m_ptTem.X = float.Parse(stringVertexValue);
                 return true;
             }
             else if (stringVertexName == "20")
             {
-                m_ptTem.y = float.Parse(stringVertexValue);
-                if (m_bFlagPolyLineStart != 0)
+                m_ptTem.Y = float.Parse(stringVertexValue);
+                if (!m_bFlagPolyLineStart)
                 {
                     if (m_nDxfCount == 0)
                     { 
@@ -4956,19 +4824,19 @@ namespace TopwinLaser2016
             }
             else if (stringPointName == "10")
             {
-                m_ptTem.x = float.Parse(stringPointValue);
+                m_ptTem.X = float.Parse(stringPointValue);
                 return true;
             }
             else if (stringPointName == "20")
             {
-                m_ptTem.y = float.Parse(stringPointValue);
+                m_ptTem.Y = float.Parse(stringPointValue);
                 return true;
             }
             return true;
         }
         public CWhLayer SearchLayer(ref string strLayerName)
         {
-            __POSITION posStart = m_pObjList.GetHeadPosition();
+            LinkedListNode<object> posStart = m_pObjList.GetHeadPosition();
             CWhLayer pRtnLayer = null;
             while (posStart != null)
             {
@@ -4985,51 +4853,50 @@ namespace TopwinLaser2016
 
             return pRtnLayer;
         }
-        public tagUpPara GetArcUpPara(ref Point ptStart, ref Point ptEnd, ref double fUpAngle)
+        public tagUpPara GetArcUpPara(ref PointF ptStart, ref PointF ptEnd, ref float fUpAngle)
         {
             tagUpPara paraRtn = new tagUpPara();
-            Point ptUpPoint = new Point();
-            double fDistance = (ptStart.Distance(ptEnd) / 2)  *fUpAngle;
-            int k = 0;
-            ptUpPoint = GetUpPoint(ref ptStart, ref ptEnd, ref fDistance);
+            PointF ptUpPoint = new PointF();
+            float fDistance = (ptStart.Distance(ptEnd) / 2)  *fUpAngle;
+            ptUpPoint = GetUpPoint(ref ptStart, ref ptEnd,ref fDistance);
 
 
-            Point[] ptTem = new Point[3];
-            Point centerPoint = new Point();
-            ptTem[0] = Point((int)ptStart.x, (int)ptStart.y);
-            ptTem[1] = Point((int)ptEnd.x, (int)ptEnd.y);
-            ptTem[2] = Point((int)ptUpPoint.x, (int)ptUpPoint.y);
+            PointF[] ptTem = new PointF[3];
+            PointF centerPoint = new PointF();
+            ptTem[0] = new PointF(ptStart.X, ptStart.Y);
+            ptTem[1] = new PointF(ptEnd.X, ptEnd.Y);
+            ptTem[2] = new PointF(ptUpPoint.X, ptUpPoint.Y);
 
-            centerPoint = CalCenterPoint(ptTem[0], ptTem[1], ptTem[2]);
+            centerPoint = CWhSysFunction.CalCenterPoint(ptTem[0], ptTem[1], ptTem[2]);
 
-            paraRtn.centerPoint = new Point(centerPoint.x, centerPoint.y);
+            paraRtn.centerPoint = new PointF(centerPoint.X, centerPoint.Y);
             paraRtn.fRadium = ptEnd.Distance(paraRtn.centerPoint);
 
             return paraRtn;
         }
-        public Point GetUpPoint(ref Point ptStart, ref Point ptEnd, ref double fDistance)
+        public PointF GetUpPoint(ref PointF ptStart, ref PointF ptEnd, ref float fDistance)
         {
-            Point ptRet = new Point();
-            Point pt1 = new Point();
-            Point pt2 = new Point();
-            Point ptRelative1 = new Point();
-            Point ptRelative2 = new Point();
-            double k1 = 0.0;
-            double b2 = 0.0;
-            double a = 0.0;
-            double b = 0.0;
-            double c = 0.0;
-            double fValue = 0.0;
-            double detx = 0.0;
-            double dety = 0.0;
-            double addx = 0.0;
-            double addy = 0.0;
-            double m = 0.0;
+            PointF ptRet = new PointF();
+            PointF pt1 = new PointF();
+            PointF pt2 = new PointF();
+            PointF ptRelative1 = new PointF();
+            PointF ptRelative2 = new PointF();
+            float k1 = 0;
+            float b2 = 0;
+            float a = 0;
+            float b = 0;
+            float c = 0;
+            float fValue = 0;
+            float detx = 0;
+            float dety = 0;
+            float addx = 0;
+            float addy = 0;
+            float m = 0;
 
-            detx = ptEnd.x - ptStart.x;
-            dety = ptEnd.y - ptStart.y;
-            addx = ptEnd.x + ptStart.x;
-            addy = ptStart.y + ptEnd.y;
+            detx = ptEnd.X - ptStart.X;
+            dety = ptEnd.Y - ptStart.Y;
+            addx = ptEnd.X + ptStart.X;
+            addy = ptStart.Y + ptEnd.Y;
 
             k1 = dety / detx;
             b2 = ((addy) + (1 / k1) * (addx)) / 2;
@@ -5040,50 +4907,45 @@ namespace TopwinLaser2016
 
 
 
-            if (ptStart.x == ptEnd.x)
+            if (ptStart.X == ptEnd.X)
             {
-                pt1.x -= fDistance;
-                pt1.y = (pt1.y + pt2.y) / 2;
-                pt2.x += fDistance;
-                pt2.y = pt1.y;
+                pt1.X = pt1.X - fDistance;
+                pt1.Y = (pt1.Y + pt2.Y) / 2;
+                pt2.X = pt2.X + fDistance;
+                pt2.Y = pt1.Y;
             }
             else
             {
-                pt1.x = (-b + Math.Pow((b * b - 4 * a * c), 0.5)) / (2 * a);
-                pt1.y = -1 / k1*(pt1.x) + b2;
-                pt2.x = (-b - Math.Pow((b * b - 4 * a * c), 0.5)) / (2 * a);
-                pt2.y = -1 / k1*(pt2.x) + b2;
+                pt1.X = (float)((-b + Math.Pow((b * b - 4 * a * c), 0.5)) / (2 * a));
+                pt1.Y = (float)(-1 / k1*(pt1.X) + b2);
+                pt2.X = (float)((-b - Math.Pow((b * b - 4 * a * c), 0.5)) / (2 * a));
+                pt2.Y = (float)(-1 / k1*(pt2.X) + b2);
             }
-            ptRelative1 = pt1 - ptStart; ptRelative2 = ptEnd - ptStart;
-            fValue = ptRelative1.x * ptRelative2.y - ptRelative1.y * ptRelative2.x;
+            ptRelative1.X = pt1.X - ptStart.X;
+            ptRelative1.Y = pt1.Y - ptStart.Y;
+            ptRelative2.X = ptEnd.X - ptStart.X;
+            ptRelative2.Y = ptEnd.Y - ptStart.Y;
+            fValue = ptRelative1.X * ptRelative2.Y - ptRelative1.Y * ptRelative2.X;
             if (m_nDirection == 1)
             {
                 if (fValue > 0)
                 {
-                    //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created if it does not yet exist:
-                    //ORIGINAL LINE: ptRet = pt1;
-                    ptRet.CopyFrom(pt1);
+                    ptRet=pt1;
                 }
                 else
                 {
-                    //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created if it does not yet exist:
-                    //ORIGINAL LINE: ptRet = pt2;
-                    ptRet.CopyFrom(pt2);
+                    ptRet=pt2;
                 }
             }
             else if (m_nDirection == 2)
             {
                 if (fValue < 0)
                 {
-                    //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created if it does not yet exist:
-                    //ORIGINAL LINE: ptRet = pt1;
-                    ptRet.CopyFrom(pt1);
+                    ptRet = pt1;
                 }
                 else
                 {
-                    //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created if it does not yet exist:
-                    //ORIGINAL LINE: ptRet = pt2;
-                    ptRet.CopyFrom(pt2);
+                    ptRet = pt2;
                 }
             }
 
@@ -5098,7 +4960,7 @@ namespace TopwinLaser2016
                 m_pTemLine.SetStartPoint(m_ptStart);
                 m_pTemLine.SetEndPoint(m_ptEnd);
 
-                m_pTemLine.SetIsShow(1);
+                m_pTemLine.SetIsShow(true);
                 m_pTemLine.SetPenWidth(0);
                 //////
                 m_pCurrentLayer.AddObject(m_pTemLine);
@@ -5110,17 +4972,19 @@ namespace TopwinLaser2016
             else if (m_nTypeEntities == 2)
             {
                 /////////////////////////////////////////////
-                Rectangle rcBound = new Rectangle(Point((int)(m_ptCenter.x - m_fRadium), (int)(m_ptCenter.y + m_fRadium)), Point((int)(m_ptCenter.x + m_fRadium), (int)(m_ptCenter.y - m_fRadium)));
-                Point ptStart = new Point(m_fRadium * Math.Cos(m_fAngleStart), m_fRadium * Math.Sin(m_fAngleStart));
-                Point ptEnd = new Point(m_fRadium * Math.Cos(m_fAngleEnd), m_fRadium * Math.Sin(m_fAngleEnd));
-                ptStart += m_ptCenter;
-                ptEnd += m_ptCenter;
+                RectangleF rcBound = new RectangleF(new PointF((float)(m_ptCenter.X - m_fRadium), (float)(m_ptCenter.Y + m_fRadium)), new SizeF((float)(m_ptCenter.X + m_fRadium), (float)(m_ptCenter.Y - m_fRadium)));
+                PointF ptStart = new PointF((float)(m_fRadium * Math.Cos(m_fAngleStart)), (float)(m_fRadium * Math.Sin(m_fAngleStart)));
+                PointF ptEnd = new PointF((float)(m_fRadium * Math.Cos(m_fAngleEnd)), (float)(m_fRadium * Math.Sin(m_fAngleEnd)));
+                ptStart.X = ptStart.X + m_ptCenter.X;
+                ptStart.Y = ptStart.Y + m_ptCenter.Y;
+                ptEnd.X = ptEnd.X + m_ptCenter.X;
+                ptEnd.Y = ptEnd.Y + m_ptCenter.Y;
 
                 m_pTemArc = new CWhArc(rcBound, ptStart, ptEnd, m_nDirection);
-                Debug.Assert(m_pTemArc);
+                Debug.Assert(m_pTemArc.IsValid());
                 m_pTemArc.SetDirection(1);
 
-                m_pTemArc.SetIsShow(1);
+                m_pTemArc.SetIsShow(true);
                 m_pTemArc.SetPenWidth(0);
                 //////
                 m_pCurrentLayer.AddObject(m_pTemArc);
@@ -5131,11 +4995,11 @@ namespace TopwinLaser2016
             }
             else if (m_nTypeEntities == 3)
             {
-                Rectangle rcBound = new Rectangle(Point((int)(m_ptCenter.x - m_fRadium), (int)(m_ptCenter.y + m_fRadium)), Point((int)(m_ptCenter.x + m_fRadium), (int)(m_ptCenter.y - m_fRadium)));
+                RectangleF rcBound = new RectangleF(new PointF((m_ptCenter.X - m_fRadium), (m_ptCenter.Y + m_fRadium)), new SizeF(m_fRadium*2,m_fRadium*2));
                 m_pTemRect = new CWhEllipse(rcBound);
 
-                //m_pTemRect->SetPenColor(COLORREF( RGB(255, 0, 0)));     //颜色设置
-                m_pTemRect.SetIsShow(1);
+                //m_pTemRect->SetPenColor(COLORREF( Color.FromArgb(255, 0, 0)));     //颜色设置
+                m_pTemRect.SetIsShow(true);
                 m_pTemRect.SetPenWidth(0);
                 //////
                 m_pCurrentLayer.AddObject(m_pTemRect);
@@ -5161,19 +5025,17 @@ namespace TopwinLaser2016
             }
             else if (m_nTypeEntities == 5)
             {
-                if (m_bFlagPolyLineStart != 0)
+                if (!m_bFlagPolyLineStart)
                 {
 
                 }
                 else
                 {
-                    //封口 wuhaodxf
                     if (m_nClosed != 0)
                     {
                         AddObjectWithUpAngle(m_pTemGroup, ref m_ptPre, ref m_ptStart, ref m_fUpAngle);
                         m_fUpAngle = 0;
                     }
-
                     m_pCurrentLayer.AddObject(m_pTemGroup);
                     m_pTemGroup = null;
                     m_nDxfCount = 0;
@@ -5206,18 +5068,18 @@ namespace TopwinLaser2016
             AddObject();
         }
 
-        public void AddObjectWithUpAngle(CWhGroup pTemGroup, ref Point ptStart, ref Point ptEnd, ref double fUpAngle)
+        public void AddObjectWithUpAngle(CWhGroup pTemGroup, ref PointF ptStart, ref PointF ptEnd, ref float fUpAngle)
         {
             if (fUpAngle == 1)
             {
-                Point centerPoint = new Point((ptStart.x + ptEnd.x) / 2, (ptStart.y + ptEnd.y) / 2);
+                PointF centerPoint = new PointF((ptStart.X + ptEnd.X) / 2, (ptStart.Y + ptEnd.Y) / 2);
                 m_fRadium = (ptStart.Distance(ptEnd)) / 2.0;
-                Rectangle rcBound = new Rectangle(Point((int)(centerPoint.x - m_fRadium), (int)(centerPoint.y + m_fRadium)), Point((int)(centerPoint.x + m_fRadium), (int)(centerPoint.y - m_fRadium)));
+                RectangleF rcBound = new RectangleF(new PointF((centerPoint.X - m_fRadium), (centerPoint.Y + m_fRadium)), new SizeF(m_fRadium * 2, m_fRadium * 2));
                 m_pTemArc = new CWhArc(rcBound, ptStart, ptEnd, m_nDirection);
-                Debug.Assert(m_pTemArc);
+                Debug.Assert(m_pTemArc.IsValid());
                 m_pTemArc.SetDirection(m_nDirection);
 
-                m_pTemArc.SetIsShow(1);
+                m_pTemArc.SetIsShow(true);
                 m_pTemArc.SetPenWidth(0);
                 pTemGroup.AddObject(m_pTemArc);
                 m_pTemArc = null;
@@ -5227,8 +5089,8 @@ namespace TopwinLaser2016
                 m_pTemLine = new CWhLine();
                 m_pTemLine.SetStartPoint(ptStart);
                 m_pTemLine.SetEndPoint(ptEnd);
-                //m_pTemLine->SetPenColor(COLORREF( RGB(255, 0, 0)));     //颜色设置
-                m_pTemLine.SetIsShow(1);
+                //m_pTemLine->SetPenColor(COLORREF( Color.FromArgb(255, 0, 0)));     //颜色设置
+                m_pTemLine.SetIsShow(true);
                 m_pTemLine.SetPenWidth(0);
                 m_pTemGroup.AddObject(m_pTemLine);
                 m_pTemLine = null;
@@ -5236,14 +5098,14 @@ namespace TopwinLaser2016
             else
             { //一般情况
                 tagUpPara upPara = GetArcUpPara(ref ptStart, ref ptEnd, ref fUpAngle);
-                Point centerPoint = new Point(upPara.centerPoint);
+                PointF centerPoint = upPara.centerPoint;
                 m_fRadium = upPara.fRadium;
-                Rectangle rcBound = new Rectangle(Point((int)(centerPoint.x - m_fRadium), (int)(centerPoint.y + m_fRadium)), Point((int)(centerPoint.x + m_fRadium), (int)(centerPoint.y - m_fRadium)));
+                RectangleF rcBound = new RectangleF(new PointF((float)(centerPoint.X - m_fRadium), (float)(centerPoint.Y + m_fRadium)), new SizeF((float)(centerPoint.X + m_fRadium), (float)(centerPoint.Y - m_fRadium)));
                 m_pTemArc = new CWhArc(rcBound, ptStart, ptEnd, m_nDirection);
-                Debug.Assert(m_pTemArc);
+                Debug.Assert(m_pTemArc.IsValid());
                 m_pTemArc.SetDirection(m_nDirection);
-                //m_pTemArc->SetPenColor(COLORREF( RGB(255, 0, 0)));     //颜色设置
-                m_pTemArc.SetIsShow(1);
+                //m_pTemArc->SetPenColor(COLORREF( Color.FromArgb(255, 0, 0)));     //颜色设置
+                m_pTemArc.SetIsShow(true);
                 m_pTemArc.SetPenWidth(0);
                 pTemGroup.AddObject(m_pTemArc);
                 m_pTemArc = null;
@@ -5279,24 +5141,24 @@ namespace TopwinLaser2016
         private CWhEllipse m_pTemRect;
 
         private tagDXFSTRING m_strEntities = new tagDXFSTRING();
-        private int m_bFlagPolyLineStart;
+        private bool m_bFlagPolyLineStart;
         private int m_nLwPolyCount;
         private int m_nTypeEntities;
 
-        private double m_fDxfRatio;
-        private Point m_ptTem = new Point();
-        private Point m_ptPre = new Point();
-        private Point m_ptStart = new Point();
-        private Point m_ptEnd = new Point();
-        private Point m_ptCenter = new Point();
-        private double m_fRadium;
+        private float m_fDxfRatio;
+        private PointF m_ptTem = new PointF();
+        private PointF m_ptPre = new PointF();
+        private PointF m_ptStart = new PointF();
+        private PointF m_ptEnd = new PointF();
+        private PointF m_ptCenter = new PointF();
+        private float m_fRadium;
         private int m_nDirection;
         private int m_nDxfCount;
-        private double m_fAngleStart;
-        private double m_fAngleEnd;
-        private double m_fUpAngle;
+        private float m_fAngleStart;
+        private float m_fAngleEnd;
+        private float m_fUpAngle;
         private int m_nClosed;
-        private double m_fEllipseRatio;
+        private float m_fEllipseRatio;
 
     }
     public class CWhDxfHeaders
@@ -5321,7 +5183,7 @@ namespace TopwinLaser2016
             m_strHeaders.strCode = strHeaders.strCode;
             m_strHeaders.strValue = strHeaders.strValue;
         }
-        public int JustifyHeadersType()
+        public bool JustifyHeadersType()
         {
 
             if (m_strHeaders.strCode == "9")
@@ -5329,17 +5191,17 @@ namespace TopwinLaser2016
                 if (m_strHeaders.strValue == "$INSUNITS")
                 {
                     m_nTypeHeaders = 1;
-                    return DefineConstantsWhDxfHeaders.TRUE;
+                    return true;
                 }
                 else if (m_strHeaders.strValue == "$ANGDIR")
                 {
                     m_nTypeHeaders = 2;
-                    return DefineConstantsWhDxfHeaders.TRUE;
+                    return true;
                 }
                 else
                 {
                     m_nTypeHeaders = 0;
-                    return DefineConstantsWhDxfHeaders.TRUE;
+                    return true;
                 }
             }
 
@@ -5357,21 +5219,16 @@ namespace TopwinLaser2016
 
             }
 
-            return DefineConstantsWhDxfHeaders.TRUE;
+            return true;
         }
         public void AnalyseRatio(ref tagDXFSTRING strHeaders)
         {
-            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
-            //ORIGINAL LINE: string stringRatioName = strHeaders.strCode;
-            string stringRatioName = new @string(strHeaders.strCode);
-            //C++ TO C# CONVERTER WARNING: The following line was determined to be a copy constructor call - this should be verified and a copy constructor should be created if it does not yet exist:
-            //ORIGINAL LINE: string stringRatioValue = strHeaders.strValue;
-            string stringRatioValue = new @string(strHeaders.strValue);
+            string stringRatioName = strHeaders.strCode;
+            string stringRatioValue = strHeaders.strValue;
 
             if (stringRatioName == "70")
-            {
-                //C++ TO C# CONVERTER TODO TASK: The c_str method is not converted to C#:
-                m_nUnit = Convert.ToInt32(stringRatioValue.c_str());
+            {                
+                m_nUnit = Convert.ToInt32(stringRatioValue);
             }
         }
 
@@ -5417,8 +5274,8 @@ namespace TopwinLaser2016
         {
             m_pImagicOblist = null;
             m_nFlagGroup = 0;
-            m_bFlagSpaceLineCount = DefineConstantsWhDxfParse.FALSE;
-            m_bFalgSectionStart = DefineConstantsWhDxfParse.FALSE;
+            m_bFlagSpaceLineCount = false;
+            m_bFalgSectionStart = false;
             m_nSectionType = 0;
         }
         public virtual void Dispose()
@@ -5437,11 +5294,11 @@ namespace TopwinLaser2016
         public int SetString(ref string strDxfLine)
         {
 
-            if ((strDxfLine == "") && (!m_bFlagSpaceLineCount) && (m_nFlagGroup))
+            if ((strDxfLine == "") && (!m_bFlagSpaceLineCount) && (m_nFlagGroup!=0))
             {
-                m_bFlagSpaceLineCount = DefineConstantsWhDxfParse.TRUE;
+                m_bFlagSpaceLineCount = true;
             }
-            else if ((strDxfLine == "") && (!m_nFlagGroup))
+            else if ((strDxfLine == "") && (m_nFlagGroup==0))
             {
                 return 0;
             }
@@ -5450,7 +5307,7 @@ namespace TopwinLaser2016
             {
                 m_strInput.strCode = strDxfLine;
                 m_nFlagGroup++;
-                m_bFlagSpaceLineCount = DefineConstantsWhDxfParse.FALSE;
+                m_bFlagSpaceLineCount = false;
 
                 return 0;
             }
@@ -5464,17 +5321,123 @@ namespace TopwinLaser2016
         }
         //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
         //	int JustifyGroupCode();
-        public int JustifyMatch()
+        public bool JustifyMatch()
         {
 
-            return DefineConstantsWhDxfParse.TRUE;
+            return true;
+        }
+        public bool JustifyGroupCode()
+        {
+            string stringGroupName = m_strInput.strCode;
+            string stringGroupValue = m_strInput.strValue;
+            if (m_nSectionType!=0)
+            {
+                if (stringGroupName == "0" && stringGroupValue == "SECTION")
+                {
+                    m_bFalgSectionStart = true;
+                    return true;
+                }
+                else if (m_bFalgSectionStart && stringGroupName == "2" && stringGroupValue == "HEADER")
+                {
+                    m_nSectionType = 1;
+                    return true;
+                }
+                else if (m_bFalgSectionStart && stringGroupName == "2" && stringGroupValue == "CLASSES")
+                {
+                    m_nSectionType = 2;
+                    return true;
+                }
+                else if (m_bFalgSectionStart && stringGroupName == "2" && stringGroupValue == "TABLES")
+                {
+                    m_nSectionType = 3;
+                    return true;
+                }
+                else if (m_bFalgSectionStart && stringGroupName == "2" && stringGroupValue == "BLOCKS")
+                {
+                    m_nSectionType = 4;
+                    return true;
+                }
+                else if (m_bFalgSectionStart && stringGroupName == "2" && stringGroupValue == "ENTITIES")
+                {
+                    m_nSectionType = 5;
+                    m_DxfEntities.SetList(m_pImagicOblist);
+                    m_DxfEntities.SetRatio(m_DxfHeaders.GetRatio());
+                    return true;
+                }
+                else if (m_bFalgSectionStart && stringGroupName == "2" && stringGroupValue == "OBJECTS")
+                {
+                    m_nSectionType = 6;
+                    return true;
+                }
+                else if (stringGroupName == "0" && stringGroupValue == "EOF")
+                {
+
+                    return true;
+                }
+                else
+                {
+                    MessageBox.Show("段没开始");
+                    return false;
+                }                
+            }
+            else if (m_bFalgSectionStart && stringGroupName == "0" && stringGroupValue == "ENDSEC")
+            {
+                m_bFalgSectionStart = false;
+
+                ///////////////////////////////
+                if (m_nSectionType == 5)
+                {
+                    m_DxfEntities.AddLastObject();
+                }
+                ///////////////////////////////
+
+                m_nSectionType = 0;
+                return true;
+            }
+
+
+            if (m_nSectionType == 1)
+            {
+                m_DxfHeaders.SetHeadersString(ref m_strInput);
+                if (!m_DxfHeaders.JustifyHeadersType())
+                {
+                    return false;
+                }
+                return true;
+            }
+            else if (m_nSectionType == 2)
+            {
+                return true;
+            }
+            else if (m_nSectionType == 3)
+            {
+                return true;
+            }
+            else if (m_nSectionType == 4)
+                return true;
+            else if (m_nSectionType == 5)
+            {
+                m_DxfEntities.SetEntitiesString(ref m_strInput);
+                if (!m_DxfEntities.JustifyEntitiesType())
+                {
+                    return false;
+                }
+                return true;
+            }
+
+            else if (m_nSectionType == 6)
+            {
+                return true;
+            }
+
+            return true;
         }
 
         private CWhListContainer m_pImagicOblist;
         private tagDXFSTRING m_strInput = new tagDXFSTRING();
         private int m_nFlagGroup;
-        private int m_bFlagSpaceLineCount;
-        private int m_bFalgSectionStart;
+        private bool m_bFlagSpaceLineCount;
+        private bool m_bFalgSectionStart;
         private int m_nSectionType;
 
         private CWhDxfHeaders m_DxfHeaders = new CWhDxfHeaders();
