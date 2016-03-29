@@ -23,1043 +23,6 @@ namespace TopwinLaser2016
             strValue = s2;
         }
     }
-    public class CWhListContainer
-    {        
-        private LinkedList<object> m_pListContainer = new LinkedList<object>();
-        public RectangleF m_rcBound = new RectangleF();
-
-        public void Serialize(ref BinaryFormatter ar)
-        {            
-            m_pListContainer.Serialize(ref ar);
-            if (ar.IsLoading() != 0)
-            {
-                ar >> m_rcBound;
-            }
-            else
-            {
-                ar << m_rcBound;
-            }
-        }
-        public void UpdateBoundRect()
-        {            
-            m_rcBound = new RectangleF(0, 0, 0, 0);
-
-
-            RectangleF rcUnion = new RectangleF();
-            CWhVirtual pObj = null;
-            LinkedListNode<object> pos = GetHeadPosition();
-            while (pos != null)
-            {
-                pObj = GetNext(ref pos);
-
-                if (pObj.GetIsShow())
-                {
-                    continue;
-                }
-                pObj.UpdateBoundRect();
-
-                if (m_rcBound.IsEmpty)
-                {
-                    m_rcBound = pObj.m_rcBound;
-                }
-                else
-                {
-                    rcUnion = RectangleF.Union(m_rcBound, pObj.m_rcBound);
-                    m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
-                    m_rcBound.NormalizeRect();
-                }
-            }
-        }
-        public RectangleF GetRcBound()
-        {
-            return m_rcBound;
-        }
-        public void UpdateListObjParent()
-        {
-            CWhVirtual pObj = null;
-            LinkedListNode<object> posObj = m_pListContainer.First;
-            while (posObj != null)
-            {
-                pObj = (CWhVirtual)posObj.Next.Value;
-
-                pObj.m_pParentList = this;
-                if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                {
-                    ((CWhLayer)pObj).m_pListLayer.UpdateListObjParent();
-                }
-            }
-        }
-        public void UpdateListObjID(ref int lIDBegin)
-        {
-
-            CWhVirtual pObj = null;
-            LinkedListNode<object> posObj = m_pListContainer.First;
-            while (posObj != null)
-            {
-                pObj = (CWhVirtual)posObj.Next.Value;
-                pObj = (CWhVirtual)posObj.Value;
-                pObj.m_lID = ++lIDBegin;
-                if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                {
-                    ((CWhLayer)pObj).m_pListLayer.UpdateListObjID(ref lIDBegin);
-                }
-            }
-        }
-
-        public LinkedList<object> GetObjList()
-        {
-            return m_pListContainer;
-        }
-        public int GetCount()
-        {
-            return m_pListContainer.Count;
-        }
-        public int IsEmpty()
-        {
-            return m_pListContainer.Count;
-        }
-        public CWhVirtual GetTail()
-        {
-            CWhVirtual pObj = null;
-            if (IsEmpty() == 0)
-            {
-                pObj = (CWhVirtual)m_pListContainer.Last.Value;
-            }
-            return pObj;
-        }
-        public CWhVirtual GetHead()
-        {
-            CWhVirtual pObj = null;
-            if (IsEmpty() == 0)
-            {
-                pObj = (CWhVirtual)m_pListContainer.First.Value;
-            }
-            return pObj;
-        }
-        public LinkedListNode<object> GetHeadPosition()
-        {
-            return m_pListContainer.First;
-        }
-        public LinkedListNode<object> GetTailPosition()
-        {
-            return m_pListContainer.Last;
-        }
-        public CWhVirtual GetNext(ref LinkedListNode<object> pos)
-        {
-            return (CWhVirtual)pos.Next.Value;
-        }
-        public CWhVirtual GetPrev(ref LinkedListNode<object> pos)
-        {
-            return (CWhVirtual)pos.Previous.Value;
-        }
-        public CWhVirtual GetAt(ref LinkedListNode<object> pos)
-        {
-            CWhVirtual pObj = null;
-            pObj = (CWhVirtual)pos.Value;
-            return pObj;
-        }
-        public bool IsObjInListContainer(CWhVirtual pObj)
-        {
-            if (FindObject(pObj))
-            {
-                return true;
-            }
-            return false;
-        }
-        public bool FindObject(CWhVirtual pObj)
-        {
-
-            bool bRet = false;
-            LinkedListNode<object> pos = m_pListContainer.Find(pObj);
-            if (pos != null)
-            {
-                bRet = true;
-                return bRet;
-            }
-
-            CWhVirtual pObjNext = null;
-            LinkedListNode<object> posNext = m_pListContainer.First;
-            while (posNext != null)
-            {
-                pObjNext = (CWhVirtual)posNext.Next.Value;
-                if (pObjNext.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                {
-                    if (((CWhLayer)pObjNext).FindObject(pObj))
-                    {
-                        bRet = true;
-                        return bRet;
-                    }
-                }
-            }
-
-            return bRet;
-        }
-        public CWhVirtual FindObjectFromID(int lID)
-        {
-            CWhVirtual pObjRet = null;
-            CWhVirtual pObj = null;
-            LinkedListNode<object> pos = m_pListContainer.First;
-            while (pos != null)
-            {
-
-                pObj = (CWhVirtual)pos.Next.Value;
-                if (pObj.m_lID == lID)
-                {
-                    pObjRet = pObj;
-                    return pObjRet;
-                }
-
-                if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                {
-                    pObjRet = ((CWhLayer)pObj).FindObjectFromID(lID);
-                    if (pObjRet != null)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            return pObjRet;
-        }
-        public CWhVirtual FindLayerFromName(string strLayerName)
-        {
-            CWhVirtual pObjRet = null;
-            CWhVirtual pObj = null;
-            LinkedListNode<object> pos = m_pListContainer.First;
-            while (pos != null)
-            {
-
-                pObj = (CWhVirtual)pos.Next.Value;
-                if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                {
-                    if (((CWhLayer)pObj).m_strLayerName == strLayerName)
-                    {
-                        pObjRet = pObj;
-                        break;
-                    }
-                }
-            }
-
-            return pObjRet;
-        }
-        public LinkedListNode<object> Find(CWhVirtual pObj)
-        {
-            LinkedListNode<object> posRet = new LinkedListNode<object>(null);
-            posRet = m_pListContainer.Find(pObj);
-            return posRet;
-        }
-        public void SetAt(LinkedListNode<object> pos, CWhVirtual pObj)
-        {
-
-            pObj.AddRef();
-
-            if (pObj.m_pParentList==null)
-            {
-                pObj.m_pParentList = this;
-            }
-
-            m_pListContainer.SetAt(pos, pObj);
-
-            RectangleF rcUnion = new RectangleF();
-            if (m_rcBound.IsEmpty)
-            {
-                m_rcBound = pObj.m_rcBound;
-            }
-            else
-            {                
-                rcUnion = RectangleF.Union(m_rcBound, pObj.m_rcBound);
-                m_rcBound= new RectangleF(rcUnion.Left, m_rcBound.Top, m_rcBound.Right, m_rcBound.Bottom);
-                m_rcBound.NormalizeRect();
-            }
-        }
-        public void InsertAfterObj(CWhVirtual pObj, CWhVirtual pObjAfter)
-        {
-            LinkedListNode<object> posAfter = Find(pObj);
-
-            pObjAfter.AddRef();
-
-            if (pObjAfter.m_pParentList==null)
-            {
-                pObjAfter.m_pParentList = this;
-            }
-
-            m_pListContainer.AddAfter(posAfter, pObjAfter);
-
-            RectangleF rcUnion = new RectangleF();
-            if (m_rcBound.IsEmpty)
-            {
-                m_rcBound = pObjAfter.m_rcBound;
-            }
-            else
-            {
-                rcUnion = RectangleF.Union(m_rcBound, pObjAfter.m_rcBound);
-                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
-                m_rcBound.NormalizeRect();
-            }
-        }
-        public void InsertPreObj(CWhVirtual pObj, CWhVirtual pObjPre)
-        {
-            LinkedListNode<object> posPre = Find(pObj);
-
-            pObjPre.AddRef();
-
-            if (pObjPre.m_pParentList==null)
-            {
-                pObjPre.m_pParentList = this;
-            }
-
-            m_pListContainer.AddBefore(posPre, pObjPre);
-
-            RectangleF rcUnion = new RectangleF();
-            if (m_rcBound.IsEmpty)
-            {
-                m_rcBound = pObjPre.m_rcBound;
-            }
-            else
-            {
-                rcUnion = RectangleF.Union(m_rcBound, pObjPre.m_rcBound);
-                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
-                //m_rcBound.NormalizeRect();
-            }
-        }
-        public CWhVirtual GetAfterObj(CWhVirtual pObj)
-        {
-            CWhVirtual pObjRet = null;
-            LinkedListNode<object> posObj = Find(pObj);
-            if (posObj != null)
-            {
-                pObjRet = GetNext(ref posObj);
-                pObjRet = GetNext(ref posObj);
-            }
-            return pObjRet;
-        }
-        public CWhVirtual GetPreObj(CWhVirtual pObj)
-        {
-            CWhVirtual pObjRet = null;
-            LinkedListNode<object> posObj = Find(pObj);
-            if (posObj != null)
-            {
-                pObjRet = GetPrev(ref posObj);
-                pObjRet = GetPrev(ref posObj);
-            }
-            return pObjRet;
-        }
-        public void MoveObjNext(CWhVirtual pObj)
-        {
-
-            CWhVirtual pObjNext = null;
-            LinkedListNode<object> posMove = Find(pObj);
-            if (posMove != null)
-            {
-
-                pObjNext = GetNext(ref posMove);
-                if (posMove != null)
-                {
-                    m_pListContainer.AddAfter(posMove, pObjNext);
-                    pObjNext = GetPrev(ref posMove);
-                    m_pListContainer.Remove(posMove.Value);
-                }
-                return;
-            }
-
-            posMove = GetHeadPosition();
-            while (posMove != null)
-            {
-                pObjNext = GetNext(ref posMove);
-                if (pObjNext.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                {
-                    ((CWhLayer)pObjNext).MoveObjNext(pObj);
-                }
-            }
-        }
-        public void MoveObjPrev(CWhVirtual pObj)
-        {
-
-            CWhVirtual pObjPrev = null;
-            LinkedListNode<object> posMove = Find(pObj);
-            if (posMove != null)
-            {
-
-                pObjPrev = GetPrev(ref posMove);
-                if (posMove != null)
-                {
-                    m_pListContainer.AddBefore(posMove, pObjPrev);
-
-                    pObjPrev = GetNext(ref posMove);
-                    m_pListContainer.Remove(posMove.Value);
-                }
-                return;
-            }
-
-            posMove = GetHeadPosition();
-            while (posMove != null)
-            {
-                pObjPrev = GetNext(ref posMove);
-                if (pObjPrev.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                {
-                    ((CWhLayer)pObjPrev).MoveObjPrev(pObj);
-                }
-            }
-        }
-        public void MoveObjHead(CWhVirtual pObj)
-        {
-
-            CWhVirtual pObjHead = null;
-            LinkedListNode<object> posMove = Find(pObj);
-            if (posMove != null)
-            {
-                m_pListContainer.Remove(posMove.Value);
-                m_pListContainer.AddFirst(pObj);
-                return;
-            }
-
-            posMove = GetHeadPosition();
-            while (posMove != null)
-            {
-                pObjHead = GetNext(ref posMove);
-                if (pObjHead.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                {
-                    ((CWhLayer)pObjHead).m_pListLayer.MoveObjHead(pObj);
-                }
-            }
-        }
-        public void MoveObjEnd(CWhVirtual pObj)
-        {
-
-            CWhVirtual pObjEnd = null;
-            LinkedListNode<object> posMove = Find(pObj);
-            if (posMove != null)
-            {
-                m_pListContainer.Remove(posMove.Value);
-                m_pListContainer.AddLast(pObj);
-                return;
-            }
-
-            posMove = GetHeadPosition();
-            while (posMove != null)
-            {
-                pObjEnd = GetNext(ref posMove);
-                if (pObjEnd.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                {
-                    ((CWhLayer)pObjEnd).m_pListLayer.MoveObjEnd(pObj);
-                }
-            }
-        }
-        public void AntiList()
-        {
-            LinkedList<object> pAntiList = new LinkedList<object>();
-            CWhVirtual pObj = null;
-            LinkedListNode<object> posAnti = GetHeadPosition();
-            while (posAnti != null)
-            {
-                pObj = GetNext(ref posAnti);
-                pAntiList.AddFirst(pObj);
-            }
-
-            m_pListContainer.Clear();
-
-            m_pListContainer = null;
-
-            m_pListContainer = pAntiList;
-        }
-
-        public void AddTail(CWhVirtual pObj)
-        {
-            AddObject(pObj);
-        }
-        public void AddHead(CWhVirtual pObj)
-        {
-
-            pObj.AddRef();
-
-            if (pObj.m_pParentList==null)
-            {
-                pObj.m_pParentList = this;
-            }
-
-            m_pListContainer.AddFirst(pObj);
-
-            RectangleF rcUnion = new RectangleF();
-            if (m_rcBound.IsEmpty)
-            {
-                m_rcBound = pObj.m_rcBound;
-            }
-            else
-            {
-                rcUnion = RectangleF.Union(m_rcBound, pObj.m_rcBound);
-                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
-                m_rcBound.NormalizeRect();
-            }
-        }
-        public void AddObject(CWhVirtual pObj)
-        {
-
-            pObj.AddRef();
-
-            if (pObj.m_pParentList==null)
-            {
-                pObj.m_pParentList = this;
-            }
-
-            m_pListContainer.AddLast(pObj);
-
-            RectangleF rcUnion = new RectangleF();
-            if (m_rcBound.IsEmpty)
-            {
-                m_rcBound = pObj.m_rcBound;
-            }
-            else
-            {
-                rcUnion = RectangleF.Union(m_rcBound, pObj.m_rcBound);
-                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
-                m_rcBound.NormalizeRect();
-            }
-        }
-        public void AddObjects(CWhListContainer pList)
-        {
-            CWhVirtual pObj = null;
-            LinkedListNode<object> pos = pList.GetHeadPosition();
-            while (pos != null)
-            {
-                pObj = pList.GetNext(ref pos);
-                AddObject(pObj);
-            }
-        }
-
-        public bool RemoveObject(CWhVirtual pObj)
-        {
-            return RemoveObject(pObj, false);
-        }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: int RemoveObject(CWhVirtual pObj, bool bFlagDepth = false)
-        public bool RemoveObject(CWhVirtual pObj, bool bFlagDepth = false)
-        {
-            bool bRet = false;
-            LinkedListNode<object> pos = m_pListContainer.Find(pObj);
-            if (pos != null)
-            {
-
-                bRet = true;
-                if (bFlagDepth)
-                {
-                    if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                    {
-                        ((CWhLayer)pObj).RemoveAll(bFlagDepth);
-                    }
-                }
-
-                m_pListContainer.Remove(pos.Value);
-
-                pObj.Release();
-
-                if (pObj.GetRefCount() == 0)
-                {
-                    pObj = null;
-                }
-
-                return bRet;
-            }
-
-
-            CWhVirtual pObjNext = null;
-            LinkedListNode<object> posNext = m_pListContainer.First;
-            while (posNext != null)
-            {
-                pObjNext = (CWhVirtual)posNext.Next.Value;
-
-                if (pObjNext.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                {
-                    if (((CWhLayer)pObjNext).RemoveObject(pObj, bFlagDepth))
-                    {
-                        bRet = true;
-                        return bRet;
-                    }
-                }
-            }
-
-
-            return bRet;
-        }
-        public void RemoveObjects(CWhListContainer pList)
-        {
-            RemoveObjects(pList, false);
-        }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void RemoveObjects(CWhListContainer pList, bool bFlagDepth = false)
-        public void RemoveObjects(CWhListContainer pList, bool bFlagDepth = false)
-        {
-            CWhVirtual pObj = null;
-            LinkedListNode<object> pos = pList.GetHeadPosition();
-            while (pos != null)
-            {
-                pObj = pList.GetNext(ref pos);
-                RemoveObject(pObj, bFlagDepth);
-            }
-
-            UpdateBoundRect();
-        }
-        public void RemoveAll()
-        {
-            RemoveAll(false);
-        }
-        public void RemoveAll(bool bFlagDepth)
-        {
-            CWhVirtual pObj = null;
-            LinkedListNode<object> pos = GetHeadPosition();
-            while (pos != null)
-            {
-                pObj = GetNext(ref pos);
-                RemoveObject(pObj, bFlagDepth);
-            }
-
-            m_rcBound = new RectangleF(0, 0, 0, 0);
-        }
-        public void DeleteObject(CWhVirtual pObj)
-        {
-            DeleteObject(pObj, false);
-        }
-        public void DeleteObject(CWhVirtual pObj, bool bFlagDepth = false)
-        {
-            pObj = null;
-        }
-        public void DeleteObjects(CWhListContainer pList)
-        {
-            DeleteObjects(pList, false);
-        }
-        public void DeleteObjects(CWhListContainer pList, bool bFlagDepth = false)
-        {
-            CWhVirtual pObj = null;
-            LinkedListNode<object> pos = pList.GetHeadPosition();
-            while (pos != null)
-            {
-                pObj = GetNext(ref pos);
-                DeleteObject(pObj);
-            }
-        }
-        public void DeleteAll()
-        {
-            DeleteAll(false);
-        }
-        public void DeleteAll(bool bFlagDepth)
-        {
-            CWhVirtual pObj = null;
-            LinkedListNode<object> pos = GetHeadPosition();
-            while (pos != null)
-            {
-                pObj = GetNext(ref pos);
-                DeleteObject(pObj);
-            }
-            m_rcBound = new RectangleF(0, 0, 0, 0);
-        }
-
-        public void GroupObj(CWhListContainer pListObj)
-        {
-
-            CWhGroup pGroup = new CWhGroup();
-            CWhVirtual pObj = null;
-            LinkedListNode<object> posObj = pListObj.GetHeadPosition();
-            while (posObj != null)
-            {
-                pObj = pListObj.GetNext(ref posObj);
-                pGroup.AddObject(pObj);
-
-                pObj.m_pParentList = pGroup.m_pListGroup;
-            }
-
-            AddObject(pGroup);
-
-
-        }
-        public void ApartAll()
-        {
-            CWhVirtual pObj = null;
-            LinkedListNode<object> posObj = GetHeadPosition();
-            while (posObj != null)
-            {
-                pObj = GetNext(ref posObj);
-                if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_GROUP)
-                {
-                    ((CWhGroup)pObj).Apart();
-                    RemoveObject(pObj);
-                }
-                else if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                {
-                    ((CWhLayer)pObj).m_pListLayer.ApartAll();
-                }
-            }
-        }
-
-        public void FindObjInRect(CWhListContainer pListDestination, RectangleF rcRect)
-        {
-            CWhVirtual pObjInRect = null;
-            LinkedListNode<object> posInRect = GetHeadPosition();
-            while (posInRect != null)
-            {
-                pObjInRect = GetNext(ref posInRect);
-                if (pObjInRect.IsObjInRect(rcRect))
-                {
-
-                    if (pObjInRect.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                    {
-                        ((CWhLayer)pObjInRect).m_pListLayer.FindObjInRect(pListDestination, rcRect);
-                        continue;
-                    }
-
-                    pListDestination.AddObject(pObjInRect);
-                }
-            }
-        }
-        public bool SelectObj(CWhListContainer pListSelect, PointF ptClick, int nLimit, ref Graphics pDC)
-        {
-            bool bRet = false;
-            CWhVirtual pObj = null;
-            LinkedListNode<object> pos = GetHeadPosition();
-            while (pos != null)
-            {
-                pObj = GetNext(ref pos);
-                if (!pObj.GetIsShow())
-                {
-                    continue;
-                }
-                if (pObj.IsSelected(ptClick, nLimit))
-                {
-
-                    if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                    {
-                        if (((CWhLayer)pObj).m_pListLayer.SelectObj(pListSelect, ptClick, nLimit, ref pDC))
-                        {
-                            bRet = true;
-                            return bRet;
-                        }
-                        else
-                        {
-                            continue;
-                        }
-                    }
-
-                    pObj.SetIsShowHandle(true);
-                    pObj.SetPenColor(Color.FromArgb(255, 0, 0));
-
-                    pListSelect.AddObject(pObj);
-
-                    bRet = true;
-                    return bRet;
-                }
-            }
-
-            return bRet;
-        }
-        public bool SelectObj(CWhListContainer pListSelect, RectangleF rcClick, int bFlagMode, ref Graphics pDC)
-        {
-            bool bRet = false;
-            CWhVirtual pObj = null;
-            LinkedListNode<object> pos = GetHeadPosition();
-            while (pos != null)
-            {
-                pObj = GetNext(ref pos);
-                if (pObj.IsSelected(rcClick, bFlagMode))
-                {
-
-                    if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                    {
-                        ((CWhLayer)pObj).m_pListLayer.SelectObj(pListSelect, rcClick, bFlagMode, ref pDC);
-                        continue;
-                    }
-
-                    pObj.SetIsShowHandle(true);
-                    pObj.SetPenColor(Color.FromArgb(255, 0, 0));
-
-                    pListSelect.AddObject(pObj);
-                }
-            }
-
-            return bRet;
-        }
-        public bool SnapPoint(ref PointF ptSnap, PointF ptInput, float fDiatance)
-        {
-            bool bRet = false;
-
-            CWhVirtual pObjSnap = null;
-            LinkedListNode<object> posSnap = GetHeadPosition();
-            while (posSnap != null)
-            {
-                pObjSnap = GetNext(ref posSnap);
-                if (pObjSnap.IsPointSnap(ref ptSnap, ptInput, fDiatance))
-                {
-
-                    if (pObjSnap.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                    {
-                        if (!((CWhLayer)pObjSnap).m_pListLayer.SnapPoint(ref ptSnap, ptInput, fDiatance))
-                        {
-                            continue;
-                        }
-                    }
-                    bRet = true;
-                    return bRet;
-                }
-            }
-
-            return bRet;
-        }
-        public bool SelectPoint(ref CWhVirtual pSnap, ref PointF ptSnap, ref int nSnap, PointF ptInput, float fDiatance)
-        {
-            bool bRet = false;
-            CWhVirtual pObjSnap = null;
-            LinkedListNode<object> posSnap = GetHeadPosition();
-            while (posSnap != null)
-            {
-                pObjSnap = GetNext(ref posSnap);
-                if (pObjSnap.IsPointSelect(ref ptSnap, ref nSnap, ptInput, fDiatance))
-                {
-
-                    if (pObjSnap.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                    {
-                        if (!((CWhLayer)pObjSnap).m_pListLayer.SelectPoint(ref pSnap, ref ptSnap, ref nSnap, ptInput, fDiatance))
-                        {
-                            continue;
-                        }
-                    }
-                    pSnap = pObjSnap;
-                    bRet = true;
-                    return bRet;
-                }
-            }
-
-            return bRet;
-        }
-
-        public bool SelectStartPoint(ref CWhVirtual pObj, ref PointF ptRet, PointF ptInput, float fDiatance)
-        {
-            bool bRet = false;
-            CWhVirtual pObjStart = null;
-            LinkedListNode<object> posStart = GetHeadPosition();
-            while (posStart != null)
-            {
-                pObjStart = GetNext(ref posStart);
-                if (pObjStart.IsStartPointSelect(ref ptRet, ptInput, fDiatance))
-                {
-
-                    if (pObjStart.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                    {
-                        if (!((CWhLayer)pObjStart).m_pListLayer.SelectStartPoint(ref pObj, ref ptRet, ptInput, fDiatance))
-                        {
-                            continue;
-                        }
-                    }
-                    pObj = pObjStart;
-                    bRet = true;
-                    return bRet;
-                }
-            }
-
-            return bRet;
-        }
-
-        public void CopyObjToList(CWhListContainer pList)
-        {
-            CopyObjToList(pList, false);
-        }
-        public void CopyObjToList(CWhListContainer pList, bool bFlagSingle = false)
-        {
-            CWhVirtual pObj = null;
-            LinkedListNode<object> pos = GetHeadPosition();
-            while (pos != null)
-            {
-                pObj = GetNext(ref pos);
-                if (bFlagSingle && pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
-                {
-                    CWhLayer pLayer = new CWhLayer();
-
-                    pLayer.m_lID = pObj.m_lID;
-                    pLayer.m_bIsShowHandle = pObj.m_bIsShowHandle;
-                    pLayer.m_strLayerName = ((CWhLayer)pObj).m_strLayerName;
-                    pLayer.m_nMachineCount = pObj.m_nMachineCount;
-                    pLayer.m_bMachineStyle = pObj.m_bMachineStyle;
-                    pLayer.m_nMachineFrequence = pObj.m_nMachineFrequence;
-
-                    ((CWhLayer)pObj).m_pListLayer.CopyObjToList(pLayer.m_pListLayer, bFlagSingle);
-                    pLayer.UpdateBoundRect();
-                    pList.AddObject(pLayer);
-                    continue;
-                }
-
-                pList.AddObject(pObj);
-            }
-        }
-
-        public void OptimizeObjOrder()
-        {
-
-            if (m_pListContainer.Equals(null))
-            {
-                return;
-            }
-
-            CWhListContainer pListDestinate = new CWhListContainer();
-            while (!m_pListContainer.Equals(null))
-            {
-                ExtractGroup(this, pListDestinate, 5);
-            }
-
-            OptimizeGroup(pListDestinate);
-
-            ArangeGroupOrder(pListDestinate);
-            pListDestinate.RemoveAll();
-            pListDestinate = null;
-        }
-        public bool SearchNearlyNextObj(CWhListContainer pListSource, PointF ptInput, float fDistanceGap, ref CWhVirtual pObjRet, bool bFlagType)
-        {
-            bool bRet = false;
-            PointF ptstart = new PointF(0, 0);
-            PointF ptEnd = new PointF(0, 0);
-            CWhVirtual pObjSearch = null;
-            LinkedListNode<object> posObjSearch = pListSource.GetHeadPosition();
-            while (posObjSearch != null)
-            {
-                pObjSearch = pListSource.GetNext(ref posObjSearch);
-                ptstart = pObjSearch.GetStartPoint();
-                ptEnd = pObjSearch.GetEndPoint();
-
-
-                if (CWhSysFunction.PointToPointDistance(ptInput, ptstart) < fDistanceGap)
-                {
-                    if (bFlagType)
-                    {
-                        pObjSearch.ExchangeStartToEnd();
-
-                    }
-                    pObjRet = pObjSearch;
-                    bRet = true;
-                    break;
-                }
-                else if (CWhSysFunction.PointToPointDistance(ptInput, ptEnd) < fDistanceGap)
-                {
-                    if (bFlagType)
-                    {
-                        pObjSearch.ExchangeStartToEnd();
-                    }
-                    pObjRet = pObjSearch;
-                    bRet = true;
-                    break;
-                }
-            }
-
-            return bRet;
-        }
-        public bool ExtractGroup(CWhListContainer pListSource, CWhListContainer pListDestinate, float fDistanceGap)
-        {
-            bool bRet = false;
-            PointF ptStartSearch = new PointF(0, 0);
-            PointF ptEndSearch = new PointF(0, 0);
-            CWhGroup pGroup = new CWhGroup();
-            pListDestinate.AddObject(pGroup);
-            CWhVirtual pObjOptimize = null;
-            CWhVirtual pObjRet = null;
-
-            pObjOptimize = pListSource.GetHead();
-            if (pObjOptimize != null)
-            {
-                pGroup.AddObject(pObjOptimize);
-                pListSource.RemoveObject(pObjOptimize);
-            }
-            if ((pObjOptimize.m_nObjType == DefineConstantsFdxf.WH_TYPE_LINE) || (pObjOptimize.m_nObjType == DefineConstantsFdxf.WH_TYPE_ARC))
-            {
-                ptStartSearch = pObjOptimize.GetStartPoint();
-                ptEndSearch = pObjOptimize.GetEndPoint();
-            }
-
-            while (SearchNearlyNextObj(pListSource, ptEndSearch, fDistanceGap, ref pObjRet, true))
-            {
-                pGroup.AddObject(pObjRet);
-                pListSource.RemoveObject(pObjRet);
-                ptEndSearch = pObjRet.GetEndPoint();
-            }
-
-            while (SearchNearlyNextObj(pListSource, ptStartSearch, fDistanceGap, ref pObjRet, false))
-            {
-                pGroup.m_pListGroup.AddHead(pObjRet);
-                pListSource.RemoveObject(pObjRet);
-                ptStartSearch = pObjRet.GetStartPoint();
-            }
-
-            return bRet;
-        }
-        public bool OptimizeGroup(CWhListContainer pList)
-        {
-            CWhListContainer pListGroup = new CWhListContainer();
-            RectangleF rcSearch = new RectangleF(0, 0, 0, 0);
-            CWhVirtual pObj = null;
-
-            pList.UpdateBoundRect();
-
-            pObj = pList.GetHead();
-            rcSearch = pObj.m_rcBound;
-            rcSearch.NormalizeRect();
-            if (pObj != null)
-            {
-                pListGroup.AddObject(pObj);
-                pList.RemoveObject(pObj);
-            }
-
-            while (pList.IsEmpty() == 0)
-            {
-                SearchNearlyNextGroup(ref rcSearch, pList, pListGroup);
-            }
-
-            pList.AddObjects(pListGroup);
-            pListGroup.RemoveAll();
-            pListGroup = null;
-
-            return true;
-        }
-        public void SearchNearlyNextGroup(ref RectangleF rcInPut, CWhListContainer pList, CWhListContainer pListDestinate)
-        {
-            CWhVirtual pObjRet = null;
-            float fDistancePre = 0;
-            float fDistanceCur = 0;
-            int i = 0;
-            RectangleF rcCurrent = new RectangleF(0, 0, 0, 0);
-            CWhVirtual pObj = null;
-            LinkedListNode<object> posObj = pList.GetHeadPosition();
-            while (posObj != null)
-            {
-                pObj = pList.GetNext(ref posObj);
-                rcCurrent = pObj.m_rcBound;
-                fDistanceCur = CWhSysFunction.PointToPointDistance(rcInPut.CenterPoint(), rcCurrent.CenterPoint());
-                if (i == 0)
-                {
-                    fDistancePre = fDistanceCur;
-                    pObjRet = pObj;
-                    i++;
-                    continue;
-                }
-                if (fDistanceCur < fDistancePre)
-                {
-                    fDistancePre = fDistanceCur;
-                    pObjRet = pObj;
-                    continue;
-                }
-            }
-
-            rcInPut = pObjRet.m_rcBound;
-            rcInPut.NormalizeRect();
-            pListDestinate.AddObject(pObjRet);
-            pList.RemoveObject(pObjRet);
-        }
-        public void ArangeGroupOrder(CWhListContainer pList)
-        {
-            CWhVirtual pObj = null;
-            LinkedListNode<object> posObj = pList.GetHeadPosition();
-            while (posObj != null)
-            {
-                pObj = pList.GetNext(ref posObj);
-                if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_GROUP)
-                {
-                    AddObjects(((CWhGroup)pObj).m_pListGroup);
-                }
-            }
-        }
-    }
     public class CWhCommon : LinkedList<object>
     {
         public int m_nRefCount;
@@ -1169,6 +132,14 @@ namespace TopwinLaser2016
                
         public virtual void Serialize(ref BinaryFormatter ar)
         {                       
+            if(ar.Serialize)
+            {
+                GetObjectData(m_nRefCount,ar);
+            }
+            else
+            {
+
+            }
             if (ar.IsLoading() != 0)
             {
                 ar >> m_nRefCount >> m_lID >> m_nObjType >> m_rcBound >> m_bIsShow >> m_nMachineCount >> m_bIsFilled >> m_bIsShowHandle >> m_nPenWidth >> m_nPenType >> m_colPenColor >> m_nBrushType >> m_colBrush >> m_nMachineFrequence >> m_bFlagIsRegister >> m_bMachineStyle;
@@ -2308,7 +1279,7 @@ namespace TopwinLaser2016
 	public const int _AFX_PACKING = 4;
 #endif
         public const int VK_KANA = 0x15;
-        public const int NULL = 0;
+        public const int null = 0;
         public const int _CRT_WARN = 0;
         public const int _CRT_ERROR = 1;
         public const int _CRT_ASSERT = 2;
@@ -2803,6 +1774,1043 @@ namespace TopwinLaser2016
             float cy;
         };
     }
+    public class CWhListContainer
+    {        
+        private LinkedList<object> m_pListContainer = new LinkedList<object>();
+        public RectangleF m_rcBound = new RectangleF();
+
+        public void Serialize(ref BinaryFormatter ar)
+        {            
+            m_pListContainer.Serialize(ref ar);
+            if (ar.IsLoading() != 0)
+            {
+                ar >> m_rcBound;
+            }
+            else
+            {
+                ar << m_rcBound;
+            }
+        }
+        public void UpdateBoundRect()
+        {            
+            m_rcBound = new RectangleF(0, 0, 0, 0);
+
+
+            RectangleF rcUnion = new RectangleF();
+            CWhVirtual pObj = null;
+            LinkedListNode<object> pos = GetHeadPosition();
+            while (pos != null)
+            {
+                pObj = GetNext(ref pos);
+
+                if (pObj.GetIsShow())
+                {
+                    continue;
+                }
+                pObj.UpdateBoundRect();
+
+                if (m_rcBound.IsEmpty)
+                {
+                    m_rcBound = pObj.m_rcBound;
+                }
+                else
+                {
+                    rcUnion = RectangleF.Union(m_rcBound, pObj.m_rcBound);
+                    m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
+                    //m_rcBound.NormalizeRect();
+                }
+            }
+        }
+        public RectangleF GetRcBound()
+        {
+            return m_rcBound;
+        }
+        public void UpdateListObjParent()
+        {
+            CWhVirtual pObj = null;
+            LinkedListNode<object> posObj = m_pListContainer.First;
+            while (posObj != null)
+            {
+                pObj = (CWhVirtual)posObj.Next.Value;
+
+                pObj.m_pParentList = this;
+                if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                {
+                    ((CWhLayer)pObj).m_pListLayer.UpdateListObjParent();
+                }
+            }
+        }
+        public void UpdateListObjID(ref int lIDBegin)
+        {
+
+            CWhVirtual pObj = null;
+            LinkedListNode<object> posObj = m_pListContainer.First;
+            while (posObj != null)
+            {
+                pObj = (CWhVirtual)posObj.Next.Value;
+                pObj = (CWhVirtual)posObj.Value;
+                pObj.m_lID = ++lIDBegin;
+                if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                {
+                    ((CWhLayer)pObj).m_pListLayer.UpdateListObjID(ref lIDBegin);
+                }
+            }
+        }
+
+        public LinkedList<object> GetObjList()
+        {
+            return m_pListContainer;
+        }
+        public int GetCount()
+        {
+            return m_pListContainer.Count;
+        }
+        public int IsEmpty()
+        {
+            return m_pListContainer.Count;
+        }
+        public CWhVirtual GetTail()
+        {
+            CWhVirtual pObj = null;
+            if (IsEmpty() == 0)
+            {
+                pObj = (CWhVirtual)m_pListContainer.Last.Value;
+            }
+            return pObj;
+        }
+        public CWhVirtual GetHead()
+        {
+            CWhVirtual pObj = null;
+            if (IsEmpty() == 0)
+            {
+                pObj = (CWhVirtual)m_pListContainer.First.Value;
+            }
+            return pObj;
+        }
+        public LinkedListNode<object> GetHeadPosition()
+        {
+            return m_pListContainer.First;
+        }
+        public LinkedListNode<object> GetTailPosition()
+        {
+            return m_pListContainer.Last;
+        }
+        public CWhVirtual GetNext(ref LinkedListNode<object> pos)
+        {
+            return (CWhVirtual)pos.Next.Value;
+        }
+        public CWhVirtual GetPrev(ref LinkedListNode<object> pos)
+        {
+            return (CWhVirtual)pos.Previous.Value;
+        }
+        public CWhVirtual GetAt(ref LinkedListNode<object> pos)
+        {
+            CWhVirtual pObj = null;
+            pObj = (CWhVirtual)pos.Value;
+            return pObj;
+        }
+        public bool IsObjInListContainer(CWhVirtual pObj)
+        {
+            if (FindObject(pObj))
+            {
+                return true;
+            }
+            return false;
+        }
+        public bool FindObject(CWhVirtual pObj)
+        {
+
+            bool bRet = false;
+            LinkedListNode<object> pos = m_pListContainer.Find(pObj);
+            if (pos != null)
+            {
+                bRet = true;
+                return bRet;
+            }
+
+            CWhVirtual pObjNext = null;
+            LinkedListNode<object> posNext = m_pListContainer.First;
+            while (posNext != null)
+            {
+                pObjNext = (CWhVirtual)posNext.Next.Value;
+                if (pObjNext.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                {
+                    if (((CWhLayer)pObjNext).FindObject(pObj))
+                    {
+                        bRet = true;
+                        return bRet;
+                    }
+                }
+            }
+
+            return bRet;
+        }
+        public CWhVirtual FindObjectFromID(int lID)
+        {
+            CWhVirtual pObjRet = null;
+            CWhVirtual pObj = null;
+            LinkedListNode<object> pos = m_pListContainer.First;
+            while (pos != null)
+            {
+
+                pObj = (CWhVirtual)pos.Next.Value;
+                if (pObj.m_lID == lID)
+                {
+                    pObjRet = pObj;
+                    return pObjRet;
+                }
+
+                if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                {
+                    pObjRet = ((CWhLayer)pObj).FindObjectFromID(lID);
+                    if (pObjRet != null)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return pObjRet;
+        }
+        public CWhVirtual FindLayerFromName(string strLayerName)
+        {
+            CWhVirtual pObjRet = null;
+            CWhVirtual pObj = null;
+            LinkedListNode<object> pos = m_pListContainer.First;
+            while (pos != null)
+            {
+
+                pObj = (CWhVirtual)pos.Next.Value;
+                if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                {
+                    if (((CWhLayer)pObj).m_strLayerName == strLayerName)
+                    {
+                        pObjRet = pObj;
+                        break;
+                    }
+                }
+            }
+
+            return pObjRet;
+        }
+        public LinkedListNode<object> Find(CWhVirtual pObj)
+        {
+            LinkedListNode<object> posRet = new LinkedListNode<object>(null);
+            posRet = m_pListContainer.Find(pObj);
+            return posRet;
+        }
+        public void SetAt(LinkedListNode<object> pos, CWhVirtual pObj)
+        {
+
+            pObj.AddRef();
+            if (pObj.m_pParentList==null)
+            {
+                pObj.m_pParentList = this;
+            }
+            m_pListContainer.AddAfter(pos, pObj);
+            m_pListContainer.Remove(pos);
+            RectangleF rcUnion = new RectangleF();
+            if (m_rcBound.IsEmpty)
+            {
+                m_rcBound = pObj.m_rcBound;
+            }
+            else
+            {                
+                rcUnion = RectangleF.Union(m_rcBound, pObj.m_rcBound);
+                m_rcBound= new RectangleF(rcUnion.Left, m_rcBound.Top, m_rcBound.Right, m_rcBound.Bottom);
+                //m_rcBound.NormalizeRect();
+            }
+        }
+        public void InsertAfterObj(CWhVirtual pObj, CWhVirtual pObjAfter)
+        {
+            LinkedListNode<object> posAfter = Find(pObj);
+
+            pObjAfter.AddRef();
+
+            if (pObjAfter.m_pParentList==null)
+            {
+                pObjAfter.m_pParentList = this;
+            }
+
+            m_pListContainer.AddAfter(posAfter, pObjAfter);
+
+            RectangleF rcUnion = new RectangleF();
+            if (m_rcBound.IsEmpty)
+            {
+                m_rcBound = pObjAfter.m_rcBound;
+            }
+            else
+            {
+                rcUnion = RectangleF.Union(m_rcBound, pObjAfter.m_rcBound);
+                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
+                //m_rcBound.NormalizeRect();
+            }
+        }
+        public void InsertPreObj(CWhVirtual pObj, CWhVirtual pObjPre)
+        {
+            LinkedListNode<object> posPre = Find(pObj);
+
+            pObjPre.AddRef();
+
+            if (pObjPre.m_pParentList==null)
+            {
+                pObjPre.m_pParentList = this;
+            }
+
+            m_pListContainer.AddBefore(posPre, pObjPre);
+
+            RectangleF rcUnion = new RectangleF();
+            if (m_rcBound.IsEmpty)
+            {
+                m_rcBound = pObjPre.m_rcBound;
+            }
+            else
+            {
+                rcUnion = RectangleF.Union(m_rcBound, pObjPre.m_rcBound);
+                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
+                //m_rcBound.NormalizeRect();
+            }
+        }
+        public CWhVirtual GetAfterObj(CWhVirtual pObj)
+        {
+            CWhVirtual pObjRet = null;
+            LinkedListNode<object> posObj = Find(pObj);
+            if (posObj != null)
+            {
+                pObjRet = GetNext(ref posObj);
+                pObjRet = GetNext(ref posObj);
+            }
+            return pObjRet;
+        }
+        public CWhVirtual GetPreObj(CWhVirtual pObj)
+        {
+            CWhVirtual pObjRet = null;
+            LinkedListNode<object> posObj = Find(pObj);
+            if (posObj != null)
+            {
+                pObjRet = GetPrev(ref posObj);
+                pObjRet = GetPrev(ref posObj);
+            }
+            return pObjRet;
+        }
+        public void MoveObjNext(CWhVirtual pObj)
+        {
+
+            CWhVirtual pObjNext = null;
+            LinkedListNode<object> posMove = Find(pObj);
+            if (posMove != null)
+            {
+
+                pObjNext = GetNext(ref posMove);
+                if (posMove != null)
+                {
+                    m_pListContainer.AddAfter(posMove, pObjNext);
+                    pObjNext = GetPrev(ref posMove);
+                    m_pListContainer.Remove(posMove.Value);
+                }
+                return;
+            }
+
+            posMove = GetHeadPosition();
+            while (posMove != null)
+            {
+                pObjNext = GetNext(ref posMove);
+                if (pObjNext.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                {
+                    ((CWhLayer)pObjNext).MoveObjNext(pObj);
+                }
+            }
+        }
+        public void MoveObjPrev(CWhVirtual pObj)
+        {
+
+            CWhVirtual pObjPrev = null;
+            LinkedListNode<object> posMove = Find(pObj);
+            if (posMove != null)
+            {
+
+                pObjPrev = GetPrev(ref posMove);
+                if (posMove != null)
+                {
+                    m_pListContainer.AddBefore(posMove, pObjPrev);
+
+                    pObjPrev = GetNext(ref posMove);
+                    m_pListContainer.Remove(posMove.Value);
+                }
+                return;
+            }
+
+            posMove = GetHeadPosition();
+            while (posMove != null)
+            {
+                pObjPrev = GetNext(ref posMove);
+                if (pObjPrev.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                {
+                    ((CWhLayer)pObjPrev).MoveObjPrev(pObj);
+                }
+            }
+        }
+        public void MoveObjHead(CWhVirtual pObj)
+        {
+
+            CWhVirtual pObjHead = null;
+            LinkedListNode<object> posMove = Find(pObj);
+            if (posMove != null)
+            {
+                m_pListContainer.Remove(posMove.Value);
+                m_pListContainer.AddFirst(pObj);
+                return;
+            }
+
+            posMove = GetHeadPosition();
+            while (posMove != null)
+            {
+                pObjHead = GetNext(ref posMove);
+                if (pObjHead.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                {
+                    ((CWhLayer)pObjHead).m_pListLayer.MoveObjHead(pObj);
+                }
+            }
+        }
+        public void MoveObjEnd(CWhVirtual pObj)
+        {
+
+            CWhVirtual pObjEnd = null;
+            LinkedListNode<object> posMove = Find(pObj);
+            if (posMove != null)
+            {
+                m_pListContainer.Remove(posMove.Value);
+                m_pListContainer.AddLast(pObj);
+                return;
+            }
+
+            posMove = GetHeadPosition();
+            while (posMove != null)
+            {
+                pObjEnd = GetNext(ref posMove);
+                if (pObjEnd.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                {
+                    ((CWhLayer)pObjEnd).m_pListLayer.MoveObjEnd(pObj);
+                }
+            }
+        }
+        public void AntiList()
+        {
+            LinkedList<object> pAntiList = new LinkedList<object>();
+            CWhVirtual pObj = null;
+            LinkedListNode<object> posAnti = GetHeadPosition();
+            while (posAnti != null)
+            {
+                pObj = GetNext(ref posAnti);
+                pAntiList.AddFirst(pObj);
+            }
+
+            m_pListContainer.Clear();
+
+            m_pListContainer = null;
+
+            m_pListContainer = pAntiList;
+        }
+
+        public void AddTail(CWhVirtual pObj)
+        {
+            AddObject(pObj);
+        }
+        public void AddHead(CWhVirtual pObj)
+        {
+
+            pObj.AddRef();
+
+            if (pObj.m_pParentList==null)
+            {
+                pObj.m_pParentList = this;
+            }
+
+            m_pListContainer.AddFirst(pObj);
+
+            RectangleF rcUnion = new RectangleF();
+            if (m_rcBound.IsEmpty)
+            {
+                m_rcBound = pObj.m_rcBound;
+            }
+            else
+            {
+                rcUnion = RectangleF.Union(m_rcBound, pObj.m_rcBound);
+                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
+                //m_rcBound.NormalizeRect();
+            }
+        }
+        public void AddObject(CWhVirtual pObj)
+        {
+
+            pObj.AddRef();
+
+            if (pObj.m_pParentList==null)
+            {
+                pObj.m_pParentList = this;
+            }
+
+            m_pListContainer.AddLast(pObj);
+
+            RectangleF rcUnion = new RectangleF();
+            if (m_rcBound.IsEmpty)
+            {
+                m_rcBound = pObj.m_rcBound;
+            }
+            else
+            {
+                rcUnion = RectangleF.Union(m_rcBound, pObj.m_rcBound);
+                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
+                //m_rcBound.NormalizeRect();
+            }
+        }
+        public void AddObjects(CWhListContainer pList)
+        {
+            CWhVirtual pObj = null;
+            LinkedListNode<object> pos = pList.GetHeadPosition();
+            while (pos != null)
+            {
+                pObj = pList.GetNext(ref pos);
+                AddObject(pObj);
+            }
+        }
+
+        public bool RemoveObject(CWhVirtual pObj)
+        {
+            return RemoveObject(pObj, false);
+        }
+        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
+        //ORIGINAL LINE: int RemoveObject(CWhVirtual pObj, bool bFlagDepth = false)
+        public bool RemoveObject(CWhVirtual pObj, bool bFlagDepth = false)
+        {
+            bool bRet = false;
+            LinkedListNode<object> pos = m_pListContainer.Find(pObj);
+            if (pos != null)
+            {
+
+                bRet = true;
+                if (bFlagDepth)
+                {
+                    if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                    {
+                        ((CWhLayer)pObj).RemoveAll(bFlagDepth);
+                    }
+                }
+
+                m_pListContainer.Remove(pos.Value);
+
+                pObj.Release();
+
+                if (pObj.GetRefCount() == 0)
+                {
+                    pObj = null;
+                }
+
+                return bRet;
+            }
+
+
+            CWhVirtual pObjNext = null;
+            LinkedListNode<object> posNext = m_pListContainer.First;
+            while (posNext != null)
+            {
+                pObjNext = (CWhVirtual)posNext.Next.Value;
+
+                if (pObjNext.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                {
+                    if (((CWhLayer)pObjNext).RemoveObject(pObj, bFlagDepth))
+                    {
+                        bRet = true;
+                        return bRet;
+                    }
+                }
+            }
+
+
+            return bRet;
+        }
+        public void RemoveObjects(CWhListContainer pList)
+        {
+            RemoveObjects(pList, false);
+        }
+        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
+        //ORIGINAL LINE: void RemoveObjects(CWhListContainer pList, bool bFlagDepth = false)
+        public void RemoveObjects(CWhListContainer pList, bool bFlagDepth = false)
+        {
+            CWhVirtual pObj = null;
+            LinkedListNode<object> pos = pList.GetHeadPosition();
+            while (pos != null)
+            {
+                pObj = pList.GetNext(ref pos);
+                RemoveObject(pObj, bFlagDepth);
+            }
+
+            UpdateBoundRect();
+        }
+        public void RemoveAll()
+        {
+            RemoveAll(false);
+        }
+        public void RemoveAll(bool bFlagDepth)
+        {
+            CWhVirtual pObj = null;
+            LinkedListNode<object> pos = GetHeadPosition();
+            while (pos != null)
+            {
+                pObj = GetNext(ref pos);
+                RemoveObject(pObj, bFlagDepth);
+            }
+
+            m_rcBound = new RectangleF(0, 0, 0, 0);
+        }
+        public void DeleteObject(CWhVirtual pObj)
+        {
+            DeleteObject(pObj, false);
+        }
+        public void DeleteObject(CWhVirtual pObj, bool bFlagDepth = false)
+        {
+            pObj = null;
+        }
+        public void DeleteObjects(CWhListContainer pList)
+        {
+            DeleteObjects(pList, false);
+        }
+        public void DeleteObjects(CWhListContainer pList, bool bFlagDepth = false)
+        {
+            CWhVirtual pObj = null;
+            LinkedListNode<object> pos = pList.GetHeadPosition();
+            while (pos != null)
+            {
+                pObj = GetNext(ref pos);
+                DeleteObject(pObj);
+            }
+        }
+        public void DeleteAll()
+        {
+            DeleteAll(false);
+        }
+        public void DeleteAll(bool bFlagDepth)
+        {
+            CWhVirtual pObj = null;
+            LinkedListNode<object> pos = GetHeadPosition();
+            while (pos != null)
+            {
+                pObj = GetNext(ref pos);
+                DeleteObject(pObj);
+            }
+            m_rcBound = new RectangleF(0, 0, 0, 0);
+        }
+
+        public void GroupObj(CWhListContainer pListObj)
+        {
+
+            CWhGroup pGroup = new CWhGroup();
+            CWhVirtual pObj = null;
+            LinkedListNode<object> posObj = pListObj.GetHeadPosition();
+            while (posObj != null)
+            {
+                pObj = pListObj.GetNext(ref posObj);
+                pGroup.AddObject(pObj);
+
+                pObj.m_pParentList = pGroup.m_pListGroup;
+            }
+
+            AddObject(pGroup);
+
+
+        }
+        public void ApartAll()
+        {
+            CWhVirtual pObj = null;
+            LinkedListNode<object> posObj = GetHeadPosition();
+            while (posObj != null)
+            {
+                pObj = GetNext(ref posObj);
+                if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_GROUP)
+                {
+                    ((CWhGroup)pObj).Apart();
+                    RemoveObject(pObj);
+                }
+                else if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                {
+                    ((CWhLayer)pObj).m_pListLayer.ApartAll();
+                }
+            }
+        }
+
+        public void FindObjInRect(CWhListContainer pListDestination, RectangleF rcRect)
+        {
+            CWhVirtual pObjInRect = null;
+            LinkedListNode<object> posInRect = GetHeadPosition();
+            while (posInRect != null)
+            {
+                pObjInRect = GetNext(ref posInRect);
+                if (pObjInRect.IsObjInRect(rcRect))
+                {
+
+                    if (pObjInRect.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                    {
+                        ((CWhLayer)pObjInRect).m_pListLayer.FindObjInRect(pListDestination, rcRect);
+                        continue;
+                    }
+
+                    pListDestination.AddObject(pObjInRect);
+                }
+            }
+        }
+        public bool SelectObj(CWhListContainer pListSelect, PointF ptClick, int nLimit, ref Graphics pDC)
+        {
+            bool bRet = false;
+            CWhVirtual pObj = null;
+            LinkedListNode<object> pos = GetHeadPosition();
+            while (pos != null)
+            {
+                pObj = GetNext(ref pos);
+                if (!pObj.GetIsShow())
+                {
+                    continue;
+                }
+                if (pObj.IsSelected(ptClick, nLimit))
+                {
+
+                    if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                    {
+                        if (((CWhLayer)pObj).m_pListLayer.SelectObj(pListSelect, ptClick, nLimit, ref pDC))
+                        {
+                            bRet = true;
+                            return bRet;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+
+                    pObj.SetIsShowHandle(true);
+                    pObj.SetPenColor(Color.FromArgb(255, 0, 0));
+
+                    pListSelect.AddObject(pObj);
+
+                    bRet = true;
+                    return bRet;
+                }
+            }
+
+            return bRet;
+        }
+        public bool SelectObj(CWhListContainer pListSelect, RectangleF rcClick, int bFlagMode, ref Graphics pDC)
+        {
+            bool bRet = false;
+            CWhVirtual pObj = null;
+            LinkedListNode<object> pos = GetHeadPosition();
+            while (pos != null)
+            {
+                pObj = GetNext(ref pos);
+                if (pObj.IsSelected(rcClick, bFlagMode))
+                {
+
+                    if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                    {
+                        ((CWhLayer)pObj).m_pListLayer.SelectObj(pListSelect, rcClick, bFlagMode, ref pDC);
+                        continue;
+                    }
+
+                    pObj.SetIsShowHandle(true);
+                    pObj.SetPenColor(Color.FromArgb(255, 0, 0));
+
+                    pListSelect.AddObject(pObj);
+                }
+            }
+
+            return bRet;
+        }
+        public bool SnapPoint(ref PointF ptSnap, PointF ptInput, float fDiatance)
+        {
+            bool bRet = false;
+
+            CWhVirtual pObjSnap = null;
+            LinkedListNode<object> posSnap = GetHeadPosition();
+            while (posSnap != null)
+            {
+                pObjSnap = GetNext(ref posSnap);
+                if (pObjSnap.IsPointSnap(ref ptSnap, ptInput, fDiatance))
+                {
+
+                    if (pObjSnap.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                    {
+                        if (!((CWhLayer)pObjSnap).m_pListLayer.SnapPoint(ref ptSnap, ptInput, fDiatance))
+                        {
+                            continue;
+                        }
+                    }
+                    bRet = true;
+                    return bRet;
+                }
+            }
+
+            return bRet;
+        }
+        public bool SelectPoint(ref CWhVirtual pSnap, ref PointF ptSnap, ref int nSnap, PointF ptInput, float fDiatance)
+        {
+            bool bRet = false;
+            CWhVirtual pObjSnap = null;
+            LinkedListNode<object> posSnap = GetHeadPosition();
+            while (posSnap != null)
+            {
+                pObjSnap = GetNext(ref posSnap);
+                if (pObjSnap.IsPointSelect(ref ptSnap, ref nSnap, ptInput, fDiatance))
+                {
+
+                    if (pObjSnap.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                    {
+                        if (!((CWhLayer)pObjSnap).m_pListLayer.SelectPoint(ref pSnap, ref ptSnap, ref nSnap, ptInput, fDiatance))
+                        {
+                            continue;
+                        }
+                    }
+                    pSnap = pObjSnap;
+                    bRet = true;
+                    return bRet;
+                }
+            }
+
+            return bRet;
+        }
+
+        public bool SelectStartPoint(ref CWhVirtual pObj, ref PointF ptRet, PointF ptInput, float fDiatance)
+        {
+            bool bRet = false;
+            CWhVirtual pObjStart = null;
+            LinkedListNode<object> posStart = GetHeadPosition();
+            while (posStart != null)
+            {
+                pObjStart = GetNext(ref posStart);
+                if (pObjStart.IsStartPointSelect(ref ptRet, ptInput, fDiatance))
+                {
+
+                    if (pObjStart.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                    {
+                        if (!((CWhLayer)pObjStart).m_pListLayer.SelectStartPoint(ref pObj, ref ptRet, ptInput, fDiatance))
+                        {
+                            continue;
+                        }
+                    }
+                    pObj = pObjStart;
+                    bRet = true;
+                    return bRet;
+                }
+            }
+
+            return bRet;
+        }
+
+        public void CopyObjToList(CWhListContainer pList)
+        {
+            CopyObjToList(pList, false);
+        }
+        public void CopyObjToList(CWhListContainer pList, bool bFlagSingle = false)
+        {
+            CWhVirtual pObj = null;
+            LinkedListNode<object> pos = GetHeadPosition();
+            while (pos != null)
+            {
+                pObj = GetNext(ref pos);
+                if (bFlagSingle && pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_LAYER)
+                {
+                    CWhLayer pLayer = new CWhLayer();
+
+                    pLayer.m_lID = pObj.m_lID;
+                    pLayer.m_bIsShowHandle = pObj.m_bIsShowHandle;
+                    pLayer.m_strLayerName = ((CWhLayer)pObj).m_strLayerName;
+                    pLayer.m_nMachineCount = pObj.m_nMachineCount;
+                    pLayer.m_bMachineStyle = pObj.m_bMachineStyle;
+                    pLayer.m_nMachineFrequence = pObj.m_nMachineFrequence;
+
+                    ((CWhLayer)pObj).m_pListLayer.CopyObjToList(pLayer.m_pListLayer, bFlagSingle);
+                    pLayer.UpdateBoundRect();
+                    pList.AddObject(pLayer);
+                    continue;
+                }
+
+                pList.AddObject(pObj);
+            }
+        }
+
+        public void OptimizeObjOrder()
+        {
+
+            if (m_pListContainer.Equals(null))
+            {
+                return;
+            }
+
+            CWhListContainer pListDestinate = new CWhListContainer();
+            while (!m_pListContainer.Equals(null))
+            {
+                ExtractGroup(this, pListDestinate, 5);
+            }
+
+            OptimizeGroup(pListDestinate);
+
+            ArangeGroupOrder(pListDestinate);
+            pListDestinate.RemoveAll();
+            pListDestinate = null;
+        }
+        public bool SearchNearlyNextObj(CWhListContainer pListSource, PointF ptInput, float fDistanceGap, ref CWhVirtual pObjRet, bool bFlagType)
+        {
+            bool bRet = false;
+            PointF ptstart = new PointF(0, 0);
+            PointF ptEnd = new PointF(0, 0);
+            CWhVirtual pObjSearch = null;
+            LinkedListNode<object> posObjSearch = pListSource.GetHeadPosition();
+            while (posObjSearch != null)
+            {
+                pObjSearch = pListSource.GetNext(ref posObjSearch);
+                ptstart = pObjSearch.GetStartPoint();
+                ptEnd = pObjSearch.GetEndPoint();
+
+
+                if (CWhSysFunction.PointToPointDistance(ptInput, ptstart) < fDistanceGap)
+                {
+                    if (bFlagType)
+                    {
+                        pObjSearch.ExchangeStartToEnd();
+
+                    }
+                    pObjRet = pObjSearch;
+                    bRet = true;
+                    break;
+                }
+                else if (CWhSysFunction.PointToPointDistance(ptInput, ptEnd) < fDistanceGap)
+                {
+                    if (bFlagType)
+                    {
+                        pObjSearch.ExchangeStartToEnd();
+                    }
+                    pObjRet = pObjSearch;
+                    bRet = true;
+                    break;
+                }
+            }
+
+            return bRet;
+        }
+        public bool ExtractGroup(CWhListContainer pListSource, CWhListContainer pListDestinate, float fDistanceGap)
+        {
+            bool bRet = false;
+            PointF ptStartSearch = new PointF(0, 0);
+            PointF ptEndSearch = new PointF(0, 0);
+            CWhGroup pGroup = new CWhGroup();
+            pListDestinate.AddObject(pGroup);
+            CWhVirtual pObjOptimize = null;
+            CWhVirtual pObjRet = null;
+
+            pObjOptimize = pListSource.GetHead();
+            if (pObjOptimize != null)
+            {
+                pGroup.AddObject(pObjOptimize);
+                pListSource.RemoveObject(pObjOptimize);
+            }
+            if ((pObjOptimize.m_nObjType == DefineConstantsFdxf.WH_TYPE_LINE) || (pObjOptimize.m_nObjType == DefineConstantsFdxf.WH_TYPE_ARC))
+            {
+                ptStartSearch = pObjOptimize.GetStartPoint();
+                ptEndSearch = pObjOptimize.GetEndPoint();
+            }
+
+            while (SearchNearlyNextObj(pListSource, ptEndSearch, fDistanceGap, ref pObjRet, true))
+            {
+                pGroup.AddObject(pObjRet);
+                pListSource.RemoveObject(pObjRet);
+                ptEndSearch = pObjRet.GetEndPoint();
+            }
+
+            while (SearchNearlyNextObj(pListSource, ptStartSearch, fDistanceGap, ref pObjRet, false))
+            {
+                pGroup.m_pListGroup.AddHead(pObjRet);
+                pListSource.RemoveObject(pObjRet);
+                ptStartSearch = pObjRet.GetStartPoint();
+            }
+
+            return bRet;
+        }
+        public bool OptimizeGroup(CWhListContainer pList)
+        {
+            CWhListContainer pListGroup = new CWhListContainer();
+            RectangleF rcSearch = new RectangleF(0, 0, 0, 0);
+            CWhVirtual pObj = null;
+
+            pList.UpdateBoundRect();
+
+            pObj = pList.GetHead();
+            rcSearch = pObj.m_rcBound;
+            //rcSearch.NormalizeRect();
+            if (pObj != null)
+            {
+                pListGroup.AddObject(pObj);
+                pList.RemoveObject(pObj);
+            }
+
+            while (pList.IsEmpty() == 0)
+            {
+                SearchNearlyNextGroup(ref rcSearch, pList, pListGroup);
+            }
+
+            pList.AddObjects(pListGroup);
+            pListGroup.RemoveAll();
+            pListGroup = null;
+
+            return true;
+        }
+        public void SearchNearlyNextGroup(ref RectangleF rcInPut, CWhListContainer pList, CWhListContainer pListDestinate)
+        {
+            CWhVirtual pObjRet = null;
+            float fDistancePre = 0;
+            float fDistanceCur = 0;
+            int i = 0;
+            RectangleF rcCurrent = new RectangleF(0, 0, 0, 0);
+            CWhVirtual pObj = null;
+            LinkedListNode<object> posObj = pList.GetHeadPosition();
+            while (posObj != null)
+            {
+                pObj = pList.GetNext(ref posObj);
+                rcCurrent = pObj.m_rcBound;
+                PointF centerpoint1 = new PointF(rcInPut.Left+rcInPut.Width/2, rcInPut.Top-rcInPut.Height/2);
+                PointF centerpoint2 = new PointF(rcCurrent.Left + rcCurrent.Width / 2, rcCurrent.Top - rcCurrent.Height / 2);
+                fDistanceCur = CWhSysFunction.PointToPointDistance(centerpoint1, centerpoint2);
+                if (i == 0)
+                {
+                    fDistancePre = fDistanceCur;
+                    pObjRet = pObj;
+                    i++;
+                    continue;
+                }
+                if (fDistanceCur < fDistancePre)
+                {
+                    fDistancePre = fDistanceCur;
+                    pObjRet = pObj;
+                    continue;
+                }
+            }
+
+            rcInPut = pObjRet.m_rcBound;
+            //rcInPut.NormalizeRect();
+            pListDestinate.AddObject(pObjRet);
+            pList.RemoveObject(pObjRet);
+        }
+        public void ArangeGroupOrder(CWhListContainer pList)
+        {
+            CWhVirtual pObj = null;
+            LinkedListNode<object> posObj = pList.GetHeadPosition();
+            while (posObj != null)
+            {
+                pObj = pList.GetNext(ref posObj);
+                if (pObj.m_nObjType == DefineConstantsFdxf.WH_TYPE_GROUP)
+                {
+                    AddObjects(((CWhGroup)pObj).m_pListGroup);
+                }
+            }
+        }
+    }
     public class CWhPointD : CWhVirtual
     {
 
@@ -2941,7 +2949,7 @@ namespace TopwinLaser2016
             ptStart = TransRPtoLP(m_ptStart);
             ptEnd = TransRPtoLP(m_ptEnd);
 
-            RectangleF rcHandle = new RectangleF(0, 0, 2, 2);
+            RectangleF rcHandle = new RectangleF(0, 2, 2, 2);
             //pDC.DPtoLP(rcHandle);
             RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, ptStart.X, ptStart.Y);
             RectangleF rcEnd = new RectangleF(ptEnd.X, ptEnd.Y, ptEnd.X, ptEnd.Y);
@@ -2970,7 +2978,7 @@ namespace TopwinLaser2016
         {
             PointF ptStart = new PointF();
             ptStart = TransRPtoLP(m_ptStart);
-            RectangleF rcHandle = new RectangleF(0, 0, 3, 3);
+            RectangleF rcHandle = new RectangleF(0, 3, 3, 3);
             //pDC.DPtoLP(rcHandle);
             RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, ptStart.X, ptStart.Y);
             rcStart.Inflate(rcHandle.Width, rcHandle.Height);           
@@ -3256,16 +3264,17 @@ namespace TopwinLaser2016
         }
         public override void DrawHandle(ref Graphics pDC)
         {
-            RectangleF rcHandle = new RectangleF(0, 0, 2, 2);
+            RectangleF rcHandle = new RectangleF(0, 2, 2, 2);
             //pDC.DPtoLP(rcHandle);
             RectangleF rcBoundLog = TransRPtoLP(m_rcBound);
+            PointF centerpoint1 = new PointF(rcBoundLog.Left + rcBoundLog.Width / 2, rcBoundLog.Top - rcBoundLog.Height / 2);
             RectangleF[] rcHandPoint = new RectangleF[5];
 
             rcHandPoint[0]= new RectangleF(rcBoundLog.Left, rcBoundLog.Top, rcBoundLog.Left, rcBoundLog.Top);
             rcHandPoint[1]= new RectangleF(rcBoundLog.Right, rcBoundLog.Top, rcBoundLog.Right, rcBoundLog.Top);
             rcHandPoint[2]= new RectangleF(rcBoundLog.Right, rcBoundLog.Bottom, rcBoundLog.Right, rcBoundLog.Bottom);
             rcHandPoint[3]= new RectangleF(rcBoundLog.Left, rcBoundLog.Bottom, rcBoundLog.Left, rcBoundLog.Bottom);
-            rcHandPoint[4]= new RectangleF(rcBoundLog.CenterPoint().X, rcBoundLog.CenterPoint().Y, rcBoundLog.CenterPoint().X, rcBoundLog.CenterPoint().Y);
+            rcHandPoint[4]= new RectangleF(centerpoint1.X, centerpoint1.Y, centerpoint1.X, centerpoint1.Y);
             for (int i = 0; i < 5; i++)
             {
                 rcHandPoint[i].Inflate(rcHandle.Width, rcHandle.Height);
@@ -3592,7 +3601,7 @@ namespace TopwinLaser2016
             PointF ptEnd = new PointF();
             ptStart = TransRPtoLP(pObjFirst.GetStartPoint());
             ptEnd = TransRPtoLP(pObjEnd.GetEndPoint());
-            RectangleF rcHandle = new RectangleF(0, 0, 2, 2);
+            RectangleF rcHandle = new RectangleF(0, 2, 2, 2);
             //pDC.DPtoLP(rcHandle);
             RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, ptStart.X, ptStart.Y);
             RectangleF rcEnd = new RectangleF(ptEnd.X, ptEnd.Y, ptEnd.X, ptEnd.Y);
@@ -3601,11 +3610,11 @@ namespace TopwinLaser2016
             Pen pOldPen = null;
             Pen pen = new Pen(Color.FromArgb(0, 0, 255),rcHandle.Width*2);
             pOldPen = pen;
-            pDC.DrawRectangle(pen,rcEnd);
+            pDC.DrawRectangle(pen, rcEnd.X, rcEnd.Y, rcEnd.Width, rcEnd.Height);
             Pen pOldPen1 = null;
             Pen pen1 = new Pen(Color.FromArgb(255, 0, 0),rcHandle.Width*2);
             pOldPen1 = pen1;
-            pDC.DrawRectangle(pen1,rcStart);
+            pDC.DrawRectangle(pen, rcStart.X, rcStart.Y, rcStart.Width, rcStart.Height);
         }
         public override void DrawArrow(ref Graphics pDC)
         {
@@ -3981,7 +3990,7 @@ namespace TopwinLaser2016
                 }
                 else if (m_nEllipseType == 1)
                 {
-                    pDC.DrawRectangle(penEllipse, rcEllipse);
+                    pDC.DrawRectangle(penEllipse, rcEllipse.X, rcEllipse.Y, rcEllipse.Width, rcEllipse.Height);
                 }
             }
         }
@@ -3991,7 +4000,7 @@ namespace TopwinLaser2016
 
             rcBound = TransRPtoLP(m_rcBound);
 
-            RectangleF rcHandle = new RectangleF(0, 0, 2, 2);
+            RectangleF rcHandle = new RectangleF(0, 2, 2, 2);
             //pDC.DPtoLP(rcHandle);
             RectangleF rcBottom = new RectangleF((float)((rcBound.Left + rcBound.Right) / 2), rcBound.Bottom, (float)((rcBound.Left + rcBound.Right) / 2), rcBound.Bottom);
             RectangleF rcCenter = new RectangleF( new PointF(rcBound.Right-rcBound.Width/2, rcBound.Top - rcBound.Height / 2),new SizeF(0,0));
@@ -4001,12 +4010,12 @@ namespace TopwinLaser2016
             Pen pOldPen = null;
             Pen pen = new Pen(Color.FromArgb(0, 0, 255),rcHandle.Width*2);
             pOldPen = pen;
-            pDC.DrawRectangle(pen,rcCenter);
+            pDC.DrawRectangle(pen, rcCenter.X, rcCenter.Y, rcCenter.Width, rcCenter.Height);
             //设置画笔
             Pen pOldPen1 = null;
             Pen pen1 = new Pen(Color.FromArgb(255, 0, 0),rcHandle.Width*2);
             pOldPen1 = pen1;
-            pDC.DrawRectangle(pen,rcBottom);
+            pDC.DrawRectangle(pen, rcBottom.X, rcBottom.Y, rcBottom.Width, rcBottom.Height);
         }
         public override void DrawArrow(ref Graphics pDC)
         {
@@ -4026,7 +4035,7 @@ namespace TopwinLaser2016
 
             ptStart = TransRPtoLP(ptStart);
 
-            RectangleF rcHandle = new RectangleF(0, 0, 3, 3);
+            RectangleF rcHandle = new RectangleF(0, 3, 3, 3);
             //pDC.DPtoLP(rcHandle);
             RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, ptStart.X, ptStart.Y);
             rcStart.Inflate(rcHandle.Width, rcHandle.Height);
@@ -4035,7 +4044,7 @@ namespace TopwinLaser2016
             Pen pOldPen = null;
             Pen pen = new Pen(Color.FromArgb(255, 0, 0),0);
             pOldPen = pen;
-            pDC.DrawRectangle(pen,rcStart);
+            pDC.DrawRectangle(pen, rcStart.X, rcStart.Y, rcStart.Width, rcStart.Height);
         }
         public override void DrawNumber(ref Graphics pDC)
         {
@@ -4085,9 +4094,9 @@ namespace TopwinLaser2016
         public new bool IsSelected(PointF ptClick, int nLimit)
         {
             bool bRet = false;
-            int nDistance = 0;
+            float nDistance = 0;
 
-            RectangleF rcBound = new RectangleF(m_rcBound);
+            RectangleF rcBound = new RectangleF();
             rcBound.Inflate(nLimit, nLimit);
 
             if (rcBound.Contains(ptClick))
@@ -4100,7 +4109,8 @@ namespace TopwinLaser2016
 
                 if (m_nEllipseType == 0)
                 {
-                    nDistance = CWhSysFunction.PointToPointDistance(m_rcBound.CenterPoint(), ptClick);
+                    PointF centerpoint1 = new PointF(m_rcBound.Left + m_rcBound.Width / 2, m_rcBound.Top - m_rcBound.Height / 2);
+                    nDistance = CWhSysFunction.PointToPointDistance(centerpoint1, ptClick);
                     if ((nDistance <= m_nRadium + nLimit) && (nDistance) >= m_nRadium - nLimit)
                     {
                         bRet = true;
@@ -4110,10 +4120,10 @@ namespace TopwinLaser2016
                 else if (m_nEllipseType == 1)
                 {
 
-                    RectangleF rcOut = new RectangleF(m_rcBound);
-                    RectangleF rcIn = new RectangleF(m_rcBound);
+                    RectangleF rcOut = new RectangleF();
+                    RectangleF rcIn = new RectangleF();
                     rcOut.Inflate(nLimit, nLimit);
-                    rcIn.DeflateRect(nLimit, nLimit);
+                    rcIn.Inflate(-nLimit, -nLimit);
                     if ((rcOut.Contains(ptClick)) && (!rcIn.Contains(ptClick)))
                     {
                         bRet = true;
@@ -4127,7 +4137,6 @@ namespace TopwinLaser2016
         public new bool IsSelected(RectangleF rcClick, int bFlagMode)
         {
             bool bRet = false;
-            RectangleF rcBound = new RectangleF(m_rcBound);
             RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
 
             if (bFlagMode == -1)
@@ -4163,11 +4172,13 @@ namespace TopwinLaser2016
             }
 
             RectangleF[] rc = new RectangleF[5];
-            rc[0] = new RectangleF(m_rcBound.Left, ((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Left, ((m_rcBound.bottom + m_rcBound.Top) / 2));
-            rc[1] = new RectangleF(m_rcBound.Right, ((m_rcBound.bottom + m_rcBound.Top) / 2), m_rcBound.Right, ((m_rcBound.bottom + m_rcBound.Top) / 2));
-            rc[2] = new RectangleF(((m_rcBound.bottom + m_rcBound.Top) / 2), m_rcBound.Top, ((m_rcBound.bottom + m_rcBound.Top) / 2), m_rcBound.Top);
-            rc[3] = new RectangleF(((m_rcBound.bottom + m_rcBound.Top) / 2), m_rcBound.Bottom, ((m_rcBound.bottom + m_rcBound.Top) / 2), m_rcBound.Bottom);
-            rc[4] = new RectangleF(m_rcBound.CenterPoint(), m_rcBound.CenterPoint());
+
+            PointF centerpoint1 = new PointF(m_rcBound.Left + m_rcBound.Width / 2, m_rcBound.Top - m_rcBound.Height / 2);
+            rc[0] = new RectangleF(m_rcBound.Left, ((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Left, ((m_rcBound.Bottom + m_rcBound.Top) / 2));
+            rc[1] = new RectangleF(m_rcBound.Right, ((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Right, ((m_rcBound.Bottom + m_rcBound.Top) / 2));
+            rc[2] = new RectangleF(((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Top, ((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Top);
+            rc[3] = new RectangleF(((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Bottom, ((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Bottom);
+            rc[4] = new RectangleF(centerpoint1, new SizeF(0,0));
 
             for (int i = 0; i < 5; i++)
             {
@@ -4176,31 +4187,31 @@ namespace TopwinLaser2016
 
             if (rc[0].Contains(ptInput))
             {
-                ptSnap = new  PointF(m_rcBound.Left, ((m_rcBound.bottom + m_rcBound.Top) / 2));
+                ptSnap = new  PointF(m_rcBound.Left, ((m_rcBound.Bottom + m_rcBound.Top) / 2));
                 bRet = true;
                 return bRet;
             }
             else if (rc[1].Contains(ptInput))
             {
-                ptSnap = new  PointF(m_rcBound.Right, ((m_rcBound.bottom + m_rcBound.Top) / 2));
+                ptSnap = new  PointF(m_rcBound.Right, ((m_rcBound.Bottom + m_rcBound.Top) / 2));
                 bRet = true;
                 return bRet;
             }
             else if (rc[2].Contains(ptInput))
             {
-                ptSnap = new PointF(((m_rcBound.bottom + m_rcBound.Top) / 2), m_rcBound.Top);
+                ptSnap = new PointF(((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Top);
                 bRet = true;
                 return bRet;
             }
             else if (rc[3].Contains(ptInput))
             {
-                ptSnap = new PointF(((m_rcBound.bottom + m_rcBound.Top) / 2), m_rcBound.Bottom);
+                ptSnap = new PointF(((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Bottom);
                 bRet = true;
                 return bRet;
             }
             else if (rc[4].Contains(ptInput))
-            {
-                ptSnap = m_rcBound.CenterPoint();
+            {                
+                ptSnap = centerpoint1;
                 bRet = true;
                 return bRet;
             }
@@ -4247,14 +4258,572 @@ namespace TopwinLaser2016
         }
     }
     public class CWhArc : CWhVirtual
-    {   
+    {
         public RectangleF m_rcBoundDraw = new RectangleF();
         public PointF m_ptStart = new PointF();
         public PointF m_ptEnd = new PointF();
         public PointF m_ptCenter = new PointF();
-        public int m_nRadium;
+        public float m_nRadium;
         public int m_nDirection;
         public int m_nGoodOrBad;
+        public CWhArc(PointF ptCenter, PointF ptStart, PointF ptEnd, int nDirection)
+        {
+            m_nObjType = DefineConstantsFdxf.WH_TYPE_ARC;
+            m_ptStart = ptStart;
+            m_ptEnd = ptEnd;
+            m_ptCenter = ptCenter;
+            m_nRadium = CWhSysFunction.PointToPointDistance(m_ptCenter, m_ptStart);
+            m_rcBoundDraw =new RectangleF(ptCenter.X - m_nRadium, ptCenter.Y - m_nRadium, m_nRadium*2, m_nRadium*2);
+            //m_rcBoundDraw.NormalizeRect();
+            m_nDirection = nDirection;
+            SetObjDefaultProperty();
+            UpdateBoundRect();
+        }
+        public CWhArc(RectangleF rcBound, PointF ptStart, PointF ptEnd, int nDirection)
+        {
+            m_nObjType = DefineConstantsFdxf.WH_TYPE_ARC;
+
+            m_rcBoundDraw = rcBound;
+            //m_rcBoundDraw.NormalizeRect();
+            m_ptStart = ptStart;
+            m_ptEnd = ptEnd;
+            m_ptCenter =new PointF(m_rcBoundDraw.Left+ m_rcBoundDraw.Width/2, m_rcBoundDraw.Top - m_rcBoundDraw.Height / 2);
+            m_nRadium = (float)((m_rcBoundDraw.Width + m_rcBoundDraw.Height) / 4.0);
+            m_nDirection = nDirection;
+
+            SetObjDefaultProperty();
+
+            UpdateBoundRect();
+        }
+
+        public override void Serialize(ref BinaryFormatter ar)
+        {
+            CWhVirtual::Serialize(ar);
+
+            if (ar.IsStoring())
+            {
+                ar << m_ptStart << m_ptEnd << m_ptCenter << m_rcBoundDraw << m_nDirection << m_nGoodOrBad << m_nRadium;
+            }
+            else
+            {
+                ar >> m_ptStart >> m_ptEnd >> m_ptCenter >> m_rcBoundDraw >> m_nDirection >> m_nGoodOrBad >> m_nRadium;
+            }
+        }
+
+        public override void UpdateBoundRect()
+        {
+            SetRadium();
+            m_rcBoundDraw = RectangleF(m_ptCenter.X - m_nRadium, m_ptCenter.Y - m_nRadium, m_ptCenter.X + m_nRadium, m_ptCenter.Y + m_nRadium);
+
+            if (m_nDirection == 1)
+            {
+                m_rcBound = CalBoundRect(m_ptStart, m_ptEnd, m_ptCenter, m_nDirection, m_nRadium);
+            }
+            else if (m_nDirection == 2)
+            {
+                m_rcBound = CalBoundRect(m_ptEnd, m_ptStart, m_ptCenter, 1, m_nRadium);
+            }
+
+
+            //m_rcBound.NormalizeRect();
+        }
+
+        public override void Move(int nX, int nY)
+        {
+            PointF ptMove(nX, nY);
+            m_ptStart += ptMove;
+            m_ptEnd += ptMove;
+            m_ptCenter += ptMove;
+            UpdateBoundRect();
+        }
+
+        public override void Draw(ref Graphics pDC, RectangleF rcClient)
+        {
+            if (m_bIsShow)
+            {
+                RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
+                RectangleF rcClientReal = TransDPtoRP(rcClient,ref pDC);
+                rcInterSectRect = RectangleF.Intersect(m_rcBound, rcClientReal);
+                if (rcInterSectRect.IsEmpty)
+                {
+                    return;
+                }
+
+                PointF ptStart, ptEnd;
+                RectangleF rcBound;
+
+                ptStart = TransRPtoLP(m_ptStart);
+                ptEnd = TransRPtoLP(m_ptEnd);
+                rcBound = TransRPtoLP(m_rcBoundDraw);
+
+
+                Pen pOldPen = null;
+                Pen penArc;
+                penArc = new Pen (m_colPenColor,m_nPenWidth);
+                pOldPen = penArc;
+
+
+                //SetArcDirection(m_nDirection);
+                //pDC.MoveTo(ptStart);
+                pDC.DrawArc(penArc,rcBound, ptStart, ptEnd);                
+
+
+                if (m_bIsShowHandle)
+                {
+                    DrawHandle(ref pDC);
+                }
+            }
+        }
+
+        public override void DrawHandle(ref Graphics pDC)
+        {
+            PointF ptStart, ptEnd;
+            RectangleF rcBound;
+
+            ptStart = TransRPtoLP(m_ptStart);
+            ptEnd = TransRPtoLP(m_ptEnd);
+            rcBound = TransRPtoLP(m_rcBoundDraw);
+
+            RectangleF rcHandle = new RectangleF(0, 2, 2, 2);
+            //pDC->DPtoLP(rcHandle);
+            RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, 0, 0);
+            RectangleF rcEnd = new RectangleF(ptEnd.X, ptEnd.Y, 0, 0);
+            PointF CenterPoint1 = new PointF(rcBound.Left + rcBound.Width / 2, rcBound.Top - rcBound.Height / 2);
+            RectangleF rcCenter = new RectangleF(CenterPoint1.X, CenterPoint1.Y, 0, 0);
+            rcStart.Inflate(rcHandle.Width, rcHandle.Height);
+            rcEnd.Inflate(rcHandle.Width, rcHandle.Height);
+            Pen pOldPen = null;
+            Pen pen;
+            pen = new Pen(Color.FromArgb(0, 0, 255), rcHandle.Width * 2 );
+            pOldPen = pen;
+            pDC.DrawRectangle(pen, rcStart.Left, rcStart.Top, rcStart.Width, rcStart.Height);
+            pDC.DrawRectangle(pen, rcEnd.Left, rcEnd.Top, rcEnd.Width, rcEnd.Height);
+            Pen pOldPen1 = null;
+            Pen pen1;
+            pen1 = new Pen(Color.FromArgb(255, 0, 0), rcHandle.Width * 2);
+            pOldPen1 = pen1;
+            pDC.DrawRectangle(pen1, rcStart.Left, rcStart.Top, rcStart.Width, rcStart.Height);
+        }
+        public override void DrawArrow(ref Graphics pDC)
+        {
+
+        }
+
+        public override void DrawStartPoint(ref Graphics pDC)
+        {
+            PointF ptStart;
+
+            ptStart = TransRPtoLP(m_ptStart);
+
+            RectangleF rcHandle = new RectangleF(0, 3, 3, 3);
+            //pDC->DPtoLP(rcHandle);
+            RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, ptStart.X, ptStart.Y);
+            rcStart.Inflate(rcHandle.Width, rcHandle.Height);            
+
+            Pen pOldPen = null;
+            Pen pen;
+            pen = new Pen(Color.FromArgb(255, 0, 0),0);
+            pOldPen = pen;
+            pDC.DrawRectangle(pen, rcStart.Left, rcStart.Top,rcStart.Width,rcStart.Height);
+        }
+        public override void DrawNumber(ref Graphics pDC)
+        {
+            string strNum;
+            Font drawFont = new Font("Arial", 16);
+            SolidBrush drawBrush = new SolidBrush(Color.Black);
+            strNum = string.Format("%d", m_lID);
+            PointF pt = TransRPtoLP(m_ptStart);
+            pDC.DrawString(strNum, drawFont, drawBrush, pt.X, pt.Y);
+        }
+        public override bool IsValid()
+        {
+            if (m_nRadium)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+        }
+        public override void ExchangeStartToEnd()
+        {
+            PointF ptTem(0, 0);
+            ptTem = m_ptStart;
+            SetStartPoint(m_ptEnd);
+            SetEndPoint(ptTem);
+            SetDirection(m_nDirection == 1 ? 2 : 1);
+            UpdateBoundRect();
+        }
+
+        public override bool IsSelected(PointF ptClick, int nLimit)
+        {
+            bool bRet = false;
+            int nDistance = 0;
+
+            RectangleF rcBound = m_rcBound;
+            rcBound.Inflate(nLimit, nLimit);
+
+            if (rcBound.Contains(ptClick))
+            {
+                if (m_bIsFilled)
+                {
+                    bRet = true;
+                    return bRet;
+                }
+
+                nDistance = PointToPointDistance(m_ptCenter, ptClick);
+                if ((nDistance <= m_nRadium + nLimit) && (nDistance) >= m_nRadium - nLimit)
+                {
+                    bRet = true;
+                    return bRet;
+                }
+            }
+
+            return bRet;
+        }
+
+        public override bool IsSelected(RectangleF rcClick, int bFlagMode)
+        {
+            bool bRet = false;
+            RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
+            rcInterSectRect = RectangleF.Intersect(m_rcBound, rcClick);
+            if (bFlagMode == -1)
+            {
+                if (!rcInterSectRect.IsEmpty)
+                {
+                    bRet = true;
+                    return bRet;
+                }
+            }
+            else if (bFlagMode == 1)
+            {
+                if (rcInterSectRect == m_rcBound)
+                {
+                    bRet = true;
+                    return bRet;
+                }
+            }
+
+            return bRet;
+        }
+
+        public override bool IsPointSnap(ref PointF ptSnap, PointF ptInput, float fDiatance)
+        {
+            bool bRet = false;
+            RectangleF rcSnap = m_rcBound;
+            rcSnap.Inflate(fDiatance, fDiatance);
+
+
+            if (!rcSnap.Contains(ptInput))
+            {
+                return false;
+            }
+
+            RectangleF[] rc = new RectangleF[3];
+            rc[0] = new RectangleF(m_ptStart, new SizeF(0,0));
+            rc[1] = new RectangleF(m_ptEnd, new SizeF(0, 0));
+            rc[2] = new RectangleF(m_ptCenter, new SizeF(0, 0));
+
+            for (int i = 0; i < 3; i++)
+            {
+                rc[i].Inflate(fDiatance, fDiatance);
+            }
+
+            if (rc[0].Contains(ptInput))
+            {
+                ptSnap = m_ptStart;
+                bRet = true;
+                return bRet;
+            }
+            else if (rc[1].Contains(ptInput))
+            {
+                ptSnap = m_ptEnd;
+                bRet = true;
+                return bRet;
+            }
+            else if (rc[2].Contains(ptInput))
+            {
+                ptSnap = m_ptCenter;
+                bRet = true;
+                return bRet;
+            }
+
+
+
+            return bRet;
+        }
+
+        public int IsStartPointSelect(ref PointF ptRet, PointF ptInput, double fDiatance)
+        {
+            bool bRet(false);
+            RectangleF rcSnap = m_rcBound;
+            rcSnap.Inflate(2 * fDiatance, 2 * fDiatance);
+
+            if (!rcSnap.Contains(ptInput))
+            {
+                return false;
+            }
+
+            RectangleF rcStart;
+            rcStart = RectangleF(m_ptStart, m_ptStart);
+            rcStart.Inflate(fDiatance, fDiatance);
+            if (rcStart.Contains(ptInput))
+            {
+                ptRet = m_ptStart;
+                bRet = true;
+                return bRet;
+            }
+            return bRet;
+        }
+
+        public override bool IsObjValid()
+        {
+            if (!m_nRadium)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        public void SetRadium(float nRadium)
+        {
+            m_nRadium = nRadium;
+        }
+
+        public void SetRadium()
+        {
+            double fRadium, fLength;
+
+            fLength = ((m_ptCenter.X - m_ptStart.X) /DefineConstantsFdxf.TRANSRATIO) * ((m_ptCenter.X - m_ptStart.X) / DefineConstantsFdxf.TRANSRATIO)
+                      + ((m_ptCenter.Y - m_ptStart.Y) / DefineConstantsFdxf.TRANSRATIO) * ((m_ptCenter.Y - m_ptStart.Y) / DefineConstantsFdxf.TRANSRATIO);
+            fRadium = System.Math.Sqrt(fLength);
+            m_nRadium = (float)(fRadium * DefineConstantsFdxf.TRANSRATIO);
+        }
+
+        public float GetRadium()
+        {
+            return m_nRadium;
+        }
+
+        public int GetDirection()
+        {
+            return m_nDirection;
+        }
+
+        public void SetDirection(int nDirection)
+        {
+            m_nDirection = nDirection;
+
+        }
+
+        public void SetStartPoint(PointF ptStart)
+        {
+
+            m_ptStart = ptStart;
+        }
+
+        public void SetEndPoint(PointF ptEnd)
+        {
+                m_ptEnd = ptEnd;
+        }
+
+        public override PointF GetStartPoint()
+        {
+            return m_ptStart;
+        }
+
+        public override PointF GetEndPoint()
+        {
+            return m_ptEnd;
+        }
+
+        public void SetCenterPoint(PointF ptCenter)
+        {
+            m_ptCenter = ptCenter;
+        }
+
+        public PointF GetCenterPoint()
+        {
+            return m_ptCenter;
+        }
+
+        public int JustifyArcGoodOrBad()
+        {
+            return 1;
+        }
+
+        public int GetPointInArea(PointF ptInput, PointF ptCenter)
+        {
+            int nRet(0);
+            PointF ptRealtive = ptInput - ptCenter;
+            if (ptRealtive.X >= 0.0 && ptRealtive.Y > 0.0)
+            {
+                nRet = 1;
+            }
+            else if (ptRealtive.X < 0.0 && ptRealtive.Y >= 0.0)
+            {
+                nRet = 2;
+            }
+            else if (ptRealtive.X <= 0.0 && ptRealtive.Y < 0.0)
+            {
+                nRet = 3;
+            }
+            else if (ptRealtive.X > 0.0 && ptRealtive.Y <= 0.0)
+            {
+                nRet = 4;
+            }
+            return nRet;
+        }
+
+        public RectangleF CalBoundRect(PointF ptStart, PointF ptEnd, PointF ptCenter, int nDirection, int nRadium)
+        {
+            RectangleF rcBoundRet;
+            /////////////////////////////////////////////////////////
+            float nl, nr, nt, nb;
+            nl = ptCenter.X - nRadium;
+            nr = ptCenter.X + nRadium;
+            nt = ptCenter.Y - nRadium;
+            nb = ptCenter.Y + nRadium;
+            if (ptStart == ptEnd)
+            {
+                rcBoundRet =new RectangleF(ptCenter.X - nRadium, ptCenter.Y - nRadium, nRadium*2, nRadium * 2);
+                if (rcBoundRet.IsEmpty)
+                {
+                    rcBoundRet.Inflate(rcBoundRet.Width>0 ? 0 : 1, rcBoundRet.Height>0 ? 0 : 1);
+                }
+                //rcBoundRet.NormalizeRect();
+                return rcBoundRet;
+            }
+
+
+            int nAreaStart=0;
+            int nAreaEnd=0;
+            nAreaStart = GetPointInArea(ptStart, ptCenter);
+            nAreaEnd = GetPointInArea(ptEnd, ptCenter);
+            if (nDirection == 1)
+            {
+                if (nAreaStart == 1)
+                {
+                    if (nAreaEnd == 1)
+                    {
+                        if (ptStart.X > ptEnd.X)
+                        {
+                            rcBoundRet = new RectangleF(ptEnd.X, ptStart.Y, ptStart.X- ptEnd.X, ptStart.Y-ptEnd.Y);
+                        }
+                        else
+                        {
+                            rcBoundRet = new RectangleF(ptCenter.X - nRadium, ptCenter.Y - nRadium, nRadium * 2, -nRadium * 2);
+                        }
+                    }
+                    else if (nAreaEnd == 2)
+                    {
+                        rcBoundRet = new RectangleF(ptEnd.X, (ptStart.Y >= ptEnd.Y) ? ptEnd.Y : ptStart.Y, ptStart.X - ptEnd.X, (ptStart.Y >= ptEnd.Y) ? ptEnd.Y-nb : ptStart.Y-nb);
+                    }
+                    else if (nAreaEnd == 3)
+                    {
+                        rcBoundRet = new RectangleF(nl, ptEnd.Y, ptStart.X-nl, ptEnd.Y-nb);
+                    }
+                    else if (nAreaEnd == 4)
+                    {
+                        rcBoundRet = new RectangleF(nl, nt, (ptStart.X > ptEnd.X) ? ptStart.X-nl : ptEnd.X-nl,nt-nb);
+                    }
+                }
+                else if (nAreaStart == 2)
+                {
+                    if (nAreaEnd == 1)
+                    {
+                        rcBoundRet = new RectangleF(nl, nt, nr-nl, (ptStart.Y > ptEnd.Y) ? nt-ptStart.Y : nt-ptEnd.Y);
+                    }
+                    else if (nAreaEnd == 2)
+                    {
+                        if (ptStart.X > ptEnd.X)
+                        {
+                            rcBoundRet = new RectangleF(ptEnd.X, ptEnd.Y, ptStart.X-ptEnd.X, ptEnd.Y-ptStart.Y);
+                        }
+                        else
+                        {
+                            rcBoundRet = new RectangleF(ptCenter.X - nRadium, ptCenter.Y - nRadium, nRadium*2, -nRadium * 2);
+                        }
+                    }
+                    else if (nAreaEnd == 3)
+                    {
+                        rcBoundRet = new RectangleF(nl, ptEnd.Y, (ptStart.X > ptEnd.X) ? ptStart.X-nl : ptEnd.X-nl, ptEnd.Y-ptStart.Y);
+                    }
+                    else if (nAreaEnd == 4)
+                    {
+                        rcBoundRet = new RectangleF(nl, nt, ptEnd.X-nl, nt-ptStart.Y);
+                    }
+                }
+                else if (nAreaStart == 3)
+                {
+                    if (nAreaEnd == 1)
+                    {
+                        rcBoundRet = new RectangleF(ptStart.X, nt, nr-ptStart.X,nt-ptEnd.Y);
+                    }
+                    else if (nAreaEnd == 2)
+                    {
+                        rcBoundRet = new RectangleF((ptStart.X > ptEnd.X) ? ptEnd.X : ptStart.X, nt, (ptStart.X > ptEnd.X) ?nr- ptEnd.X :nr- ptStart.X, nt- nb);
+                    }
+                    else if (nAreaEnd == 3)
+                    {
+                        if (ptStart.X > ptEnd.X)
+                        {
+                            rcBoundRet = new RectangleF(ptCenter.X - nRadium, ptCenter.Y - nRadium, ptCenter.X + nRadium, ptCenter.Y + nRadium);
+                        }
+                        else
+                        {
+                            rcBoundRet.SetRect(ptStart.X, ptEnd.Y, ptEnd.X, ptStart.Y);
+                        }
+                    }
+                    else if (nAreaEnd == 4)
+                    {
+                        rcBoundRet.SetRect(ptStart.X, nt, ptEnd.X, (ptStart.Y > ptEnd.Y) ? ptStart.Y : ptEnd.Y);
+                    }
+                }
+                else if (nAreaStart == 4)
+                {
+                    if (nAreaEnd == 1)
+                    {
+                        rcBoundRet.SetRect((ptStart.X > ptEnd.X) ? ptEnd.X : ptStart.X, ptStart.Y, nr, ptEnd.Y);
+                    }
+                    else if (nAreaEnd == 2)
+                    {
+                        rcBoundRet.SetRect(ptEnd.X, ptStart.Y, nr, nb);
+                    }
+                    else if (nAreaEnd == 3)
+                    {
+                        rcBoundRet.SetRect(nl, (ptStart.Y > ptEnd.Y) ? ptEnd.Y : ptStart.Y, nr, nb);
+                    }
+                    else if (nAreaEnd == 4)
+                    {
+                        if (ptStart.X > ptEnd.X)
+                        {
+                            rcBoundRet.SetRect(ptCenter.X - nRadium, ptCenter.Y - nRadium, ptCenter.X + nRadium, ptCenter.Y + nRadium);
+                        }
+                        else
+                        {
+                            rcBoundRet.SetRect(ptStart, ptEnd);
+                        }
+                    }
+                }
+            }
+            else if (m_nDirection == 2)
+            {
+
+            }
+
+            return rcBoundRet;
+        }
+
+        public override void SetObjDefaultProperty()
+        {
+            m_colPenColor =Color.FromArgb(0, 0, 255);
+        }
+
     }
     public class CWhDxfClass
     {
@@ -4857,21 +5426,18 @@ namespace TopwinLaser2016
         {
             tagUpPara paraRtn = new tagUpPara();
             PointF ptUpPoint = new PointF();
-            float fDistance = (ptStart.Distance(ptEnd) / 2)  *fUpAngle;
+            float Distance1 = (float)System.Math.Sqrt((ptStart.X - ptEnd.X) * (ptStart.X - ptEnd.X) + (ptStart.Y - ptEnd.Y) * (ptStart.Y - ptEnd.Y));
+            float fDistance = (Distance1 / 2)  *fUpAngle;
             ptUpPoint = GetUpPoint(ref ptStart, ref ptEnd,ref fDistance);
-
-
             PointF[] ptTem = new PointF[3];
             PointF centerPoint = new PointF();
             ptTem[0] = new PointF(ptStart.X, ptStart.Y);
             ptTem[1] = new PointF(ptEnd.X, ptEnd.Y);
             ptTem[2] = new PointF(ptUpPoint.X, ptUpPoint.Y);
-
             centerPoint = CWhSysFunction.CalCenterPoint(ptTem[0], ptTem[1], ptTem[2]);
-
             paraRtn.centerPoint = new PointF(centerPoint.X, centerPoint.Y);
-            paraRtn.fRadium = ptEnd.Distance(paraRtn.centerPoint);
-
+            float Distance2 = (float)System.Math.Sqrt((ptEnd.X - paraRtn.centerPoint.X) * (ptEnd.X - paraRtn.centerPoint.X) + (ptEnd.Y - paraRtn.centerPoint.Y) * (ptEnd.Y - paraRtn.centerPoint.Y));
+            paraRtn.fRadium = Distance2;
             return paraRtn;
         }
         public PointF GetUpPoint(ref PointF ptStart, ref PointF ptEnd, ref float fDistance)
@@ -5073,7 +5639,8 @@ namespace TopwinLaser2016
             if (fUpAngle == 1)
             {
                 PointF centerPoint = new PointF((ptStart.X + ptEnd.X) / 2, (ptStart.Y + ptEnd.Y) / 2);
-                m_fRadium = (ptStart.Distance(ptEnd)) / 2.0;
+                float Distance1 = (float)System.Math.Sqrt((ptStart.X - ptEnd.X) * (ptStart.X - ptEnd.X) + (ptStart.Y - ptEnd.Y) * (ptStart.Y - ptEnd.Y));
+                m_fRadium = Distance1 / 2.0f;
                 RectangleF rcBound = new RectangleF(new PointF((centerPoint.X - m_fRadium), (centerPoint.Y + m_fRadium)), new SizeF(m_fRadium * 2, m_fRadium * 2));
                 m_pTemArc = new CWhArc(rcBound, ptStart, ptEnd, m_nDirection);
                 Debug.Assert(m_pTemArc.IsValid());
@@ -5463,7 +6030,6 @@ namespace TopwinLaser2016
         }
 
     }
-
     public class CWhDxfBlocks
     {
 
