@@ -110,7 +110,7 @@ namespace TopwinLaser2016
             ptRet[1].X = rcInput.Right;
             ptRet[1].Y = rcInput.Bottom;
             pDC.TransformPoints(System.Drawing.Drawing2D.CoordinateSpace.Page, System.Drawing.Drawing2D.CoordinateSpace.World, ptRet);
-            rcRet = new RectangleF(ptRet[0].X, ptRet[0].Y,ptRet[1].X, ptRet[1].Y);            
+            rcRet = new RectangleF(ptRet[0].X, ptRet[0].Y,ptRet[1].X-ptRet[0].X, ptRet[0].Y-ptRet[1].Y);            
             return rcRet;
         }
         public PointF TransDPtoRP(PointF ptInput, ref Graphics pDC)
@@ -132,7 +132,7 @@ namespace TopwinLaser2016
                
         public virtual void Serialize(ref BinaryFormatter ar)
         {                       
-            if(ar.Serialize)
+            if(ar)
             {
                 GetObjectData(m_nRefCount,ar);
             }
@@ -178,7 +178,7 @@ namespace TopwinLaser2016
         {
 
         }
-        public virtual void Move(int nX, int nY)
+        public virtual void Move(float nX, float nY)
         {
 
         }
@@ -204,7 +204,6 @@ namespace TopwinLaser2016
         {
             return true;
         }
-
         public virtual bool IsSelected(PointF ptClick, int nLimit)
         {
             return false;
@@ -213,7 +212,6 @@ namespace TopwinLaser2016
         {
             return false;
         }
-
         public virtual bool IsObjInRect(RectangleF rcClient)
         {
             return IsObjInRect(rcClient,false);
@@ -241,7 +239,6 @@ namespace TopwinLaser2016
         {
             return false;
         }
-
         public virtual void SetObjDefaultProperty()
         {
 
@@ -254,7 +251,6 @@ namespace TopwinLaser2016
         {
             m_colBrush = colRef;
         }
-
         public void SetObjType(int nObjType)
         {
             m_nObjType = nObjType;
@@ -378,7 +374,6 @@ namespace TopwinLaser2016
 
             return fDistance;
         }
-
         public static float PointToPointDistance(PointF pt1, PointF pt2)
         {
             float x1 = 0;
@@ -397,7 +392,6 @@ namespace TopwinLaser2016
 
             return fDistance;
         }
-
         public static PointF CalCenterPoint(PointF pt1, PointF pt2, PointF pt3)
         {
             PointF ptRet = new PointF(0, 0);
@@ -1279,7 +1273,6 @@ namespace TopwinLaser2016
 	public const int _AFX_PACKING = 4;
 #endif
         public const int VK_KANA = 0x15;
-        public const int null = 0;
         public const int _CRT_WARN = 0;
         public const int _CRT_ERROR = 1;
         public const int _CRT_ASSERT = 2;
@@ -1816,7 +1809,7 @@ namespace TopwinLaser2016
                 else
                 {
                     rcUnion = RectangleF.Union(m_rcBound, pObj.m_rcBound);
-                    m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
+                    m_rcBound = new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right - rcUnion.Left, rcUnion.Top - rcUnion.Bottom);
                     //m_rcBound.NormalizeRect();
                 }
             }
@@ -2017,7 +2010,7 @@ namespace TopwinLaser2016
             else
             {                
                 rcUnion = RectangleF.Union(m_rcBound, pObj.m_rcBound);
-                m_rcBound= new RectangleF(rcUnion.Left, m_rcBound.Top, m_rcBound.Right, m_rcBound.Bottom);
+                m_rcBound= new RectangleF(rcUnion.Left, m_rcBound.Top, m_rcBound.Right-rcUnion.Left, m_rcBound.Top-m_rcBound.Bottom);
                 //m_rcBound.NormalizeRect();
             }
         }
@@ -2042,7 +2035,7 @@ namespace TopwinLaser2016
             else
             {
                 rcUnion = RectangleF.Union(m_rcBound, pObjAfter.m_rcBound);
-                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
+                m_rcBound = new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right - rcUnion.Left, rcUnion.Top - rcUnion.Bottom);
                 //m_rcBound.NormalizeRect();
             }
         }
@@ -2067,7 +2060,7 @@ namespace TopwinLaser2016
             else
             {
                 rcUnion = RectangleF.Union(m_rcBound, pObjPre.m_rcBound);
-                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
+                m_rcBound = new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right - rcUnion.Left, rcUnion.Top - rcUnion.Bottom);
                 //m_rcBound.NormalizeRect();
             }
         }
@@ -2236,7 +2229,7 @@ namespace TopwinLaser2016
             else
             {
                 rcUnion = RectangleF.Union(m_rcBound, pObj.m_rcBound);
-                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
+                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right-rcUnion.Left, rcUnion.Top-rcUnion.Bottom);
                 //m_rcBound.NormalizeRect();
             }
         }
@@ -2260,7 +2253,7 @@ namespace TopwinLaser2016
             else
             {
                 rcUnion = RectangleF.Union(m_rcBound, pObj.m_rcBound);
-                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right, rcUnion.Bottom);
+                m_rcBound= new RectangleF(rcUnion.Left, rcUnion.Top, rcUnion.Right-rcUnion.Left, rcUnion.Top-rcUnion.Bottom);
                 //m_rcBound.NormalizeRect();
             }
         }
@@ -2905,7 +2898,7 @@ namespace TopwinLaser2016
                 ar >> m_ptStart >> m_ptEnd;
             }
         }
-        public new void UpdateBoundRect()
+        public override void UpdateBoundRect()
         {
             m_rcBound= new RectangleF(m_ptStart,new SizeF(m_ptEnd.X-m_ptStart.X, m_ptStart.X- m_ptEnd.Y));
             //m_rcBound.NormalizeRect();
@@ -2951,8 +2944,8 @@ namespace TopwinLaser2016
 
             RectangleF rcHandle = new RectangleF(0, 2, 2, 2);
             //pDC.DPtoLP(rcHandle);
-            RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, ptStart.X, ptStart.Y);
-            RectangleF rcEnd = new RectangleF(ptEnd.X, ptEnd.Y, ptEnd.X, ptEnd.Y);
+            RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, 0, 0);
+            RectangleF rcEnd = new RectangleF(ptEnd.X, ptEnd.Y, 0, 0);
 
             rcStart.Inflate(rcHandle.Width, rcHandle.Height);
             rcEnd.Inflate(rcHandle.Width, rcHandle.Height);
@@ -2980,14 +2973,14 @@ namespace TopwinLaser2016
             ptStart = TransRPtoLP(m_ptStart);
             RectangleF rcHandle = new RectangleF(0, 3, 3, 3);
             //pDC.DPtoLP(rcHandle);
-            RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, ptStart.X, ptStart.Y);
+            RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, 0, 0);
             rcStart.Inflate(rcHandle.Width, rcHandle.Height);           
             Pen pOldPen = null;
             Pen pen = new Pen(Color.FromArgb(255, 0, 0),0);
             pOldPen = pen;
             pDC.DrawRectangle(pen, rcStart.X, rcStart.Y, rcStart.Width, rcStart.Height);            
         }
-        public new bool IsValid()
+        public override bool IsValid()
         {
             if (m_ptStart == m_ptEnd)
             {
@@ -2995,7 +2988,7 @@ namespace TopwinLaser2016
             }
             return true;
         }
-        public new void Move(int nX, int nY)
+        public override void Move(float nX, float nY)
         {
             PointF ptMove = new PointF(nX, nY);
             m_ptStart.X = m_ptStart.X + ptMove.X;
@@ -3004,7 +2997,7 @@ namespace TopwinLaser2016
             m_ptEnd.Y = m_ptEnd.Y + ptMove.Y;
             UpdateBoundRect();
         }
-        public new void ExchangeStartToEnd()
+        public override void ExchangeStartToEnd()
         {
             PointF ptTem = new PointF(0, 0);
             ptTem = m_ptStart;
@@ -3022,7 +3015,7 @@ namespace TopwinLaser2016
             pDC.DrawString(strNum, drawFont, drawBrush, pt.X, pt.Y);
         }
 
-        public new bool IsSelected(PointF ptClick, int nLimit)
+        public override bool IsSelected(PointF ptClick, int nLimit)
         {
             bool bRet = false;
 
@@ -3042,7 +3035,7 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-        public new bool IsSelected(RectangleF rcClick, int bFlagMode)
+        public override bool IsSelected(RectangleF rcClick, int bFlagMode)
         {
             bool bRet = false;
 
@@ -3083,8 +3076,8 @@ namespace TopwinLaser2016
             }
 
             RectangleF[] rc = new RectangleF[3];
-            rc[0] = new RectangleF(m_ptStart, new SizeF(m_ptStart) );
-            rc[1] = new RectangleF(m_ptEnd, new SizeF(m_ptEnd));
+            rc[0] = new RectangleF(m_ptStart, new SizeF(0, 0) );
+            rc[1] = new RectangleF(m_ptEnd, new SizeF(0, 0));
             rc[2] = new RectangleF(new PointF((float)((m_ptStart.X + m_ptEnd.X) / 2.0), (float)((m_ptStart.Y + m_ptEnd.Y) / 2.0)), new SizeF(0,0));
 
             for (int i = 0; i < 3; i++)
@@ -3202,15 +3195,15 @@ namespace TopwinLaser2016
             m_ptEnd.Y = y;
             UpdateBoundRect();
         }
-        public new PointF GetStartPoint()
+        public override PointF GetStartPoint()
         {
             return m_ptStart;
         }
-        public new PointF GetEndPoint()
+        public override PointF GetEndPoint()
         {
             return m_ptEnd;
         }
-        public new bool IsObjValid()
+        public override bool IsObjValid()
         {
             if (m_ptStart == m_ptEnd)
             {
@@ -3222,7 +3215,7 @@ namespace TopwinLaser2016
             }
         }
 
-        public new void SetObjDefaultProperty()
+        public override void SetObjDefaultProperty()
         {
             m_colPenColor = Color.FromArgb(0, 0, 0);
         }
@@ -3242,12 +3235,12 @@ namespace TopwinLaser2016
                 ar << m_strLayerName;
             }
         }
-        public new void UpdateBoundRect()
+        public override void UpdateBoundRect()
         {
             m_pListLayer.UpdateBoundRect();
             m_rcBound = m_pListLayer.m_rcBound;
         }
-        public new void Move(int nX, int nY)
+        public override void Move(float nX, float nY)
         {
             CWhVirtual pObj = null;
             if (m_pListLayer.IsEmpty() == 0)
@@ -3270,11 +3263,11 @@ namespace TopwinLaser2016
             PointF centerpoint1 = new PointF(rcBoundLog.Left + rcBoundLog.Width / 2, rcBoundLog.Top - rcBoundLog.Height / 2);
             RectangleF[] rcHandPoint = new RectangleF[5];
 
-            rcHandPoint[0]= new RectangleF(rcBoundLog.Left, rcBoundLog.Top, rcBoundLog.Left, rcBoundLog.Top);
-            rcHandPoint[1]= new RectangleF(rcBoundLog.Right, rcBoundLog.Top, rcBoundLog.Right, rcBoundLog.Top);
-            rcHandPoint[2]= new RectangleF(rcBoundLog.Right, rcBoundLog.Bottom, rcBoundLog.Right, rcBoundLog.Bottom);
-            rcHandPoint[3]= new RectangleF(rcBoundLog.Left, rcBoundLog.Bottom, rcBoundLog.Left, rcBoundLog.Bottom);
-            rcHandPoint[4]= new RectangleF(centerpoint1.X, centerpoint1.Y, centerpoint1.X, centerpoint1.Y);
+            rcHandPoint[0]= new RectangleF(rcBoundLog.Left, rcBoundLog.Top, 0, 0);
+            rcHandPoint[1]= new RectangleF(rcBoundLog.Right, rcBoundLog.Top, 0, 0);
+            rcHandPoint[2]= new RectangleF(rcBoundLog.Right, rcBoundLog.Bottom, 0, 0);
+            rcHandPoint[3]= new RectangleF(rcBoundLog.Left, rcBoundLog.Bottom, 0, 0);
+            rcHandPoint[4]= new RectangleF(centerpoint1.X, centerpoint1.Y, 0, 0);
             for (int i = 0; i < 5; i++)
             {
                 rcHandPoint[i].Inflate(rcHandle.Width, rcHandle.Height);
@@ -3340,14 +3333,14 @@ namespace TopwinLaser2016
                 pObj.DrawNumber(ref pDC);
             }
         }
-        public new PointF GetStartPoint()
+        public override PointF GetStartPoint()
         {
             PointF ptRet = new PointF(0, 0);
             CWhVirtual pObj = m_pListLayer.GetHead();
             ptRet = pObj.GetStartPoint();
             return ptRet;
         }
-        public new PointF GetEndPoint()
+        public override PointF GetEndPoint()
         {
             PointF ptRet = new PointF(0, 0);
             CWhVirtual pObj = m_pListLayer.GetTail();
@@ -3355,7 +3348,7 @@ namespace TopwinLaser2016
             return ptRet;
         }
 
-        public new void SetPenColor(Color colRef)
+        public override void SetPenColor(Color colRef)
         {
             CWhVirtual pObj = null;
             LinkedListNode<object> posObj = m_pListLayer.GetHeadPosition();
@@ -3365,7 +3358,7 @@ namespace TopwinLaser2016
                 pObj.SetPenColor(colRef);
             }
         }
-        public new void SetObjDefaultProperty()
+        public override void SetObjDefaultProperty()
         {
             CWhVirtual pObj = null;
             LinkedListNode<object> posObj = m_pListLayer.GetHeadPosition();
@@ -3375,7 +3368,7 @@ namespace TopwinLaser2016
                 pObj.SetObjDefaultProperty();
             }
         }
-        public new void SetMachineCount(int nMachineCount)
+        public override void SetMachineCount(int nMachineCount)
         {
 
             m_nMachineCount = nMachineCount;
@@ -3388,7 +3381,7 @@ namespace TopwinLaser2016
                 pObj.SetMachineCount(nMachineCount);
             }
         }
-        public new void SetMachineFrequence(int nMachineFrequence)
+        public override void SetMachineFrequence(int nMachineFrequence)
         {
 
             m_nMachineFrequence = nMachineFrequence;
@@ -3415,7 +3408,7 @@ namespace TopwinLaser2016
             }
         }
 
-        public new bool IsSelected(PointF ptClick, int nLimit)
+        public override bool IsSelected(PointF ptClick, int nLimit)
         {
             bool bRet = false;
 
@@ -3432,7 +3425,7 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-        public new bool IsSelected(RectangleF rcClick, int bFlagMode)
+        public override bool IsSelected(RectangleF rcClick, int bFlagMode)
         {
             bool bRet = false;
             if (m_pListLayer.IsEmpty() != 0)
@@ -3446,7 +3439,7 @@ namespace TopwinLaser2016
             }
             return bRet;
         }
-        public new bool IsPointSnap(ref PointF ptSnap, PointF ptInput, float fDiatance)
+        public override bool IsPointSnap(ref PointF ptSnap, PointF ptInput, float fDiatance)
         {
             bool bRet = false;
             if (m_rcBound.Contains(ptInput))
@@ -3456,7 +3449,7 @@ namespace TopwinLaser2016
             }
             return bRet;
         }
-        public new bool IsStartPointSelect(ref PointF ptRet, PointF ptInput, float fDiatance)
+        public override bool IsStartPointSelect(ref PointF ptRet, PointF ptInput, float fDiatance)
         {
             bool bRet = false;
             return bRet;
@@ -3560,7 +3553,7 @@ namespace TopwinLaser2016
     public class CWhGroup : CWhVirtual
     {
         
-        public new void Serialize(ref BinaryFormatter ar)
+        public override void Serialize(ref BinaryFormatter ar)
         {
             CWhVirtual.Serialize(ref ar);
             m_pListGroup.Serialize(ref ar);
@@ -3573,12 +3566,12 @@ namespace TopwinLaser2016
                 ar >> m_rcGridBound;
             }
         }
-        public new void UpdateBoundRect()
+        public override void UpdateBoundRect()
         {
             m_pListGroup.UpdateBoundRect();
             m_rcBound = m_pListGroup.m_rcBound;
         }
-        public new void Move(int nX, int nY)
+        public override void Move(float nX, float nY)
         {
             CWhVirtual pObj = null;
             if (m_pListGroup.IsEmpty() == 0)
@@ -3603,8 +3596,8 @@ namespace TopwinLaser2016
             ptEnd = TransRPtoLP(pObjEnd.GetEndPoint());
             RectangleF rcHandle = new RectangleF(0, 2, 2, 2);
             //pDC.DPtoLP(rcHandle);
-            RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, ptStart.X, ptStart.Y);
-            RectangleF rcEnd = new RectangleF(ptEnd.X, ptEnd.Y, ptEnd.X, ptEnd.Y);
+            RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, 0, 0);
+            RectangleF rcEnd = new RectangleF(ptEnd.X, ptEnd.Y, 0, 0);
             rcStart.Inflate(rcHandle.Width, rcHandle.Height);
             rcEnd.Inflate(rcHandle.Width, rcHandle.Height);
             Pen pOldPen = null;
@@ -3661,7 +3654,7 @@ namespace TopwinLaser2016
                 }
             }
         }
-        public new void ExchangeStartToEnd()
+        public override void ExchangeStartToEnd()
         {
 
             CWhVirtual pObj = null;
@@ -3674,14 +3667,14 @@ namespace TopwinLaser2016
 
             m_pListGroup.AntiList();
         }
-        public new PointF GetStartPoint()
+        public override PointF GetStartPoint()
         {
             PointF ptRet = new PointF(0, 0);
             CWhVirtual pObj = m_pListGroup.GetHead();
             ptRet = pObj.GetStartPoint();
             return ptRet;
         }
-        public new PointF GetEndPoint()
+        public override PointF GetEndPoint()
         {
             PointF ptRet = new PointF(0, 0);
             CWhVirtual pObj = m_pListGroup.GetTail();
@@ -3689,7 +3682,7 @@ namespace TopwinLaser2016
             return ptRet;
         }
 
-        public new void SetPenColor(Color colRef)
+        public override void SetPenColor(Color colRef)
         {
             CWhVirtual pObj = null;
             LinkedListNode<object> posObj = m_pListGroup.GetHeadPosition();
@@ -3699,7 +3692,7 @@ namespace TopwinLaser2016
                 pObj.SetPenColor(colRef);
             }
         }
-        public new void SetObjDefaultProperty()
+        public override void SetObjDefaultProperty()
         {
             CWhVirtual pObj = null;
             LinkedListNode<object> posObj = m_pListGroup.GetHeadPosition();
@@ -3709,7 +3702,7 @@ namespace TopwinLaser2016
                 pObj.SetObjDefaultProperty();
             }
         }
-        public new void SetMachineCount(int nMachineCount)
+        public override void SetMachineCount(int nMachineCount)
         {
 
             m_nMachineCount = nMachineCount;
@@ -3722,7 +3715,7 @@ namespace TopwinLaser2016
                 pObj.SetMachineCount(nMachineCount);
             }
         }
-        public new void SetMachineFrequence(int nMachineFrequence)
+        public override void SetMachineFrequence(int nMachineFrequence)
         {
 
             m_nMachineFrequence = nMachineFrequence;
@@ -3735,7 +3728,7 @@ namespace TopwinLaser2016
                 pObj.SetMachineCount(nMachineFrequence);
             }
         }
-        public new void SetMachineStyle(bool bMachineStyle)
+        public override void SetMachineStyle(bool bMachineStyle)
         {
 
             m_bMachineStyle = bMachineStyle;
@@ -3749,7 +3742,7 @@ namespace TopwinLaser2016
             }
         }
 
-        public new bool IsSelected(PointF ptClick, int nLimit)
+        public override bool IsSelected(PointF ptClick, int nLimit)
         {
             bool bRet = false;
             if (m_pListGroup.IsEmpty() == 0)
@@ -3778,7 +3771,7 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-        public new bool IsSelected(RectangleF rcClick, int bFlagMode)
+        public override bool IsSelected(RectangleF rcClick, int bFlagMode)
         {
             bool bRet = false;
             RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
@@ -3964,7 +3957,7 @@ namespace TopwinLaser2016
                 ar >> m_nEllipseType >> m_nRadium;
             }
         }
-        public new void UpdateBoundRect()
+        public override void UpdateBoundRect()
         {
             //m_rcBound.NormalizeRect();
             m_nRadium = ((m_rcBound.Width + m_rcBound.Height) / 4);
@@ -4002,7 +3995,7 @@ namespace TopwinLaser2016
 
             RectangleF rcHandle = new RectangleF(0, 2, 2, 2);
             //pDC.DPtoLP(rcHandle);
-            RectangleF rcBottom = new RectangleF((float)((rcBound.Left + rcBound.Right) / 2), rcBound.Bottom, (float)((rcBound.Left + rcBound.Right) / 2), rcBound.Bottom);
+            RectangleF rcBottom = new RectangleF((float)((rcBound.Left + rcBound.Right) / 2), rcBound.Bottom, 0, 0);
             RectangleF rcCenter = new RectangleF( new PointF(rcBound.Right-rcBound.Width/2, rcBound.Top - rcBound.Height / 2),new SizeF(0,0));
             rcBottom.Inflate(rcHandle.Width, rcHandle.Height);
             rcCenter.Inflate(rcHandle.Width, rcHandle.Height);
@@ -4037,7 +4030,7 @@ namespace TopwinLaser2016
 
             RectangleF rcHandle = new RectangleF(0, 3, 3, 3);
             //pDC.DPtoLP(rcHandle);
-            RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, ptStart.X, ptStart.Y);
+            RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, 0, 0);
             rcStart.Inflate(rcHandle.Width, rcHandle.Height);
 
             //设置画笔
@@ -4067,11 +4060,11 @@ namespace TopwinLaser2016
             PointF pt = TransRPtoLP(ptStart);
             pDC.DrawString(strNum, drawFont, drawBrush, pt.X, pt.Y);
         }
-        public new bool IsValid()
+        public override bool IsValid()
         {
             return true;
         }
-        public new void Move(int nX, int nY)
+        public override void Move(float nX, float nY)
         {
             PointF ptMove = new PointF(nX, nY);
             m_rcBound.Offset(ptMove);
@@ -4091,7 +4084,7 @@ namespace TopwinLaser2016
             return m_nEllipseType;
         }
 
-        public new bool IsSelected(PointF ptClick, int nLimit)
+        public override bool IsSelected(PointF ptClick, int nLimit)
         {
             bool bRet = false;
             float nDistance = 0;
@@ -4134,7 +4127,7 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-        public new bool IsSelected(RectangleF rcClick, int bFlagMode)
+        public override bool IsSelected(RectangleF rcClick, int bFlagMode)
         {
             bool bRet = false;
             RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
@@ -4174,10 +4167,10 @@ namespace TopwinLaser2016
             RectangleF[] rc = new RectangleF[5];
 
             PointF centerpoint1 = new PointF(m_rcBound.Left + m_rcBound.Width / 2, m_rcBound.Top - m_rcBound.Height / 2);
-            rc[0] = new RectangleF(m_rcBound.Left, ((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Left, ((m_rcBound.Bottom + m_rcBound.Top) / 2));
-            rc[1] = new RectangleF(m_rcBound.Right, ((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Right, ((m_rcBound.Bottom + m_rcBound.Top) / 2));
-            rc[2] = new RectangleF(((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Top, ((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Top);
-            rc[3] = new RectangleF(((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Bottom, ((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Bottom);
+            rc[0] = new RectangleF(m_rcBound.Left, ((m_rcBound.Bottom + m_rcBound.Top) / 2), 0, 0);
+            rc[1] = new RectangleF(m_rcBound.Right, ((m_rcBound.Bottom + m_rcBound.Top) / 2), 0, 0);
+            rc[2] = new RectangleF(((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Top, 0, 0);
+            rc[3] = new RectangleF(((m_rcBound.Bottom + m_rcBound.Top) / 2), m_rcBound.Bottom, 0, 0);
             rc[4] = new RectangleF(centerpoint1, new SizeF(0,0));
 
             for (int i = 0; i < 5; i++)
@@ -4248,7 +4241,7 @@ namespace TopwinLaser2016
             return bRet;
         }
 
-        public new void SetObjDefaultProperty()
+        public override void SetObjDefaultProperty()
         {
             m_colPenColor = Color.FromArgb(0, 255, 0);
             if (!m_bFlagIsRegister)
@@ -4273,7 +4266,7 @@ namespace TopwinLaser2016
             m_ptEnd = ptEnd;
             m_ptCenter = ptCenter;
             m_nRadium = CWhSysFunction.PointToPointDistance(m_ptCenter, m_ptStart);
-            m_rcBoundDraw =new RectangleF(ptCenter.X - m_nRadium, ptCenter.Y - m_nRadium, m_nRadium*2, m_nRadium*2);
+            m_rcBoundDraw =new RectangleF(ptCenter.X - m_nRadium, ptCenter.Y - m_nRadium, m_nRadium*2, -m_nRadium*2);
             //m_rcBoundDraw.NormalizeRect();
             m_nDirection = nDirection;
             SetObjDefaultProperty();
@@ -4313,7 +4306,7 @@ namespace TopwinLaser2016
         public override void UpdateBoundRect()
         {
             SetRadium();
-            m_rcBoundDraw = RectangleF(m_ptCenter.X - m_nRadium, m_ptCenter.Y - m_nRadium, m_ptCenter.X + m_nRadium, m_ptCenter.Y + m_nRadium);
+            m_rcBoundDraw = new RectangleF(m_ptCenter.X - m_nRadium, m_ptCenter.Y - m_nRadium, m_nRadium*2, -m_nRadium*2);
 
             if (m_nDirection == 1)
             {
@@ -4328,12 +4321,15 @@ namespace TopwinLaser2016
             //m_rcBound.NormalizeRect();
         }
 
-        public override void Move(int nX, int nY)
+        public override void Move(float nX, float nY)
         {
-            PointF ptMove(nX, nY);
-            m_ptStart += ptMove;
-            m_ptEnd += ptMove;
-            m_ptCenter += ptMove;
+            PointF ptMove = new PointF(nX, nY);
+            m_ptStart.X += ptMove.X;
+            m_ptStart.Y += ptMove.Y;
+            m_ptEnd.X += ptMove.X;
+            m_ptEnd.Y += ptMove.Y;
+            m_ptCenter.X += ptMove.X;
+            m_ptCenter.Y += ptMove.Y;
             UpdateBoundRect();
         }
 
@@ -4417,7 +4413,7 @@ namespace TopwinLaser2016
 
             RectangleF rcHandle = new RectangleF(0, 3, 3, 3);
             //pDC->DPtoLP(rcHandle);
-            RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, ptStart.X, ptStart.Y);
+            RectangleF rcStart = new RectangleF(ptStart.X, ptStart.Y, 0, 0);
             rcStart.Inflate(rcHandle.Width, rcHandle.Height);            
 
             Pen pOldPen = null;
@@ -4437,7 +4433,7 @@ namespace TopwinLaser2016
         }
         public override bool IsValid()
         {
-            if (m_nRadium)
+            if (m_nRadium!=0)
                 {
                     return true;
                 }
@@ -4448,7 +4444,7 @@ namespace TopwinLaser2016
         }
         public override void ExchangeStartToEnd()
         {
-            PointF ptTem(0, 0);
+            PointF ptTem = new PointF(0, 0);
             ptTem = m_ptStart;
             SetStartPoint(m_ptEnd);
             SetEndPoint(ptTem);
@@ -4459,7 +4455,7 @@ namespace TopwinLaser2016
         public override bool IsSelected(PointF ptClick, int nLimit)
         {
             bool bRet = false;
-            int nDistance = 0;
+            float nDistance = 0;
 
             RectangleF rcBound = m_rcBound;
             rcBound.Inflate(nLimit, nLimit);
@@ -4472,7 +4468,7 @@ namespace TopwinLaser2016
                     return bRet;
                 }
 
-                nDistance = PointToPointDistance(m_ptCenter, ptClick);
+                nDistance = CWhSysFunction.PointToPointDistance(m_ptCenter, ptClick);
                 if ((nDistance <= m_nRadium + nLimit) && (nDistance) >= m_nRadium - nLimit)
                 {
                     bRet = true;
@@ -4554,9 +4550,9 @@ namespace TopwinLaser2016
             return bRet;
         }
 
-        public int IsStartPointSelect(ref PointF ptRet, PointF ptInput, double fDiatance)
+        public override bool IsStartPointSelect(ref PointF ptRet, PointF ptInput, float fDiatance)
         {
-            bool bRet(false);
+            bool bRet = false;
             RectangleF rcSnap = m_rcBound;
             rcSnap.Inflate(2 * fDiatance, 2 * fDiatance);
 
@@ -4566,7 +4562,7 @@ namespace TopwinLaser2016
             }
 
             RectangleF rcStart;
-            rcStart = RectangleF(m_ptStart, m_ptStart);
+            rcStart =new RectangleF(m_ptStart,new SizeF(0,0));
             rcStart.Inflate(fDiatance, fDiatance);
             if (rcStart.Contains(ptInput))
             {
@@ -4579,7 +4575,7 @@ namespace TopwinLaser2016
 
         public override bool IsObjValid()
         {
-            if (!m_nRadium)
+            if (m_nRadium==0)
             {
                 return false;
             }
@@ -4658,8 +4654,8 @@ namespace TopwinLaser2016
 
         public int GetPointInArea(PointF ptInput, PointF ptCenter)
         {
-            int nRet(0);
-            PointF ptRealtive = ptInput - ptCenter;
+            int nRet = 0;
+            PointF ptRealtive =new PointF(ptInput.X - ptCenter.X, ptInput.Y - ptCenter.Y);
             if (ptRealtive.X >= 0.0 && ptRealtive.Y > 0.0)
             {
                 nRet = 1;
@@ -4679,9 +4675,9 @@ namespace TopwinLaser2016
             return nRet;
         }
 
-        public RectangleF CalBoundRect(PointF ptStart, PointF ptEnd, PointF ptCenter, int nDirection, int nRadium)
+        public RectangleF CalBoundRect(PointF ptStart, PointF ptEnd, PointF ptCenter, int nDirection, float nRadium)
         {
-            RectangleF rcBoundRet;
+            RectangleF rcBoundRet = new RectangleF();
             /////////////////////////////////////////////////////////
             float nl, nr, nt, nb;
             nl = ptCenter.X - nRadium;
@@ -4690,7 +4686,7 @@ namespace TopwinLaser2016
             nb = ptCenter.Y + nRadium;
             if (ptStart == ptEnd)
             {
-                rcBoundRet =new RectangleF(ptCenter.X - nRadium, ptCenter.Y - nRadium, nRadium*2, nRadium * 2);
+                rcBoundRet =new RectangleF(ptCenter.X - nRadium, ptCenter.Y - nRadium, nRadium*2, -nRadium * 2);
                 if (rcBoundRet.IsEmpty)
                 {
                     rcBoundRet.Inflate(rcBoundRet.Width>0 ? 0 : 1, rcBoundRet.Height>0 ? 0 : 1);
@@ -4776,37 +4772,37 @@ namespace TopwinLaser2016
                         }
                         else
                         {
-                            rcBoundRet.SetRect(ptStart.X, ptEnd.Y, ptEnd.X, ptStart.Y);
+                            rcBoundRet = new RectangleF(ptStart.X, ptEnd.Y, ptEnd.X-ptStart.X,ptEnd.Y- ptStart.Y);
                         }
                     }
                     else if (nAreaEnd == 4)
                     {
-                        rcBoundRet.SetRect(ptStart.X, nt, ptEnd.X, (ptStart.Y > ptEnd.Y) ? ptStart.Y : ptEnd.Y);
+                        rcBoundRet = new RectangleF(ptStart.X, nt, ptEnd.X-ptStart.X, (ptStart.Y > ptEnd.Y) ? nt-ptStart.Y : nt-ptEnd.Y);
                     }
                 }
                 else if (nAreaStart == 4)
                 {
                     if (nAreaEnd == 1)
                     {
-                        rcBoundRet.SetRect((ptStart.X > ptEnd.X) ? ptEnd.X : ptStart.X, ptStart.Y, nr, ptEnd.Y);
+                        rcBoundRet = new RectangleF((ptStart.X > ptEnd.X) ? ptEnd.X : ptStart.X, ptStart.Y, (ptStart.X > ptEnd.X) ? nr-ptEnd.X : nr-ptStart.X, ptStart.Y-ptEnd.Y);
                     }
                     else if (nAreaEnd == 2)
                     {
-                        rcBoundRet.SetRect(ptEnd.X, ptStart.Y, nr, nb);
+                        rcBoundRet = new RectangleF(ptEnd.X, ptStart.Y, nr-ptEnd.X, ptStart.Y-nb);
                     }
                     else if (nAreaEnd == 3)
                     {
-                        rcBoundRet.SetRect(nl, (ptStart.Y > ptEnd.Y) ? ptEnd.Y : ptStart.Y, nr, nb);
+                        rcBoundRet = new RectangleF(nl, (ptStart.Y > ptEnd.Y) ? ptEnd.Y : ptStart.Y, nr-nl, (ptStart.Y > ptEnd.Y) ? ptEnd.Y-nb : ptStart.Y-nb);
                     }
                     else if (nAreaEnd == 4)
                     {
                         if (ptStart.X > ptEnd.X)
                         {
-                            rcBoundRet.SetRect(ptCenter.X - nRadium, ptCenter.Y - nRadium, ptCenter.X + nRadium, ptCenter.Y + nRadium);
+                            rcBoundRet = new RectangleF(ptCenter.X - nRadium, ptCenter.Y - nRadium, nRadium*2,  -nRadium*2);
                         }
                         else
                         {
-                            rcBoundRet.SetRect(ptStart, ptEnd);
+                            rcBoundRet = new RectangleF(ptStart, new SizeF(ptEnd.X-ptStart.X,ptStart.Y-ptEnd.Y));
                         }
                     }
                 }
@@ -5538,7 +5534,7 @@ namespace TopwinLaser2016
             else if (m_nTypeEntities == 2)
             {
                 /////////////////////////////////////////////
-                RectangleF rcBound = new RectangleF(new PointF((float)(m_ptCenter.X - m_fRadium), (float)(m_ptCenter.Y + m_fRadium)), new SizeF((float)(m_ptCenter.X + m_fRadium), (float)(m_ptCenter.Y - m_fRadium)));
+                RectangleF rcBound = new RectangleF(new PointF(m_ptCenter.X - m_fRadium, m_ptCenter.Y + m_fRadium), new SizeF(m_fRadium*2, m_fRadium*2));
                 PointF ptStart = new PointF((float)(m_fRadium * Math.Cos(m_fAngleStart)), (float)(m_fRadium * Math.Sin(m_fAngleStart)));
                 PointF ptEnd = new PointF((float)(m_fRadium * Math.Cos(m_fAngleEnd)), (float)(m_fRadium * Math.Sin(m_fAngleEnd)));
                 ptStart.X = ptStart.X + m_ptCenter.X;
@@ -5667,7 +5663,7 @@ namespace TopwinLaser2016
                 tagUpPara upPara = GetArcUpPara(ref ptStart, ref ptEnd, ref fUpAngle);
                 PointF centerPoint = upPara.centerPoint;
                 m_fRadium = upPara.fRadium;
-                RectangleF rcBound = new RectangleF(new PointF((float)(centerPoint.X - m_fRadium), (float)(centerPoint.Y + m_fRadium)), new SizeF((float)(centerPoint.X + m_fRadium), (float)(centerPoint.Y - m_fRadium)));
+                RectangleF rcBound = new RectangleF(new PointF(m_ptCenter.X - m_fRadium, m_ptCenter.Y + m_fRadium), new SizeF(m_fRadium * 2, m_fRadium * 2));
                 m_pTemArc = new CWhArc(rcBound, ptStart, ptEnd, m_nDirection);
                 Debug.Assert(m_pTemArc.IsValid());
                 m_pTemArc.SetDirection(m_nDirection);
