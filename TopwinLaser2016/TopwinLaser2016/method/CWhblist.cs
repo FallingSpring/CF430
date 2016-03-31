@@ -26,7 +26,10 @@ namespace TopwinLaser2016
     public class CWhCommon : LinkedList<object>
     {
         public int m_nRefCount;
-
+        public CWhCommon()
+        {
+            m_nRefCount = 0;
+        }
         public void AddRef()
         {
             m_nRefCount++;
@@ -64,6 +67,43 @@ namespace TopwinLaser2016
         public Color m_colBrush;
         public bool m_bFlagIsRegister;
 
+        public CWhVirtual()
+        {
+            m_lID = ++s_lID;
+            m_rcBound = new RectangleF(0, 0, 0, 0);
+            m_pParentList = null;
+            m_nObjType = 0;
+            m_bIsShow = true;
+            m_bIsSelect = false;
+            m_bIsFilled = false;
+            m_bIsShowHandle = false;
+            m_nMachineCount = 1;
+            m_bMachineStyle = false;
+            m_nMachineFrequence = 60;
+            m_nPenWidth = 0;
+            m_colPenColor = Color.FromArgb(0, 0, 0);
+            m_colBrush = Color.FromArgb(255, 0, 0);  //默认的是红色刷子
+            m_bFlagIsRegister = false;
+        }
+        public PointF TopLeft(RectangleF rcInput)
+        {
+            PointF oldpoint = new PointF();
+            oldpoint.X = rcInput.Left;
+            oldpoint.Y = rcInput.Top;
+            return oldpoint;
+        }
+        public PointF BottomRight(RectangleF rcInput)
+        {
+            PointF oldpoint = new PointF();
+            oldpoint.X = rcInput.Right;
+            oldpoint.Y = rcInput.Bottom;
+            return oldpoint;
+        }
+        public RectangleF MyRectangle(PointF m_ptStart, PointF m_ptEnd)
+        {
+            return new RectangleF(m_ptStart.X, m_ptStart.Y, m_ptEnd.X - m_ptStart.X, m_ptStart.Y - m_ptEnd.Y);
+        }
+
         public PointF TransRPtoLP(PointF ptInput)
         {
             PointF ptRet = new PointF();
@@ -78,13 +118,6 @@ namespace TopwinLaser2016
             ptRet.X = ptInput.X;
             ptRet.Y = -ptInput.Y;
             return ptRet;
-        }
-        public PointF TopLeft(RectangleF rcInput)
-        {
-            PointF oldpoint = new PointF();
-            oldpoint.X = rcInput.Left;
-            oldpoint.Y = rcInput.Top;
-            return oldpoint;
         }
         public RectangleF TransRPtoLP(RectangleF rcInput)
         {
@@ -149,7 +182,6 @@ namespace TopwinLaser2016
                 ar << m_nRefCount << m_lID << m_nObjType << m_rcBound << m_bIsShow << m_nMachineCount << m_bIsFilled << m_bIsShowHandle << m_nPenWidth << m_nPenType << m_colPenColor << m_nBrushType << m_colBrush << m_nMachineFrequence << m_bFlagIsRegister << m_bMachineStyle;
             }
         }
-
         public virtual bool IsValid()
         {
             return true;
@@ -208,7 +240,7 @@ namespace TopwinLaser2016
         {
             return false;
         }
-        public virtual bool IsSelected(RectangleF rcClick, int bFlagMode)
+        public virtual bool IsSelected(RectangleF rcClick, bool bFlagMode)
         {
             return false;
         }
@@ -307,17 +339,13 @@ namespace TopwinLaser2016
         {
             m_bIsFilled = bIsFilled;
         }
-        public void SetMachineStyle(bool bMachineStyle)
+        public virtual void SetMachineStyle(bool bMachineStyle)
         {
             m_bMachineStyle = bMachineStyle;
         }
         public bool GetMachineStyle()
         {
             return m_bMachineStyle;
-        }
-        public RectangleF MyRectangle(PointF m_ptStart, PointF m_ptEnd)
-        {
-            return new RectangleF(m_ptStart.X, m_ptStart.Y, m_ptEnd.X - m_ptStart.X, m_ptStart.Y - m_ptEnd.Y);
         }
     }
     public class CWhSysFunction 
@@ -2272,8 +2300,6 @@ namespace TopwinLaser2016
         {
             return RemoveObject(pObj, false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: int RemoveObject(CWhVirtual pObj, bool bFlagDepth = false)
         public bool RemoveObject(CWhVirtual pObj, bool bFlagDepth = false)
         {
             bool bRet = false;
@@ -2326,8 +2352,6 @@ namespace TopwinLaser2016
         {
             RemoveObjects(pList, false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void RemoveObjects(CWhListContainer pList, bool bFlagDepth = false)
         public void RemoveObjects(CWhListContainer pList, bool bFlagDepth = false)
         {
             CWhVirtual pObj = null;
@@ -2806,11 +2830,6 @@ namespace TopwinLaser2016
     }
     public class CWhPointD : CWhVirtual
     {
-
-        //////////////////////////////////////////////////////////////////////
-        // Construction/Destruction
-        //////////////////////////////////////////////////////////////////////
-
         public CWhPointD()
         {
             m_fx = 0;
@@ -3035,7 +3054,7 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-        public override bool IsSelected(RectangleF rcClick, int bFlagMode)
+        public override bool IsSelected(RectangleF rcClick, bool bFlagMode)
         {
             bool bRet = false;
 
@@ -3222,6 +3241,13 @@ namespace TopwinLaser2016
     }
     public class CWhLayer : CWhVirtual
     {
+        public CWhLayer()
+        {
+            m_pListLayer = new CWhListContainer();
+            m_nObjType = DefineConstantsFdxf.WH_TYPE_LAYER;
+            m_rcBound = new RectangleF(0, 0, 0, 0);
+            m_strLayerName = "";
+        }
         public override void Serialize(ref BinaryFormatter ar)
         {
             CWhVirtual.Serialize(ref ar);
@@ -3394,7 +3420,7 @@ namespace TopwinLaser2016
                 pObj.SetMachineCount(nMachineFrequence);
             }
         }
-        public new void SetMachineStyle(bool bMachineStyle)
+        public override void SetMachineStyle(bool bMachineStyle)
         {
 
             m_bMachineStyle = bMachineStyle;
@@ -3425,7 +3451,7 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-        public override bool IsSelected(RectangleF rcClick, int bFlagMode)
+        public override bool IsSelected(RectangleF rcClick, bool bFlagMode)
         {
             bool bRet = false;
             if (m_pListLayer.IsEmpty() != 0)
@@ -3531,8 +3557,6 @@ namespace TopwinLaser2016
         {
             DeleteAll(false);
         }
-        //C++ TO C# CONVERTER NOTE: Overloaded method(s) are created above to convert the following method having default parameters:
-        //ORIGINAL LINE: void DeleteAll(int bFlagDepth)
         public void DeleteAll(bool bFlagDepth = false)
         {
             m_pListLayer.DeleteAll(bFlagDepth);
@@ -3552,7 +3576,15 @@ namespace TopwinLaser2016
     }
     public class CWhGroup : CWhVirtual
     {
-        
+        public CWhGroup()
+        {
+            m_pListGroup = new CWhListContainer();
+            m_nObjType = DefineConstantsFdxf.WH_TYPE_GROUP;
+            m_rcBound = new RectangleF(0, 0, 0, 0);
+            m_rcGridBound = new RectangleF(0, 0, 0, 0);
+            SetObjDefaultProperty();
+            m_strParentLayerName = "";
+        }
         public override void Serialize(ref BinaryFormatter ar)
         {
             CWhVirtual.Serialize(ref ar);
@@ -3771,7 +3803,7 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-        public override bool IsSelected(RectangleF rcClick, int bFlagMode)
+        public override bool IsSelected(RectangleF rcClick, bool bFlagMode)
         {
             bool bRet = false;
             RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
@@ -3930,7 +3962,13 @@ namespace TopwinLaser2016
     }
     public class CWhEllipse : CWhVirtual
     { //圆和矩形,椭圆类
-       
+
+        public CWhEllipse()
+        {
+            m_nObjType = DefineConstantsFdxf.WH_TYPE_ELLIPSE;
+            m_nEllipseType = 0;
+            SetObjDefaultProperty();
+        }
         public CWhEllipse(RectangleF rcEllipse, int nTypeObj=0)
         {
             m_nObjType = DefineConstantsFdxf.WH_TYPE_ELLIPSE;
