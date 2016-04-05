@@ -165,22 +165,22 @@ namespace TopwinLaser2016
                
         public virtual void Serialize(ref BinaryFormatter ar)
         {                       
-            if(ar)
-            {
-                GetObjectData(m_nRefCount,ar);
-            }
-            else
-            {
-
-            }
-            if (ar.IsLoading() != 0)
-            {
-                ar >> m_nRefCount >> m_lID >> m_nObjType >> m_rcBound >> m_bIsShow >> m_nMachineCount >> m_bIsFilled >> m_bIsShowHandle >> m_nPenWidth >> m_nPenType >> m_colPenColor >> m_nBrushType >> m_colBrush >> m_nMachineFrequence >> m_bFlagIsRegister >> m_bMachineStyle;
-            }
-            else
-            {
-                ar << m_nRefCount << m_lID << m_nObjType << m_rcBound << m_bIsShow << m_nMachineCount << m_bIsFilled << m_bIsShowHandle << m_nPenWidth << m_nPenType << m_colPenColor << m_nBrushType << m_colBrush << m_nMachineFrequence << m_bFlagIsRegister << m_bMachineStyle;
-            }
+//             if(ref ar)
+//             {
+//                 GetObjectData(m_nRefCount,ar);
+//             }
+//             else
+//             {
+// 
+//             }
+//             if (ar.IsLoading() != 0)
+//             {
+//                 ar >> m_nRefCount >> m_lID >> m_nObjType >> m_rcBound >> m_bIsShow >> m_nMachineCount >> m_bIsFilled >> m_bIsShowHandle >> m_nPenWidth >> m_nPenType >> m_colPenColor >> m_nBrushType >> m_colBrush >> m_nMachineFrequence >> m_bFlagIsRegister >> m_bMachineStyle;
+//             }
+//             else
+//             {
+//                 ar << m_nRefCount << m_lID << m_nObjType << m_rcBound << m_bIsShow << m_nMachineCount << m_bIsFilled << m_bIsShowHandle << m_nPenWidth << m_nPenType << m_colPenColor << m_nBrushType << m_colBrush << m_nMachineFrequence << m_bFlagIsRegister << m_bMachineStyle;
+//             }
         }
         public virtual bool IsValid()
         {
@@ -1802,15 +1802,15 @@ namespace TopwinLaser2016
 
         public void Serialize(ref BinaryFormatter ar)
         {            
-            m_pListContainer.Serialize(ref ar);
-            if (ar.IsLoading() != 0)
-            {
-                ar >> m_rcBound;
-            }
-            else
-            {
-                ar << m_rcBound;
-            }
+//             m_pListContainer.Serialize(ref ar);
+//             if (ar.IsLoading() != 0)
+//             {
+//                 ar >> m_rcBound;
+//             }
+//             else
+//             {
+//                 ar << m_rcBound;
+//             }
         }
         public void UpdateBoundRect()
         {            
@@ -2515,7 +2515,7 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-        public bool SelectObj(CWhListContainer pListSelect, RectangleF rcClick, int bFlagMode, ref Graphics pDC)
+        public bool SelectObj(CWhListContainer pListSelect, RectangleF rcClick, bool bFlagMode, ref Graphics pDC)
         {
             bool bRet = false;
             CWhVirtual pObj = null;
@@ -2907,15 +2907,15 @@ namespace TopwinLaser2016
 
         public override void Serialize(ref BinaryFormatter ar)
         {
-            CWhVirtual.Serialize(ref ar);
-            if (ar.IsStoring() != 0)
-            {
-                ar << m_ptStart << m_ptEnd;
-            }
-            else
-            {
-                ar >> m_ptStart >> m_ptEnd;
-            }
+//             CWhVirtual.Serialize(ref ar);
+//             if (ar.IsStoring() != 0)
+//             {
+//                 ar << m_ptStart << m_ptEnd;
+//             }
+//             else
+//             {
+//                 ar >> m_ptStart >> m_ptEnd;
+//             }
         }
         public override void UpdateBoundRect()
         {
@@ -3062,7 +3062,7 @@ namespace TopwinLaser2016
             RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
             rcBound.Inflate(1, 1);
 
-            if (bFlagMode == -1)
+            if (!bFlagMode)
             {
                 if (RectangleF.Intersect(m_rcBound, rcClick).IsEmpty)
                 {
@@ -3070,7 +3070,7 @@ namespace TopwinLaser2016
                     return bRet;
                 }
             }
-            else if (bFlagMode == 1)
+            else if (bFlagMode)
             {
                 rcInterSectRect = RectangleF.Intersect(m_rcBound, rcClick);
                 if (rcInterSectRect == m_rcBound)
@@ -3250,16 +3250,16 @@ namespace TopwinLaser2016
         }
         public override void Serialize(ref BinaryFormatter ar)
         {
-            CWhVirtual.Serialize(ref ar);
-            m_pListLayer.Serialize(ref ar);
-            if (ar.IsLoading() != 0)
-            {
-                ar >> m_strLayerName;
-            }
-            else
-            {
-                ar << m_strLayerName;
-            }
+//             CWhVirtual.Serialize(ref ar);
+//             m_pListLayer.Serialize(ref ar);
+//             if (ar.IsLoading() != 0)
+//             {
+//                 ar >> m_strLayerName;
+//             }
+//             else
+//             {
+//                 ar << m_strLayerName;
+//             }
         }
         public override void UpdateBoundRect()
         {
@@ -3587,16 +3587,16 @@ namespace TopwinLaser2016
         }
         public override void Serialize(ref BinaryFormatter ar)
         {
-            CWhVirtual.Serialize(ref ar);
-            m_pListGroup.Serialize(ref ar);
-            if (ar.IsStoring() != 0)
-            {
-                ar << m_rcGridBound;
-            }
-            else
-            {
-                ar >> m_rcGridBound;
-            }
+//             CWhVirtual.Serialize(ref ar);
+//             m_pListGroup.Serialize(ref ar);
+//             if (ar.IsStoring() != 0)
+//             {
+//                 ar << m_rcGridBound;
+//             }
+//             else
+//             {
+//                 ar >> m_rcGridBound;
+//             }
         }
         public override void UpdateBoundRect()
         {
@@ -3808,7 +3808,7 @@ namespace TopwinLaser2016
             bool bRet = false;
             RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
 
-            if (bFlagMode == -1)
+            if (!bFlagMode)
             {
                 if (!RectangleF.Intersect(m_rcBound, rcClick).IsEmpty)
                 {
@@ -3826,7 +3826,7 @@ namespace TopwinLaser2016
                     }
                 }
             }
-            else if (bFlagMode == 1)
+            else if (bFlagMode)
             {
                 rcInterSectRect = RectangleF.Intersect(m_rcBound, rcClick);
                 if (rcInterSectRect == m_rcBound)
@@ -3984,16 +3984,16 @@ namespace TopwinLaser2016
 
         public override void Serialize(ref BinaryFormatter ar)
         {
-            CWhVirtual.Serialize(ref ar);
-
-            if (ar.IsStoring() != 0)
-            {
-                ar << m_nEllipseType << m_nRadium;
-            }
-            else
-            {
-                ar >> m_nEllipseType >> m_nRadium;
-            }
+//             CWhVirtual.Serialize(ref ar);
+// 
+//             if (ar.IsStoring() != 0)
+//             {
+//                 ar << m_nEllipseType << m_nRadium;
+//             }
+//             else
+//             {
+//                 ar >> m_nEllipseType >> m_nRadium;
+//             }
         }
         public override void UpdateBoundRect()
         {
@@ -4165,12 +4165,12 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-        public override bool IsSelected(RectangleF rcClick, int bFlagMode)
+        public override bool IsSelected(RectangleF rcClick, bool bFlagMode)
         {
             bool bRet = false;
             RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
 
-            if (bFlagMode == -1)
+            if (!bFlagMode)
             {
                 if (!RectangleF.Intersect(m_rcBound, rcClick).IsEmpty)
                 {
@@ -4178,7 +4178,7 @@ namespace TopwinLaser2016
                     return bRet;
                 }
             }
-            else if (bFlagMode == 1)
+            else if (bFlagMode)
             {
                 rcInterSectRect = RectangleF.Intersect(m_rcBound, rcClick);
                 if (rcInterSectRect == m_rcBound)
@@ -4297,6 +4297,19 @@ namespace TopwinLaser2016
         public float m_nRadium;
         public int m_nDirection;
         public int m_nGoodOrBad;
+
+        public CWhArc()
+        {
+            m_nObjType = DefineConstantsFdxf.WH_TYPE_ARC;
+            m_ptStart = new PointF(0, 0);
+            m_ptEnd = new PointF(0, 0);
+            m_ptCenter = new PointF(0, 0);
+            m_nRadium = 0;
+            m_nDirection = 1;
+            m_nGoodOrBad = -1;
+            m_rcBoundDraw = new RectangleF(0, 0, 0, 0);
+            SetObjDefaultProperty();
+        }
         public CWhArc(PointF ptCenter, PointF ptStart, PointF ptEnd, int nDirection)
         {
             m_nObjType = DefineConstantsFdxf.WH_TYPE_ARC;
@@ -4329,18 +4342,17 @@ namespace TopwinLaser2016
 
         public override void Serialize(ref BinaryFormatter ar)
         {
-            CWhVirtual::Serialize(ar);
-
-            if (ar.IsStoring())
-            {
-                ar << m_ptStart << m_ptEnd << m_ptCenter << m_rcBoundDraw << m_nDirection << m_nGoodOrBad << m_nRadium;
-            }
-            else
-            {
-                ar >> m_ptStart >> m_ptEnd >> m_ptCenter >> m_rcBoundDraw >> m_nDirection >> m_nGoodOrBad >> m_nRadium;
-            }
+//             CWhVirtual.Serialize(ref ar);
+// 
+//             if (ar.IsStoring())
+//             {
+//                 ar << m_ptStart << m_ptEnd << m_ptCenter << m_rcBoundDraw << m_nDirection << m_nGoodOrBad << m_nRadium;
+//             }
+//             else
+//             {
+//                 ar >> m_ptStart >> m_ptEnd >> m_ptCenter >> m_rcBoundDraw >> m_nDirection >> m_nGoodOrBad >> m_nRadium;
+//             }
         }
-
         public override void UpdateBoundRect()
         {
             SetRadium();
@@ -4358,7 +4370,6 @@ namespace TopwinLaser2016
 
             //m_rcBound.NormalizeRect();
         }
-
         public override void Move(float nX, float nY)
         {
             PointF ptMove = new PointF(nX, nY);
@@ -4370,7 +4381,6 @@ namespace TopwinLaser2016
             m_ptCenter.Y += ptMove.Y;
             UpdateBoundRect();
         }
-
         public override void Draw(ref Graphics pDC, RectangleF rcClient)
         {
             if (m_bIsShow)
@@ -4399,7 +4409,7 @@ namespace TopwinLaser2016
 
                 //SetArcDirection(m_nDirection);
                 //pDC.MoveTo(ptStart);
-                pDC.DrawArc(penArc,rcBound, ptStart, ptEnd);                
+                //pDC.DrawArc(penArc,rcBound, ptStart, ptEnd);                
 
 
                 if (m_bIsShowHandle)
@@ -4408,7 +4418,6 @@ namespace TopwinLaser2016
                 }
             }
         }
-
         public override void DrawHandle(ref Graphics pDC)
         {
             PointF ptStart, ptEnd;
@@ -4442,7 +4451,6 @@ namespace TopwinLaser2016
         {
 
         }
-
         public override void DrawStartPoint(ref Graphics pDC)
         {
             PointF ptStart;
@@ -4516,13 +4524,12 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-
-        public override bool IsSelected(RectangleF rcClick, int bFlagMode)
+        public override bool IsSelected(RectangleF rcClick, bool bFlagMode)
         {
             bool bRet = false;
             RectangleF rcInterSectRect = new RectangleF(0, 0, 0, 0);
             rcInterSectRect = RectangleF.Intersect(m_rcBound, rcClick);
-            if (bFlagMode == -1)
+            if (!bFlagMode)
             {
                 if (!rcInterSectRect.IsEmpty)
                 {
@@ -4530,7 +4537,7 @@ namespace TopwinLaser2016
                     return bRet;
                 }
             }
-            else if (bFlagMode == 1)
+            else if (bFlagMode)
             {
                 if (rcInterSectRect == m_rcBound)
                 {
@@ -4541,7 +4548,6 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-
         public override bool IsPointSnap(ref PointF ptSnap, PointF ptInput, float fDiatance)
         {
             bool bRet = false;
@@ -4587,7 +4593,6 @@ namespace TopwinLaser2016
 
             return bRet;
         }
-
         public override bool IsStartPointSelect(ref PointF ptRet, PointF ptInput, float fDiatance)
         {
             bool bRet = false;
@@ -4622,12 +4627,10 @@ namespace TopwinLaser2016
                 return true;
             }
         }
-
         public void SetRadium(float nRadium)
         {
             m_nRadium = nRadium;
         }
-
         public void SetRadium()
         {
             double fRadium, fLength;
@@ -4637,59 +4640,48 @@ namespace TopwinLaser2016
             fRadium = System.Math.Sqrt(fLength);
             m_nRadium = (float)(fRadium * DefineConstantsFdxf.TRANSRATIO);
         }
-
         public float GetRadium()
         {
             return m_nRadium;
         }
-
         public int GetDirection()
         {
             return m_nDirection;
         }
-
         public void SetDirection(int nDirection)
         {
             m_nDirection = nDirection;
 
         }
-
         public void SetStartPoint(PointF ptStart)
         {
 
             m_ptStart = ptStart;
         }
-
         public void SetEndPoint(PointF ptEnd)
         {
                 m_ptEnd = ptEnd;
         }
-
         public override PointF GetStartPoint()
         {
             return m_ptStart;
         }
-
         public override PointF GetEndPoint()
         {
             return m_ptEnd;
         }
-
         public void SetCenterPoint(PointF ptCenter)
         {
             m_ptCenter = ptCenter;
         }
-
         public PointF GetCenterPoint()
         {
             return m_ptCenter;
         }
-
         public int JustifyArcGoodOrBad()
         {
             return 1;
         }
-
         public int GetPointInArea(PointF ptInput, PointF ptCenter)
         {
             int nRet = 0;
@@ -4712,7 +4704,6 @@ namespace TopwinLaser2016
             }
             return nRet;
         }
-
         public RectangleF CalBoundRect(PointF ptStart, PointF ptEnd, PointF ptCenter, int nDirection, float nRadium)
         {
             RectangleF rcBoundRet = new RectangleF();
@@ -4861,11 +4852,6 @@ namespace TopwinLaser2016
     }
     public class CWhDxfClass
     {
-
-        //////////////////////////////////////////////////////////////////////
-        // Construction/Destruction
-        //////////////////////////////////////////////////////////////////////
-
         public CWhDxfClass()
         {
 
@@ -4874,13 +4860,11 @@ namespace TopwinLaser2016
         {
 
         }
-
     }
     public class tagUpPara
     {
         public PointF centerPoint = new PointF();
         public float fRadium;
-
         public tagUpPara()
         {
             centerPoint = new PointF(0, 0);
@@ -4890,11 +4874,6 @@ namespace TopwinLaser2016
     }
     public class CWhDxfEntities
     {
-
-        //////////////////////////////////////////////////////////////////////
-        // Construction/Destruction
-        //////////////////////////////////////////////////////////////////////
-
         public CWhDxfEntities()
         {
             m_pObjList = null;
@@ -5197,7 +5176,6 @@ namespace TopwinLaser2016
         {
             return true;
         }
-        ///////////////////////////////////////////////////////////////////////////////
         public bool AnalyseLwPolyLine(ref tagDXFSTRING strEntities)
         {
             string stringLwPolyLineName = strEntities.strCode;
@@ -5661,13 +5639,10 @@ namespace TopwinLaser2016
 
             return;
         }
-
-
         public void AddLastObject()
         {
             AddObject();
         }
-
         public void AddObjectWithUpAngle(CWhGroup pTemGroup, ref PointF ptStart, ref PointF ptEnd, ref float fUpAngle)
         {
             if (fUpAngle == 1)
@@ -5712,7 +5687,6 @@ namespace TopwinLaser2016
                 m_pTemArc = null;
             }
         }
-
         public void SetRatio(int fRatio)
         {
             //	if( fRatio == 0 )
@@ -5764,11 +5738,6 @@ namespace TopwinLaser2016
     }
     public class CWhDxfHeaders
     {
-
-        //////////////////////////////////////////////////////////////////////
-        // Construction/Destruction
-        //////////////////////////////////////////////////////////////////////
-
         public CWhDxfHeaders()
         {
             m_nTypeHeaders = 0;
@@ -5841,15 +5810,9 @@ namespace TopwinLaser2016
         private tagDXFSTRING m_strHeaders = new tagDXFSTRING();
         private int m_nTypeHeaders;
         private int m_nUnit;
-
     }
     public class CWhDxfObjects
     {
-
-        //////////////////////////////////////////////////////////////////////
-        // Construction/Destruction
-        //////////////////////////////////////////////////////////////////////
-
         public CWhDxfObjects()
         {
 
@@ -5858,19 +5821,9 @@ namespace TopwinLaser2016
         {
 
         }
-
     }
     public class CWhDxfParse
     {
-
-        //////////////////////////////////////////////////////////////////////
-        // Construction/Destruction
-        //////////////////////////////////////////////////////////////////////
-
-        //////////////////////////////////////////////////////////////////////
-        // Construction/Destruction
-        //////////////////////////////////////////////////////////////////////
-
         public CWhDxfParse()
         {
             m_pImagicOblist = null;
@@ -5883,7 +5836,6 @@ namespace TopwinLaser2016
         {
 
         }
-
 
         public void SetObjList(CWhListContainer pImagicOblist)
         {
@@ -5920,8 +5872,6 @@ namespace TopwinLaser2016
                 return 1;
             }
         }
-        //C++ TO C# CONVERTER TODO TASK: The implementation of the following method could not be found:
-        //	int JustifyGroupCode();
         public bool JustifyMatch()
         {
 
@@ -6045,15 +5995,9 @@ namespace TopwinLaser2016
         private CWhDxfEntities m_DxfEntities = new CWhDxfEntities();
         private CWhDxfBlocks m_DxfBlocks = new CWhDxfBlocks();
         private CWhDxfObjects m_DxfObjects = new CWhDxfObjects();
-
     }
     public class CWhDxfTables
     {
-
-        //////////////////////////////////////////////////////////////////////
-        // Construction/Destruction
-        //////////////////////////////////////////////////////////////////////
-
         public CWhDxfTables()
         {
 
@@ -6062,20 +6006,17 @@ namespace TopwinLaser2016
         {
 
         }
-
     }
     public class CWhDxfBlocks
     {
-
-        //////////////////////////////////////////////////////////////////////
-        // Construction/Destruction
-        //////////////////////////////////////////////////////////////////////
-
         public CWhDxfBlocks()
         {
 
         }
+        public virtual void Dispose()
+        {
 
+        }
     }
 
 }
