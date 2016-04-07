@@ -1377,424 +1377,424 @@ namespace TopwinLaser2016
         public const float PI = 3.14159265358979323846f;
         public const float TRANSRATIO = 1000.0f;
     }
-    public class DefineTypes:CWhVirtual
-    {
-        //----------------------------------------------------------------------
-        public struct tagWHY_SEG
-        {
-            long fX;
-            long fY;
-            bool bIsUsed;
-            unsafe tagWHY_SEG* pPrev;
-            unsafe tagWHY_SEG* pNext;
-        };
-
-
-        //----------------------------------------------------------------------
-        public struct tagWHY_SEG_LIST
-        {
-            unsafe tagWHY_SEG pHeadSeg;
-            unsafe tagWHY_SEG_LIST* pNext;
-        };
-
-
-        //----------------------------------------------------------------------
-        public struct tagWHY_FREE_MAN
-        {
-            long nObjectLabel;
-            long nStartX;
-            long nStartY;
-            long nStepNum;
-            bool bIsOutBorder;
-            long pXChain;
-            long pYChain;
-            Byte pChain;
-            unsafe tagWHY_FREE_MAN* pNext;
-        };
-
-
-        //----------------------------------------------------------------------
-        public struct tagWHY_RUN_LEN
-        {
-            long nStartX;
-            long nEndX;
-            long nLabel;
-            long nLeftLabel;
-            long nRightLabel;
-            long nUpNum;
-            long nDownNum;
-        };
-
-
-        //----------------------------------------------------------------------
-        public struct tagWHY_RUN_LIST
-        {
-            long nSegNum;
-            unsafe tagWHY_RUN_LEN pHead;
-        };
-
-
-        //----------------------------------------------------------------------
-        // Run Length Label List
-        public struct tagWHY_RUN_LABEL
-        {
-            long nLabel;
-            long nNewLabel;
-            unsafe tagWHY_RUN_LABEL* pNewRunLabel;
-            unsafe tagWHY_RUN_LABEL* pNext;
-        };
-
-
-        //----------------------------------------------------------------------
-        // Chain Code Segment 
-        // The ChainCode with the Same Direction Will Be Merged
-        public struct tagWHY_CHAIN_SEG
-        {
-            Byte nDir;
-            long nLen;
-            unsafe tagWHY_CHAIN_SEG* pNext;
-        };
-
-
-        //----------------------------------------------------------------------
-        public struct tagWHY_CHAIN
-        {
-            long nStartX;
-            long nStartY;
-            long nObjectLabel;
-            long nStepNum;
-            long nPrevLabel;
-            long nNextLabel;
-            Byte nUsedTimes;
-            bool bIsTop;
-
-            // used only when m_bTraceMethod==true
-            long nMemNum;
-            Byte pChain;
-
-            // used only when m_bTraceMethod==false
-            tagWHY_CHAIN_SEG pHeadChainSeg;
-            tagWHY_CHAIN_SEG pTailChainSeg;
-        };
-
-
-        //----------------------------------------------------------------------
-        public struct tagWHY_CHAIN_LIST
-        {
-            long nStartX;
-            long nStartY;
-            long nPointNum;
-            long pXChain;
-            long pYChain;
-            Byte pChain;
-
-        };
-
-
-        //----------------------------------------------------------------------
-        public struct tagWHY_PITCH
-        {
-            long nLabel;
-            //float		M00,M01,M10,M11,M02,M20;
-            float fA, fB, fC;
-            float fXc, fYc;
-            float fAngle;
-            float fWidth;
-            float fArea;
-            unsafe tagWHY_PITCH* pNext;
-        };
-
-
-        //----------------------------------------------------------------------
-        public struct tagWHY_LINE
-        {
-            float fA, fB, fC;
-            float fXc, fYc;
-            float fWidth;
-        };
-
-
-        //----------------------------------------------------------------------
-        public struct tagWHY_LINE_SEG
-        {
-            long nStartX;
-            long nStartY;
-            long nEndX;
-            long nEndY;
-            unsafe tagWHY_LINE_SEG* pNext;
-        };
-
-
-        //----------------------------------------------------------------
-        public struct tagWHY_REGION
-        {
-            long nRegionType;
-            long nPointNum;
-            POINTD pPointList;
-        };
-
-
-        //----------------------------------------------------------------
-        public struct tagWHY_POINT_OBJECT
-        {
-            long nPointType;
-            tagWHY_REGION pRegion1;
-            tagWHY_REGION pRegion2;
-        };
-
-
-        //----------------------------------------------------------------
-        public struct tagWHY_LINE_OBJECT
-        {
-            long nLineType;
-            tagWHY_REGION pRegion1;
-            tagWHY_REGION pRegion2;
-        };
-
-
-        //----------------------------------------------------------------
-        public struct tagWHY_INSTRUCTION
-        {
-            long nMeasureType;
-
-            tagWHY_REGION pRegion;
-            tagWHY_POINT_OBJECT pPointObject1;
-            tagWHY_LINE_OBJECT pLineObject1;
-
-            tagWHY_POINT_OBJECT pPointObject2;
-            tagWHY_LINE_OBJECT pLineObject2;
-
-            unsafe tagWHY_INSTRUCTION* pNext;
-        };
-
-
-        public struct tagWHY_FEATURE
-        {
-            long nLabel;
-            long nHoleNum;
-
-            float fXc, fYc;
-            float fA, fB, fC;
-            float fAngle;
-            float fArea;
-            float fPerimeter;
-            tagWHY_RUN_LEN pRunLen;
-            tagWHY_FREE_MAN pOuterHeadFreeMan;
-            tagWHY_FREE_MAN pInnerHeadFreeMan;
-            unsafe tagWHY_FEATURE* pNext;
-        };
-
-
-        // This structure for passing data into LineDDA
-        public struct tagWHY_PTS
-        {
-            long nPos;
-            LPPOINTD lpPoints;
-        };
-
-        // This structure for passing data into LineDDA
-        public struct tagWHY_PTS2
-        {
-            long nPos;
-            long pXList;
-            long pYList;
-        };
-
-        public struct tagWHY_FILTER
-        {
-            short nMethod;
-            short ppMask;
-            short nMaskSize;
-            short nOrientation;
-            short nStrength;
-            float fVariant;
-            float fAngle;
-            float fAlpha;
-            float fMean;
-            float fPeriod;
-            unsafe fixed char Reserve[32];
-        };
-
-
-        public struct tagWHY_SIGMA
-        {
-            bool bFlag;
-            float fS00;
-            float fS10;
-            float fS01;
-            float fS20;
-            float fS11;
-            float fS02;
-            float fS30;
-            float fS21;
-            float fS12;
-            float fS03;
-        };
-
-
-        // float 
-        public struct tagRECTF
-        {
-            float left;
-            float top;
-            float right;
-            float bottom;
-        };
-
-        public struct RECTF
-        {
-            float left;
-            float top;
-            float right;
-            float bottom;
-        };
-        public struct PRECTF
-        {
-            float left;
-            float top;
-            float right;
-            float bottom;
-        };
-        public struct LPRECTF
-        {
-            float left;
-            float top;
-            float right;
-            float bottom;
-        };
-
-        public struct tagPOINTF
-        {
-            float x;
-            float y;
-        };
-
-        public struct POINTF
-        {
-            float x;
-            float y;
-        };
-
-        public struct PPOINTF
-        {
-            float x;
-            float y;
-        };
-
-        public struct LPPOINTF
-        {
-            float x;
-            float y;
-        };
-
-        public struct tagSIZEF
-        {
-            float cx;
-            float cy;
-        };
-        public struct SIZEF
-        {
-            float cx;
-            float cy;
-        };
-        public struct PSIZEF
-        {
-            float cx;
-            float cy;
-        };
-        public struct LPSIZEF
-        {
-            float cx;
-            float cy;
-        };
-
-        // float 
-        public struct tagRECTD
-        {
-            float left;
-            float top;
-            float right;
-            float bottom;
-        };
-        public struct RECTD
-        {
-            float left;
-            float top;
-            float right;
-            float bottom;
-        };
-        public struct PRECTD
-        {
-            float left;
-            float top;
-            float right;
-            float bottom;
-        };
-        public struct LPRECTD
-        {
-            float left;
-            float top;
-            float right;
-            float bottom;
-        };
-
-        public struct PointF
-        {
-            float x;
-            float y;
-        };
+//     public class DefineTypes:CWhVirtual
+//     {
+//         //----------------------------------------------------------------------
+//         public struct tagWHY_SEG
+//         {
+//             long fX;
+//             long fY;
+//             bool bIsUsed;
+//             unsafe tagWHY_SEG* pPrev;
+//             unsafe tagWHY_SEG* pNext;
+//         };
+// 
+// 
+//         //----------------------------------------------------------------------
+//         public struct tagWHY_SEG_LIST
+//         {
+//             unsafe tagWHY_SEG pHeadSeg;
+//             unsafe tagWHY_SEG_LIST* pNext;
+//         };
+// 
+// 
+//         //----------------------------------------------------------------------
+//         public struct tagWHY_FREE_MAN
+//         {
+//             long nObjectLabel;
+//             long nStartX;
+//             long nStartY;
+//             long nStepNum;
+//             bool bIsOutBorder;
+//             long pXChain;
+//             long pYChain;
+//             Byte pChain;
+//             unsafe tagWHY_FREE_MAN* pNext;
+//         };
+// 
+// 
+//         //----------------------------------------------------------------------
+//         public struct tagWHY_RUN_LEN
+//         {
+//             long nStartX;
+//             long nEndX;
+//             long nLabel;
+//             long nLeftLabel;
+//             long nRightLabel;
+//             long nUpNum;
+//             long nDownNum;
+//         };
+// 
+// 
+//         //----------------------------------------------------------------------
+//         public struct tagWHY_RUN_LIST
+//         {
+//             long nSegNum;
+//             unsafe tagWHY_RUN_LEN pHead;
+//         };
+// 
+// 
+//         //----------------------------------------------------------------------
+//         // Run Length Label List
+//         public struct tagWHY_RUN_LABEL
+//         {
+//             long nLabel;
+//             long nNewLabel;
+//             unsafe tagWHY_RUN_LABEL* pNewRunLabel;
+//             unsafe tagWHY_RUN_LABEL* pNext;
+//         };
+// 
+// 
+//         //----------------------------------------------------------------------
+//         // Chain Code Segment 
+//         // The ChainCode with the Same Direction Will Be Merged
+//         public struct tagWHY_CHAIN_SEG
+//         {
+//             Byte nDir;
+//             long nLen;
+//             unsafe tagWHY_CHAIN_SEG* pNext;
+//         };
+// 
+// 
+//         //----------------------------------------------------------------------
+//         public struct tagWHY_CHAIN
+//         {
+//             long nStartX;
+//             long nStartY;
+//             long nObjectLabel;
+//             long nStepNum;
+//             long nPrevLabel;
+//             long nNextLabel;
+//             Byte nUsedTimes;
+//             bool bIsTop;
+// 
+//             // used only when m_bTraceMethod==true
+//             long nMemNum;
+//             Byte pChain;
+// 
+//             // used only when m_bTraceMethod==false
+//             tagWHY_CHAIN_SEG pHeadChainSeg;
+//             tagWHY_CHAIN_SEG pTailChainSeg;
+//         };
+// 
+// 
+//         //----------------------------------------------------------------------
+//         public struct tagWHY_CHAIN_LIST
+//         {
+//             long nStartX;
+//             long nStartY;
+//             long nPointNum;
+//             long pXChain;
+//             long pYChain;
+//             Byte pChain;
+// 
+//         };
+// 
+// 
+//         //----------------------------------------------------------------------
+//         public struct tagWHY_PITCH
+//         {
+//             long nLabel;
+//             //float		M00,M01,M10,M11,M02,M20;
+//             float fA, fB, fC;
+//             float fXc, fYc;
+//             float fAngle;
+//             float fWidth;
+//             float fArea;
+//             unsafe tagWHY_PITCH* pNext;
+//         };
+// 
+// 
+//         //----------------------------------------------------------------------
+//         public struct tagWHY_LINE
+//         {
+//             float fA, fB, fC;
+//             float fXc, fYc;
+//             float fWidth;
+//         };
+// 
+// 
+//         //----------------------------------------------------------------------
+//         public struct tagWHY_LINE_SEG
+//         {
+//             long nStartX;
+//             long nStartY;
+//             long nEndX;
+//             long nEndY;
+//             unsafe tagWHY_LINE_SEG* pNext;
+//         };
+// 
+// 
+//         //----------------------------------------------------------------
+//         public struct tagWHY_REGION
+//         {
+//             long nRegionType;
+//             long nPointNum;
+//             POINTD pPointList;
+//         };
+// 
+// 
+//         //----------------------------------------------------------------
+//         public struct tagWHY_POINT_OBJECT
+//         {
+//             long nPointType;
+//             tagWHY_REGION pRegion1;
+//             tagWHY_REGION pRegion2;
+//         };
+// 
+// 
+//         //----------------------------------------------------------------
+//         public struct tagWHY_LINE_OBJECT
+//         {
+//             long nLineType;
+//             tagWHY_REGION pRegion1;
+//             tagWHY_REGION pRegion2;
+//         };
+// 
+// 
+//         //----------------------------------------------------------------
+//         public struct tagWHY_INSTRUCTION
+//         {
+//             long nMeasureType;
+// 
+//             tagWHY_REGION pRegion;
+//             tagWHY_POINT_OBJECT pPointObject1;
+//             tagWHY_LINE_OBJECT pLineObject1;
+// 
+//             tagWHY_POINT_OBJECT pPointObject2;
+//             tagWHY_LINE_OBJECT pLineObject2;
+// 
+//             unsafe tagWHY_INSTRUCTION* pNext;
+//         };
+// 
+// 
+//         public struct tagWHY_FEATURE
+//         {
+//             long nLabel;
+//             long nHoleNum;
+// 
+//             float fXc, fYc;
+//             float fA, fB, fC;
+//             float fAngle;
+//             float fArea;
+//             float fPerimeter;
+//             tagWHY_RUN_LEN pRunLen;
+//             tagWHY_FREE_MAN pOuterHeadFreeMan;
+//             tagWHY_FREE_MAN pInnerHeadFreeMan;
+//             unsafe tagWHY_FEATURE* pNext;
+//         };
+// 
+// 
+//         // This structure for passing data into LineDDA
+//         public struct tagWHY_PTS
+//         {
+//             long nPos;
+//             LPPOINTD lpPoints;
+//         };
+// 
+//         // This structure for passing data into LineDDA
+//         public struct tagWHY_PTS2
+//         {
+//             long nPos;
+//             long pXList;
+//             long pYList;
+//         };
+// 
+//         public struct tagWHY_FILTER
+//         {
+//             short nMethod;
+//             short ppMask;
+//             short nMaskSize;
+//             short nOrientation;
+//             short nStrength;
+//             float fVariant;
+//             float fAngle;
+//             float fAlpha;
+//             float fMean;
+//             float fPeriod;
+//             unsafe fixed char Reserve[32];
+//         };
+// 
+// 
+//         public struct tagWHY_SIGMA
+//         {
+//             bool bFlag;
+//             float fS00;
+//             float fS10;
+//             float fS01;
+//             float fS20;
+//             float fS11;
+//             float fS02;
+//             float fS30;
+//             float fS21;
+//             float fS12;
+//             float fS03;
+//         };
+// 
+// 
+//         // float 
+//         public struct tagRECTF
+//         {
+//             float left;
+//             float top;
+//             float right;
+//             float bottom;
+//         };
+// 
+//         public struct RECTF
+//         {
+//             float left;
+//             float top;
+//             float right;
+//             float bottom;
+//         };
+//         public struct PRECTF
+//         {
+//             float left;
+//             float top;
+//             float right;
+//             float bottom;
+//         };
+//         public struct LPRECTF
+//         {
+//             float left;
+//             float top;
+//             float right;
+//             float bottom;
+//         };
+// 
+//         public struct tagPOINTF
+//         {
+//             float x;
+//             float y;
+//         };
+// 
+//         public struct POINTF
+//         {
+//             float x;
+//             float y;
+//         };
+// 
+//         public struct PPOINTF
+//         {
+//             float x;
+//             float y;
+//         };
+// 
+//         public struct LPPOINTF
+//         {
+//             float x;
+//             float y;
+//         };
+// 
+//         public struct tagSIZEF
+//         {
+//             float cx;
+//             float cy;
+//         };
+//         public struct SIZEF
+//         {
+//             float cx;
+//             float cy;
+//         };
+//         public struct PSIZEF
+//         {
+//             float cx;
+//             float cy;
+//         };
+//         public struct LPSIZEF
+//         {
+//             float cx;
+//             float cy;
+//         };
+// 
+//         // float 
+//         public struct tagRECTD
+//         {
+//             float left;
+//             float top;
+//             float right;
+//             float bottom;
+//         };
+//         public struct RECTD
+//         {
+//             float left;
+//             float top;
+//             float right;
+//             float bottom;
+//         };
+//         public struct PRECTD
+//         {
+//             float left;
+//             float top;
+//             float right;
+//             float bottom;
+//         };
+//         public struct LPRECTD
+//         {
+//             float left;
+//             float top;
+//             float right;
+//             float bottom;
+//         };
+// 
 //         public struct PointF
 //         {
 //             float x;
 //             float y;
 //         };
-        public struct tagPOINTD
-        {
-            float x;
-            float y;
-        };
-        public struct POINTD
-        {
-            float x;
-            float y;
-        };
-        public struct PPOINTD
-        {
-            float x;
-            float y;
-        };
-        public struct LPPOINTD
-        {
-            float x;
-            float y;
-        };
-
-        public struct CSize
-        {
-            float cx;
-            float cy;
-        };
-        public struct tagSIZED
-        {
-            float cx;
-            float cy;
-        };
-        public struct SIZED
-        {
-            float cx;
-            float cy;
-        };
-        public struct PSIZED
-        {
-            float cx;
-            float cy;
-        };
-        public struct LPSIZED
-        {
-            float cx;
-            float cy;
-        };
-    }
+// //         public struct PointF
+// //         {
+// //             float x;
+// //             float y;
+// //         };
+//         public struct tagPOINTD
+//         {
+//             float x;
+//             float y;
+//         };
+//         public struct POINTD
+//         {
+//             float x;
+//             float y;
+//         };
+//         public struct PPOINTD
+//         {
+//             float x;
+//             float y;
+//         };
+//         public struct LPPOINTD
+//         {
+//             float x;
+//             float y;
+//         };
+// 
+//         public struct CSize
+//         {
+//             float cx;
+//             float cy;
+//         };
+//         public struct tagSIZED
+//         {
+//             float cx;
+//             float cy;
+//         };
+//         public struct SIZED
+//         {
+//             float cx;
+//             float cy;
+//         };
+//         public struct PSIZED
+//         {
+//             float cx;
+//             float cy;
+//         };
+//         public struct LPSIZED
+//         {
+//             float cx;
+//             float cy;
+//         };
+//     }
     public class CWhListContainer
     {        
         private LinkedList<object> m_pListContainer = new LinkedList<object>();

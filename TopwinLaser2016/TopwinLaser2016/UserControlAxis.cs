@@ -40,7 +40,7 @@ namespace TopwinLaser2016
             FormMainWindow.SetSyncedMode((GroupBox)((Button)sender).Parent, true);
         }
 
-        private void buttonSetAxisKinematicConstraints_Click(object sender, EventArgs e)
+        public void buttonSetAxisKinematicConstraints_Click(object sender, EventArgs e)
         {
             double minMT = (double)numericUpDownAxisKinematicConstraintsMinMT.Value;
             double maxVel = (double)numericUpDownAxisKinematicConstraintsMaxVel.Value;

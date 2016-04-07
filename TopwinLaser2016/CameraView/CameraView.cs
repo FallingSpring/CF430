@@ -25,9 +25,6 @@ namespace CameraView
         {
             
         }
-
-
-
         #region 界面操作
         private void CameraView_Load(object sender, EventArgs e)
         {
@@ -37,10 +34,7 @@ namespace CameraView
             m_FrmView.TopLevel = false;
             panel1.Controls.Add(m_FrmView);
             m_FrmView.Show();
-        }
-
-        
+        }        
         #endregion
-
     }
 }

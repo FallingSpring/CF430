@@ -89,7 +89,7 @@ namespace TopwinLaser2016
         }
         private void InitializeTopwinLaser2016()
         {
-            Symphoney = new Symphony(true);
+            Symphoney = new Symphony(false);
             ReadInitialData();
             SetControlsEnabled(true);
             InitializeAllTabs();
@@ -104,6 +104,15 @@ namespace TopwinLaser2016
                }
             }
             //groupBoxSettings.Enabled = true;
+            if(!Symphoney.GetStageEnabled(StageID.X) && !Symphoney.GetStageEnabled(StageID.Y) && !Symphoney.GetStageEnabled(StageID.Z))
+            {
+                userControlAxis.comboBoxAsix.SelectedIndex=0;
+                userControlAxis.buttonSetAxisKinematicConstraints_Click(null, null);
+                userControlAxis.comboBoxAsix.SelectedIndex = 1;
+                userControlAxis.buttonSetAxisKinematicConstraints_Click(null, null);
+                userControlAxis.comboBoxAsix.SelectedIndex = 2;
+                userControlAxis.buttonSetAxisKinematicConstraints_Click(null, null);
+            }
         }
         private void ReadInitialData()
         {
@@ -114,6 +123,7 @@ namespace TopwinLaser2016
         private void InitializeAllTabs()
         {
             //userControlDataRecorder.Initialize();
+            
             userControlStage.Initialize();
             userControlGalvo.initialize();
             userControlAxis.Initialize();

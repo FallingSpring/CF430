@@ -92,7 +92,9 @@
             this.IDM_MOVETO_ORIGIN = new System.Windows.Forms.ToolStripButton();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage_view = new System.Windows.Forms.TabPage();
+            this.userControlGraphpaper = new TopwinLaser2016.UserControlGraphpaper();
             this.tabPage_ccd = new System.Windows.Forms.TabPage();
+            this.cameraView1 = new CameraView.CameraView();
             this.tabPage_laser = new System.Windows.Forms.TabPage();
             this.tabControl2 = new System.Windows.Forms.TabControl();
             this.tabPage_ESI = new System.Windows.Forms.TabPage();
@@ -108,7 +110,6 @@
             this.userControlAxis = new TopwinLaser2016.UserControlAxis();
             this.tabPage_galvo = new System.Windows.Forms.TabPage();
             this.userControlGalvo = new TopwinLaser2016.UserControlGalvo();
-            this.userControlGraphpaper = new TopwinLaser2016.UserControlGraphpaper();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -116,6 +117,7 @@
             this.toolStrip2.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage_view.SuspendLayout();
+            this.tabPage_ccd.SuspendLayout();
             this.tabPage_laser.SuspendLayout();
             this.tabControl2.SuspendLayout();
             this.tabPage_ESI.SuspendLayout();
@@ -581,9 +583,10 @@
             this.panel1.Controls.Add(this.userControlMachining);
             this.panel1.Controls.Add(this.userControlZMover);
             this.panel1.Controls.Add(this.userControlXYMover);
-            this.panel1.Location = new System.Drawing.Point(0, 28);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Left;
+            this.panel1.Location = new System.Drawing.Point(0, 25);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(255, 576);
+            this.panel1.Size = new System.Drawing.Size(255, 582);
             this.panel1.TabIndex = 3;
             // 
             // userControlMachining
@@ -615,10 +618,10 @@
             this.toolStrip2.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.IDM_PANE_OBJECT_PROPERTY,
             this.IDM_MOVETO_ORIGIN});
-            this.toolStrip2.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.VerticalStackWithOverflow;
-            this.toolStrip2.Location = new System.Drawing.Point(970, 50);
+            this.toolStrip2.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.HorizontalStackWithOverflow;
+            this.toolStrip2.Location = new System.Drawing.Point(919, 0);
             this.toolStrip2.Name = "toolStrip2";
-            this.toolStrip2.Size = new System.Drawing.Size(24, 57);
+            this.toolStrip2.Size = new System.Drawing.Size(58, 25);
             this.toolStrip2.TabIndex = 4;
             this.toolStrip2.Text = "toolStrip2";
             // 
@@ -628,7 +631,7 @@
             this.IDM_PANE_OBJECT_PROPERTY.Image = ((System.Drawing.Image)(resources.GetObject("IDM_PANE_OBJECT_PROPERTY.Image")));
             this.IDM_PANE_OBJECT_PROPERTY.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.IDM_PANE_OBJECT_PROPERTY.Name = "IDM_PANE_OBJECT_PROPERTY";
-            this.IDM_PANE_OBJECT_PROPERTY.Size = new System.Drawing.Size(22, 20);
+            this.IDM_PANE_OBJECT_PROPERTY.Size = new System.Drawing.Size(23, 22);
             this.IDM_PANE_OBJECT_PROPERTY.Text = "toolStripButton1";
             // 
             // IDM_MOVETO_ORIGIN
@@ -637,7 +640,7 @@
             this.IDM_MOVETO_ORIGIN.Image = ((System.Drawing.Image)(resources.GetObject("IDM_MOVETO_ORIGIN.Image")));
             this.IDM_MOVETO_ORIGIN.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.IDM_MOVETO_ORIGIN.Name = "IDM_MOVETO_ORIGIN";
-            this.IDM_MOVETO_ORIGIN.Size = new System.Drawing.Size(22, 20);
+            this.IDM_MOVETO_ORIGIN.Size = new System.Drawing.Size(23, 22);
             // 
             // tabControl1
             // 
@@ -648,10 +651,11 @@
             this.tabControl1.Controls.Add(this.tabPage_io);
             this.tabControl1.Controls.Add(this.tabPage_axis);
             this.tabControl1.Controls.Add(this.tabPage_galvo);
-            this.tabControl1.Location = new System.Drawing.Point(259, 28);
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl1.Location = new System.Drawing.Point(255, 25);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(708, 575);
+            this.tabControl1.Size = new System.Drawing.Size(753, 582);
             this.tabControl1.TabIndex = 5;
             // 
             // tabPage_view
@@ -660,27 +664,44 @@
             this.tabPage_view.Location = new System.Drawing.Point(4, 22);
             this.tabPage_view.Name = "tabPage_view";
             this.tabPage_view.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_view.Size = new System.Drawing.Size(700, 549);
+            this.tabPage_view.Size = new System.Drawing.Size(745, 556);
             this.tabPage_view.TabIndex = 0;
             this.tabPage_view.Text = "图纸";
             this.tabPage_view.UseVisualStyleBackColor = true;
             // 
+            // userControlGraphpaper
+            // 
+            this.userControlGraphpaper.Location = new System.Drawing.Point(3, 3);
+            this.userControlGraphpaper.Name = "userControlGraphpaper";
+            this.userControlGraphpaper.Size = new System.Drawing.Size(694, 540);
+            this.userControlGraphpaper.TabIndex = 0;
+            // 
             // tabPage_ccd
             // 
+            this.tabPage_ccd.Controls.Add(this.cameraView1);
             this.tabPage_ccd.Location = new System.Drawing.Point(4, 22);
             this.tabPage_ccd.Name = "tabPage_ccd";
             this.tabPage_ccd.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_ccd.Size = new System.Drawing.Size(700, 549);
+            this.tabPage_ccd.Size = new System.Drawing.Size(745, 556);
             this.tabPage_ccd.TabIndex = 1;
             this.tabPage_ccd.Text = "相机";
             this.tabPage_ccd.UseVisualStyleBackColor = true;
+            // 
+            // cameraView1
+            // 
+            this.cameraView1.AutoScroll = true;
+            this.cameraView1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.cameraView1.Location = new System.Drawing.Point(3, 3);
+            this.cameraView1.Name = "cameraView1";
+            this.cameraView1.Size = new System.Drawing.Size(739, 550);
+            this.cameraView1.TabIndex = 0;
             // 
             // tabPage_laser
             // 
             this.tabPage_laser.Controls.Add(this.tabControl2);
             this.tabPage_laser.Location = new System.Drawing.Point(4, 22);
             this.tabPage_laser.Name = "tabPage_laser";
-            this.tabPage_laser.Size = new System.Drawing.Size(700, 549);
+            this.tabPage_laser.Size = new System.Drawing.Size(745, 556);
             this.tabPage_laser.TabIndex = 2;
             this.tabPage_laser.Text = "激光器";
             this.tabPage_laser.UseVisualStyleBackColor = true;
@@ -748,7 +769,7 @@
             this.tabPage_stage.Controls.Add(this.userControlStage);
             this.tabPage_stage.Location = new System.Drawing.Point(4, 22);
             this.tabPage_stage.Name = "tabPage_stage";
-            this.tabPage_stage.Size = new System.Drawing.Size(700, 549);
+            this.tabPage_stage.Size = new System.Drawing.Size(745, 556);
             this.tabPage_stage.TabIndex = 6;
             this.tabPage_stage.Text = "平台";
             this.tabPage_stage.UseVisualStyleBackColor = true;
@@ -765,7 +786,7 @@
             this.tabPage_io.Controls.Add(this.userControlIO);
             this.tabPage_io.Location = new System.Drawing.Point(4, 22);
             this.tabPage_io.Name = "tabPage_io";
-            this.tabPage_io.Size = new System.Drawing.Size(700, 549);
+            this.tabPage_io.Size = new System.Drawing.Size(745, 556);
             this.tabPage_io.TabIndex = 3;
             this.tabPage_io.Text = "IO端口";
             this.tabPage_io.UseVisualStyleBackColor = true;
@@ -774,7 +795,7 @@
             // 
             this.userControlIO.Location = new System.Drawing.Point(3, 3);
             this.userControlIO.Name = "userControlIO";
-            this.userControlIO.Size = new System.Drawing.Size(539, 424);
+            this.userControlIO.Size = new System.Drawing.Size(539, 550);
             this.userControlIO.TabIndex = 0;
             // 
             // tabPage_axis
@@ -782,7 +803,7 @@
             this.tabPage_axis.Controls.Add(this.userControlAxis);
             this.tabPage_axis.Location = new System.Drawing.Point(4, 22);
             this.tabPage_axis.Name = "tabPage_axis";
-            this.tabPage_axis.Size = new System.Drawing.Size(700, 549);
+            this.tabPage_axis.Size = new System.Drawing.Size(745, 556);
             this.tabPage_axis.TabIndex = 4;
             this.tabPage_axis.Text = "轴";
             this.tabPage_axis.UseVisualStyleBackColor = true;
@@ -791,7 +812,7 @@
             // 
             this.userControlAxis.Location = new System.Drawing.Point(3, 3);
             this.userControlAxis.Name = "userControlAxis";
-            this.userControlAxis.Size = new System.Drawing.Size(400, 364);
+            this.userControlAxis.Size = new System.Drawing.Size(308, 314);
             this.userControlAxis.TabIndex = 0;
             // 
             // tabPage_galvo
@@ -799,7 +820,7 @@
             this.tabPage_galvo.Controls.Add(this.userControlGalvo);
             this.tabPage_galvo.Location = new System.Drawing.Point(4, 22);
             this.tabPage_galvo.Name = "tabPage_galvo";
-            this.tabPage_galvo.Size = new System.Drawing.Size(700, 549);
+            this.tabPage_galvo.Size = new System.Drawing.Size(745, 556);
             this.tabPage_galvo.TabIndex = 5;
             this.tabPage_galvo.Text = "振镜";
             this.tabPage_galvo.UseVisualStyleBackColor = true;
@@ -810,13 +831,6 @@
             this.userControlGalvo.Name = "userControlGalvo";
             this.userControlGalvo.Size = new System.Drawing.Size(496, 289);
             this.userControlGalvo.TabIndex = 0;
-            // 
-            // userControlGraphpaper
-            // 
-            this.userControlGraphpaper.Location = new System.Drawing.Point(3, 3);
-            this.userControlGraphpaper.Name = "userControlGraphpaper";
-            this.userControlGraphpaper.Size = new System.Drawing.Size(680, 540);
-            this.userControlGraphpaper.TabIndex = 0;
             // 
             // FormMainWindow
             // 
@@ -845,6 +859,7 @@
             this.toolStrip2.PerformLayout();
             this.tabControl1.ResumeLayout(false);
             this.tabPage_view.ResumeLayout(false);
+            this.tabPage_ccd.ResumeLayout(false);
             this.tabPage_laser.ResumeLayout(false);
             this.tabControl2.ResumeLayout(false);
             this.tabPage_ESI.ResumeLayout(false);
@@ -941,6 +956,7 @@
         private UserControlAxis userControlAxis;
         private UserControlGalvo userControlGalvo;
         private UserControlGraphpaper userControlGraphpaper;
+        private CameraView.CameraView cameraView1;
     }
 }
 

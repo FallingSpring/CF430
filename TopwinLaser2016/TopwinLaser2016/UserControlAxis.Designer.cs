@@ -317,7 +317,7 @@
 
         #endregion
 
-        private System.Windows.Forms.ComboBox comboBoxAsix;
+        public System.Windows.Forms.ComboBox comboBoxAsix;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.GroupBox groupBoxAxisKinematicConstraints;
         private System.Windows.Forms.Label label3;
