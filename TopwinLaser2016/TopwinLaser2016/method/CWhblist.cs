@@ -4342,8 +4342,7 @@ namespace TopwinLaser2016
 
         public override void Serialize(ref BinaryFormatter ar)
         {
-//             CWhVirtual.Serialize(ref ar);
-// 
+//             CWhVirtual.Serialize(ref ar); 
 //             if (ar.IsStoring())
 //             {
 //                 ar << m_ptStart << m_ptEnd << m_ptCenter << m_rcBoundDraw << m_nDirection << m_nGoodOrBad << m_nRadium;

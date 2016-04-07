@@ -93,16 +93,16 @@ namespace TopwinLaser2016
             ReadInitialData();
             SetControlsEnabled(true);
             InitializeAllTabs();
-            //Assembly a = typeof(FormMainWindow).Assembly;
-            //AssemblyName[] arr = a.GetReferencedAssemblies();
-
-            //foreach (AssemblyName item in arr)
-            //{
-            //    if (item.Name == "ESI.SymphonyAPI")
-            //   {
-            //        labelAPIVersion.Text = item.Version.ToString();
-            //    }
-            //}
+            Assembly a = typeof(FormMainWindow).Assembly;
+            AssemblyName[] arr = a.GetReferencedAssemblies();
+            foreach (AssemblyName item in arr)
+            {
+                if (item.Name == "ESI.SymphonyAPI")
+               {
+                    //labelAPIVersion.Text = item.Version.ToString();
+                    MessageBox.Show("ESI.SymphonyAPI initialized!");
+               }
+            }
             //groupBoxSettings.Enabled = true;
         }
         private void ReadInitialData()
