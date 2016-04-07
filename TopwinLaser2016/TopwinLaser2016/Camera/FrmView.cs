@@ -90,10 +90,9 @@ namespace CameraView
 
         private void StopSnap()
         {
-            System.Diagnostics.Debug.Assert(m_Camera.GetHandle() != IntPtr.Zero);
-
             if (m_bIsSnap)
             {
+                System.Diagnostics.Debug.Assert(m_Camera.GetHandle() != IntPtr.Zero);
                 HVSTATUS status = USBCameraAPI.HVStopSnap(m_Camera.GetHandle());
                 USBCameraAPI.HV_VERIFY(status);
                 if (USBCameraAPI.HV_SUCCESS(status))
@@ -597,10 +596,10 @@ namespace CameraView
         public Point m_ptCross;
         public Size m_sizeImg = new Size(1280, 1024);
 
-        private void OnAutolocation()
+        private bool OnAutolocation()
         {
             if (!m_bIfCameraOpen)
-                return;
+                return false;
 
             //if (!m_nRetCamera)
             //{
@@ -619,7 +618,7 @@ namespace CameraView
 
             m_rcMarkCircle = doNetHalcon.do_located(Path, this);
 
-
+            return true;
 
         }
 
@@ -672,11 +671,206 @@ namespace CameraView
                 //}
         }
 
-
+        public PointF m_ptFirstLocatePoint = new PointF(0, 0);
         public void DoAutoLocation()
         {
+            if (m_bIsSnap == false)
+            {
+                OpenSnap();
+                StartSnap();
+            }
 
+            if (m_ptFirstLocatePoint.X == 0 && m_ptFirstLocatePoint.Y == 0)
+            {
+                MessageBox.Show("请正确设定自动定位起始点！");
+                return ;
+            }
 
+            //CLaser_CNCDoc* pDoc = NULL;
+            //CLaser_CNCView* pView = NULL;
+            //CWinApp* pApp = AfxGetApp();
+            //POSITION postem = pApp->GetFirstDocTemplatePosition();
+            //CDocTemplate* pDocTemp = pApp->GetNextDocTemplate(postem);
+            //POSITION posdoc = pDocTemp->GetFirstDocPosition();
+            //pDoc = (CLaser_CNCDoc*)pDocTemp->GetNextDoc(posdoc);
+            //pView = (CLaser_CNCView*)pDoc->GetLaser_CNCView();
+
+            //if (pView->m_lTotalCountTransform < 2)
+            //{
+            //    AfxMessageBox(_T("请先在加工文件上选择至少两个MARK点进行注册！"));
+            //    return -2;
+            //}
+
+            //if (pCNCMC3)
+            //{
+            //    pCNCMC3->ZigMoveTo(AXIS_X, AXIS_Y, m_ptFirstLocatePoint.x, m_ptFirstLocatePoint.y);
+            //}
+
+            m_bFlagRestAllAuto = true;
+            m_rcMarkCircle = new Rectangle(0,0,0,0);
+
+            PointF centerAtlPoint = new PointF(0, 0), curPoint = new PointF(0, 0), relPoint;
+
+            bool nAutoLocation = true;
+
+            if (m_bFlagRestAllAuto)
+            {
+                for( int m = (m_nCountAutoIndex-1); m < Int16.MaxValue/*pView->m_lTotalCountTransform*/; m++ )
+                {
+                    for (int count = 0; count < m_nMatchCount; count++)
+                    {
+                        nAutoLocation = OnAutolocation();
+                        if (!nAutoLocation)
+                        {
+                            if (count + 1 == m_nMatchCount)
+                            {
+                                m_bFlagRestAllAuto = false;
+                                MessageBox.Show("没有找到Mark点，请调整参数再次捕捉");
+                                break;
+                            }
+                            else
+                            {
+                                System.Threading.Thread.Sleep(100);
+                                continue;
+                            }
+                        }
+
+                        m_ptMarkCenterPiexl = new Point(m_rcMarkCircle.X + m_rcMarkCircle.Width / 2, m_rcMarkCircle.Y + m_rcMarkCircle.Height / 2);
+                        //m_rcMarkCircle.NormalizeRect();
+                        m_fMarkDiameterPiexl = m_rcMarkCircle.Width;
+
+                        //if (pCNCMC3)
+                        //{
+                        //    pCNCMC3->GetAxisPos(AXIS_X, &centerAtlPoint.x);
+                        //    pCNCMC3->GetAxisPos(AXIS_Y, &centerAtlPoint.y);
+
+                        //    relPoint.x = (pCNCMC3->m_fResolution / 1000.0) * (m_ptMarkCenterPiexl.x - (m_sizeImg.cx / 2.0 + pCNCMC3->m_nValueU));
+                        //    relPoint.y = (pCNCMC3->m_fResolution / 1000.0) * (m_ptMarkCenterPiexl.y - (m_sizeImg.cy / 2.0 + pCNCMC3->m_nValueV));
+                        //}
+
+                        curPoint.X = centerAtlPoint.X + relPoint.X;
+                        curPoint.Y = centerAtlPoint.Y - relPoint.Y;
+
+                        //if (pCNCMC3)
+                        //{
+                        //    pCNCMC3->ZigMoveRelativeTo(AXIS_X, AXIS_Y, relPoint.x, -relPoint.y);
+
+                        //    Sleep(50);
+                        //}
+
+                        //CPoint ptCenterpoint;
+                        //ptCenterpoint = m_rcMarkCircle.CenterPoint();
+                        //if (pCNCMC3)
+                        //{
+                        //    m_rcMarkCircle.OffsetRect((((int)(m_sizeImg.cx / 2.0) + pCNCMC3->m_nValueU) - ptCenterpoint.x),
+                        //        (((int)(m_sizeImg.cy / 2.0) + pCNCMC3->m_nValueV) - ptCenterpoint.y));
+                        //}
+
+                    }
+
+                    if (!nAutoLocation)
+                    {
+                        break;
+                    }
+
+                    //////////////////////////////////////////////////////////////////////////////////////
+                    //if (m_nCountAutoIndex > pView->m_lTotalCountTransform)
+                    //{
+                    //    AfxMessageBox("超过已经总注册点数");
+                    //    return 2;
+                    //}
+
+                    PointF ptOffset = new PointF(0, 0);
+
+                    //if (pCNCMC3)
+                    //{
+                    //    ptOffset = CPointD(pCNCMC3->m_fOffsetX, pCNCMC3->m_fOffsetY);
+                    //}
+                    //pView->m_ptDstData[m_nCountAutoIndex - 1].x = curPoint.x;
+                    //pView->m_ptDstData[m_nCountAutoIndex - 1].y = curPoint.y;
+                    //pView->m_ptDstData[m_nCountAutoIndex - 1] += ptOffset;
+
+                    //pView->m_nCountTransform = m_nCountAutoIndex;
+
+                    m_nCurrentPoint = m_nCountAutoIndex;
+
+                    if (m_nCurrentPoint == 1)
+                    {
+                        if (m_bFirstPointOffset)
+                        {
+                            //pView->m_ptDstData[0].x += m_dFirstPointOffsetX;
+                            //pView->m_ptDstData[0].y += m_dFirstPointOffsetY;
+                        }
+                    }
+                    else if (m_nCurrentPoint == 2)
+                    {
+                        //pView->m_fAngleRotate = CalRotateAngle(pView->m_ptSrcData[1] - pView->m_ptSrcData[0],
+                        //    pView->m_ptDstData[1] - pView->m_ptDstData[0]);
+                    }
+
+                    //if (m_nCountAutoIndex == pView->m_lTotalCountTransform)
+                    //{
+                    //    pView->EstablishTransform();
+
+                    //    m_bFlagRestAllAuto = FALSE;
+                    //    m_nCountAutoIndex = 1;
+
+                    //    OnCloseCamera();
+
+                    //    m_rcMarkCircle.SetRectEmpty();
+                    //    return 0;
+                    //}
+
+                    OnMarkNext();
+		           m_nCountAutoIndex++; 
+
+                   //if(::PeekMessage(&message,NULL,0,0,PM_REMOVE))
+                   //{
+                   //   ::TranslateMessage(&message);
+                   //   ::DispatchMessage(&message);
+                   //}
+
+                   //m_rcMarkCircle.SetRectEmpty();
+		           if( !m_bFlagRestAllAuto )
+		           {
+			           break;
+		           }
+                }
+
+                if (!nAutoLocation)
+                {
+                    return ;
+                }
+            }
+
+            return;
+        }
+
+        private PointF DoLocateGridPoint(int nGridType, int nHor, int nVer)
+        {
+            PointF centerAtlPoint = new PointF(0, 0), curPoint = new PointF(0, 0), relPoint;
+
+            for (int count = 0; count < m_nMatchCount; count++)
+            {
+                bool nAutoLocation = OnAutolocation();
+
+                if (!nAutoLocation)
+                {
+                    if (count + 1 == m_nMatchCount)
+                    {
+                        MessageBox.Show("没有找到Mark点，请调整参数再次捕捉");
+                        m_rcMarkCircle = new Rectangle(0,0,0,0);
+                        break;
+                    }
+                    else
+                    {
+                        System.Threading.Thread.Sleep(100);
+                        continue;
+                    }
+                }
+
+                m_ptMarkCenterPiexl = new Point(m_rcMarkCircle.X + m_rcMarkCircle.Width / 2, m_rcMarkCircle.Y + m_rcMarkCircle.Height / 2);
+            }
         }
 
         private void thread_ruluer()

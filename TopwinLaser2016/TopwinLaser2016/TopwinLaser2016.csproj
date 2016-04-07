@@ -55,6 +55,9 @@
     <Reference Include="ESI.SymphonyAPI">
       <HintPath>lib\ESI.SymphonyAPI.dll</HintPath>
     </Reference>
+    <Reference Include="halcondotnet">
+      <HintPath>Camera\halcondotnet.dll</HintPath>
+    </Reference>
     <Reference Include="NPlot">
       <HintPath>lib\NPlot.dll</HintPath>
     </Reference>
@@ -71,6 +74,38 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Camera\CameraDevice.cs" />
+    <Compile Include="Camera\CameraView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Camera\CameraView.Designer.cs" />
+    <Compile Include="Camera\doNetHalcon.cs" />
+    <Compile Include="Camera\FrmAutoLocationParam.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Camera\FrmAutoLocationParam.Designer.cs" />
+    <Compile Include="Camera\FrmCameraParam.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Camera\FrmCameraParam.Designer.cs" />
+    <Compile Include="Camera\FrmMarkAndLocation.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Camera\FrmMarkAndLocation.Designer.cs" />
+    <Compile Include="Camera\FrmRegisterPoint.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Camera\FrmRegisterPoint.Designer.cs" />
+    <Compile Include="Camera\FrmThickCut.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Camera\FrmThickCut.Designer.cs" />
+    <Compile Include="Camera\FrmView.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Camera\FrmView.Designer.cs" />
+    <Compile Include="Camera\USB.cs" />
+    <Compile Include="Camera\WriteRegistryKey.cs" />
     <Compile Include="method\CWhblist.cs" />
     <Compile Include="ExceptionDialog.cs">
       <SubType>Form</SubType>
@@ -141,6 +176,13 @@
     <Compile Include="UserControlZMover.Designer.cs">
       <DependentUpon>UserControlZMover.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="Camera\CameraView.resx" />
+    <EmbeddedResource Include="Camera\FrmAutoLocationParam.resx" />
+    <EmbeddedResource Include="Camera\FrmCameraParam.resx" />
+    <EmbeddedResource Include="Camera\FrmMarkAndLocation.resx" />
+    <EmbeddedResource Include="Camera\FrmRegisterPoint.resx" />
+    <EmbeddedResource Include="Camera\FrmThickCut.resx" />
+    <EmbeddedResource Include="Camera\FrmView.resx" />
     <EmbeddedResource Include="FormMainWindow.resx">
       <DependentUpon>FormMainWindow.cs</DependentUpon>
       <SubType>Designer</SubType>
