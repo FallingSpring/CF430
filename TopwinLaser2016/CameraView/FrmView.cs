@@ -89,32 +89,29 @@ namespace CameraView
         }
 
         private void StopSnap()
-        {
-            System.Diagnostics.Debug.Assert(m_Camera.GetHandle() != IntPtr.Zero);
-
+        {    
             if (m_bIsSnap)
             {
+                m_bIsSnap = false;
+                //System.Diagnostics.Debug.Assert(m_Camera.GetHandle() != IntPtr.Zero);
                 HVSTATUS status = USBCameraAPI.HVStopSnap(m_Camera.GetHandle());
                 USBCameraAPI.HV_VERIFY(status);
                 if (USBCameraAPI.HV_SUCCESS(status))
                 {
-                    m_bIsSnap = false;
+                    
                 }
             }
         }
 
         private void CloseSnap()
         {
-            System.Diagnostics.Debug.Assert(m_Camera.GetHandle() != IntPtr.Zero);
-
-            StopSnap();
-            HVSTATUS status = USBCameraAPI.HVCloseSnap(m_Camera.GetHandle());
-            USBCameraAPI.HV_VERIFY(status);
-            if (USBCameraAPI.HV_SUCCESS(status))
+            if (m_bIsSnap)
             {
-                m_bIsOpen = false;
+                System.Diagnostics.Debug.Assert(m_Camera.GetHandle() != IntPtr.Zero);
+                StopSnap();
+                HVSTATUS status = USBCameraAPI.HVCloseSnap(m_Camera.GetHandle());
+                m_Camera.Release();
             }
-            m_Camera.Release();
         }
 
         private static bool SnapCallBack(ref HV_SNAP_INFO pInfo)
