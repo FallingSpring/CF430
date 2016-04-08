@@ -20,7 +20,7 @@ namespace TopwinLaser2016
         private void buttonStageMoveXYZ_Click(object sender, EventArgs e)
         {
            //FormMainWindow.Symphoney.StageMove(new TopwinLaser2016.UserControlXYMover().CurrentX, new TopwinLaser2016.UserControlXYMover().CurrentY, (double)numericUpDownStageMoveXYZ_Z.Value);
-            FormMainWindow.Symphoney.StageMove(StageID.Z, (double)numericUpDownStageMoveXYZ_Z.Value,0.5);
+            FormMainWindow.Symphoney.StageMove(StageID.Z, (double)numericUpDownStageMoveXYZ_Z.Value,0.05);
         }
     }
 }

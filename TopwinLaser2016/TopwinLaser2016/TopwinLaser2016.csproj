@@ -164,6 +164,12 @@
     <Compile Include="UserControlStage.Designer.cs">
       <DependentUpon>UserControlStage.cs</DependentUpon>
     </Compile>
+    <Compile Include="UserControlStageXY.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserControlStageXY.Designer.cs">
+      <DependentUpon>UserControlStageXY.cs</DependentUpon>
+    </Compile>
     <Compile Include="UserControlXYMover.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -218,6 +224,9 @@
     <EmbeddedResource Include="UserControlStage.resx">
       <DependentUpon>UserControlStage.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="UserControlStageXY.resx">
+      <DependentUpon>UserControlStageXY.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UserControlXYMover.resx">
       <DependentUpon>UserControlXYMover.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -240,12 +249,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="wu.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CameraView\CameraView.csproj">
-      <Project>{24132A43-FC7B-4DB8-8E84-15DBC470F8E6}</Project>
-      <Name>CameraView</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">

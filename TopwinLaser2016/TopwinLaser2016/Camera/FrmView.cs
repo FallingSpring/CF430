@@ -104,16 +104,19 @@ namespace CameraView
 
         private void CloseSnap()
         {
-            System.Diagnostics.Debug.Assert(m_Camera.GetHandle() != IntPtr.Zero);
-
-            StopSnap();
-            HVSTATUS status = USBCameraAPI.HVCloseSnap(m_Camera.GetHandle());
-            USBCameraAPI.HV_VERIFY(status);
-            if (USBCameraAPI.HV_SUCCESS(status))
+            if (m_bIsSnap)
             {
-                m_bIfCameraOpen = false;
+                System.Diagnostics.Debug.Assert(m_Camera.GetHandle() != IntPtr.Zero);
+
+                StopSnap();
+                HVSTATUS status = USBCameraAPI.HVCloseSnap(m_Camera.GetHandle());
+                USBCameraAPI.HV_VERIFY(status);
+                if (USBCameraAPI.HV_SUCCESS(status))
+                {
+                    m_bIfCameraOpen = false;
+                }
+                m_Camera.Release();
             }
-            m_Camera.Release();
         }
 
         private static bool SnapCallBack(ref HV_SNAP_INFO pInfo)
@@ -748,8 +751,8 @@ namespace CameraView
                         //    relPoint.y = (pCNCMC3->m_fResolution / 1000.0) * (m_ptMarkCenterPiexl.y - (m_sizeImg.cy / 2.0 + pCNCMC3->m_nValueV));
                         //}
 
-                        curPoint.X = centerAtlPoint.X + relPoint.X;
-                        curPoint.Y = centerAtlPoint.Y - relPoint.Y;
+                        //curPoint.X = centerAtlPoint.X + relPoint.X;
+                        //curPoint.Y = centerAtlPoint.Y - relPoint.Y;
 
                         //if (pCNCMC3)
                         //{
@@ -871,6 +874,7 @@ namespace CameraView
 
                 m_ptMarkCenterPiexl = new Point(m_rcMarkCircle.X + m_rcMarkCircle.Width / 2, m_rcMarkCircle.Y + m_rcMarkCircle.Height / 2);
             }
+            return curPoint;
         }
 
         private void thread_ruluer()

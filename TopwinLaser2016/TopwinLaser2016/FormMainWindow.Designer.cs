@@ -84,9 +84,9 @@
             this.toolStripSeparator10 = new System.Windows.Forms.ToolStripSeparator();
             this.IDM_POINT_LOCATION = new System.Windows.Forms.ToolStripButton();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.userControlStageXY1 = new TopwinLaser2016.UserControlStageXY();
             this.userControlMachining = new TopwinLaser2016.UserControlMachining();
             this.userControlZMover = new TopwinLaser2016.UserControlZMover();
-            this.userControlXYMover = new TopwinLaser2016.UserControlXYMover();
             this.toolStrip2 = new System.Windows.Forms.ToolStrip();
             this.IDM_PANE_OBJECT_PROPERTY = new System.Windows.Forms.ToolStripButton();
             this.IDM_MOVETO_ORIGIN = new System.Windows.Forms.ToolStripButton();
@@ -94,7 +94,6 @@
             this.tabPage_view = new System.Windows.Forms.TabPage();
             this.userControlGraphpaper = new TopwinLaser2016.UserControlGraphpaper();
             this.tabPage_ccd = new System.Windows.Forms.TabPage();
-            this.cameraView1 = new CameraView.CameraView();
             this.tabPage_laser = new System.Windows.Forms.TabPage();
             this.tabControl2 = new System.Windows.Forms.TabControl();
             this.tabPage_ESI = new System.Windows.Forms.TabPage();
@@ -110,6 +109,7 @@
             this.userControlAxis = new TopwinLaser2016.UserControlAxis();
             this.tabPage_galvo = new System.Windows.Forms.TabPage();
             this.userControlGalvo = new TopwinLaser2016.UserControlGalvo();
+            this.cameraView1 = new CameraView.CameraView();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -580,37 +580,35 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.userControlStageXY1);
             this.panel1.Controls.Add(this.userControlMachining);
             this.panel1.Controls.Add(this.userControlZMover);
-            this.panel1.Controls.Add(this.userControlXYMover);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Left;
             this.panel1.Location = new System.Drawing.Point(0, 25);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(255, 582);
             this.panel1.TabIndex = 3;
             // 
+            // userControlStageXY1
+            // 
+            this.userControlStageXY1.Location = new System.Drawing.Point(3, 3);
+            this.userControlStageXY1.Name = "userControlStageXY1";
+            this.userControlStageXY1.Size = new System.Drawing.Size(250, 194);
+            this.userControlStageXY1.TabIndex = 1;
+            // 
             // userControlMachining
             // 
-            this.userControlMachining.Location = new System.Drawing.Point(3, 246);
+            this.userControlMachining.Location = new System.Drawing.Point(2, 271);
             this.userControlMachining.Name = "userControlMachining";
             this.userControlMachining.Size = new System.Drawing.Size(250, 120);
             this.userControlMachining.TabIndex = 0;
             // 
             // userControlZMover
             // 
-            this.userControlZMover.Location = new System.Drawing.Point(3, 187);
+            this.userControlZMover.Location = new System.Drawing.Point(3, 203);
             this.userControlZMover.Name = "userControlZMover";
             this.userControlZMover.Size = new System.Drawing.Size(250, 62);
             this.userControlZMover.TabIndex = 0;
-            // 
-            // userControlXYMover
-            // 
-            this.userControlXYMover.CurrentX = 0D;
-            this.userControlXYMover.CurrentY = 0D;
-            this.userControlXYMover.Location = new System.Drawing.Point(3, 3);
-            this.userControlXYMover.Name = "userControlXYMover";
-            this.userControlXYMover.Size = new System.Drawing.Size(250, 194);
-            this.userControlXYMover.TabIndex = 0;
             // 
             // toolStrip2
             // 
@@ -686,15 +684,6 @@
             this.tabPage_ccd.TabIndex = 1;
             this.tabPage_ccd.Text = "相机";
             this.tabPage_ccd.UseVisualStyleBackColor = true;
-            // 
-            // cameraView1
-            // 
-            this.cameraView1.AutoScroll = true;
-            this.cameraView1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.cameraView1.Location = new System.Drawing.Point(3, 3);
-            this.cameraView1.Name = "cameraView1";
-            this.cameraView1.Size = new System.Drawing.Size(739, 550);
-            this.cameraView1.TabIndex = 0;
             // 
             // tabPage_laser
             // 
@@ -832,6 +821,15 @@
             this.userControlGalvo.Size = new System.Drawing.Size(496, 289);
             this.userControlGalvo.TabIndex = 0;
             // 
+            // cameraView1
+            // 
+            this.cameraView1.AutoScroll = true;
+            this.cameraView1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.cameraView1.Location = new System.Drawing.Point(3, 3);
+            this.cameraView1.Name = "cameraView1";
+            this.cameraView1.Size = new System.Drawing.Size(739, 550);
+            this.cameraView1.TabIndex = 0;
+            // 
             // FormMainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -946,7 +944,6 @@
         private System.Windows.Forms.TabPage tabPage_Optowave;
         private System.Windows.Forms.TabPage tabPage_Vgen;
         private UserControlZMover userControlZMover;
-        private UserControlXYMover userControlXYMover;
         private UserControlMachining userControlMachining;
         //private UserControlTasks userControlTasks;
         //private UserControlDataRecorder userControlDataRecorder;
@@ -956,6 +953,7 @@
         private UserControlAxis userControlAxis;
         private UserControlGalvo userControlGalvo;
         private UserControlGraphpaper userControlGraphpaper;
+        private UserControlStageXY userControlStageXY1;
         private CameraView.CameraView cameraView1;
     }
 }
