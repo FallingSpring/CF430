@@ -125,7 +125,7 @@ namespace TopwinLaser2016
         private void InitializeAllTabs()
         {
             //userControlDataRecorder.Initialize();
-            
+            userControlStageXY.Initialize();
             userControlStage.Initialize();
             userControlGalvo.initialize();
             userControlAxis.Initialize();

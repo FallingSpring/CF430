@@ -20,18 +20,13 @@ namespace TopwinLaser2016
         public void Initialize()
         {
             string[] stageIds = Enum.GetNames(typeof(StageID));
-
             userControlXYMoverStage.MoveAbsoluteEvent -= userControlXYMoverStage_MoveAbsoluteEvent;
             userControlXYMoverStage.MoveRelativeEvent -= userControlXYMoverStage_MoveRelativeEvent;
-
-
             userControlXYMoverStage.MoveAbsoluteEvent += userControlXYMoverStage_MoveAbsoluteEvent;
             userControlXYMoverStage.MoveRelativeEvent += userControlXYMoverStage_MoveRelativeEvent;
-
             double x = FormMainWindow.Symphoney.GetStagePosition(StageID.X);
             double y = FormMainWindow.Symphoney.GetStagePosition(StageID.Y);
             userControlXYMoverStage.UpdateCurrentPosition(x, y);
-
         }
 
         void userControlXYMoverStage_MoveRelativeEvent(double steps, RelativeMovementDirection direction)

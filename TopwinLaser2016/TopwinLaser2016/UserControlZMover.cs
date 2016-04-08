@@ -20,7 +20,19 @@ namespace TopwinLaser2016
         private void buttonStageMoveXYZ_Click(object sender, EventArgs e)
         {
            //FormMainWindow.Symphoney.StageMove(new TopwinLaser2016.UserControlXYMover().CurrentX, new TopwinLaser2016.UserControlXYMover().CurrentY, (double)numericUpDownStageMoveXYZ_Z.Value);
-            FormMainWindow.Symphoney.StageMove(StageID.Z, (double)numericUpDownStageMoveXYZ_Z.Value,0.05);
+            FormMainWindow.Symphoney.StageMove(StageID.Z, (double)numericUpDownStageMoveXYZ_Z.Value, (double)numericUpDownZSpeed.Value);
+        }
+        private void buttonStageMoveZUp_Click(object sender, EventArgs e)
+        {
+            double currentZ = FormMainWindow.Symphoney.GetStagePosition(StageID.Z);
+            FormMainWindow.Symphoney.StageMove(StageID.Z, currentZ + (double)numericUpDownStep.Value, (double)numericUpDownZSpeed.Value);
+            numericUpDownStageMoveXYZ_Z.Value = (decimal)FormMainWindow.Symphoney.GetStagePosition(StageID.Z);
+        }
+        private void buttonStageMoveZDown_Click(object sender, EventArgs e)
+        {
+            double currentZ = FormMainWindow.Symphoney.GetStagePosition(StageID.Z);
+            FormMainWindow.Symphoney.StageMove(StageID.Z, currentZ - (double)numericUpDownStep.Value, (double)numericUpDownZSpeed.Value);
+            numericUpDownStageMoveXYZ_Z.Value = (decimal)FormMainWindow.Symphoney.GetStagePosition(StageID.Z);
         }
     }
 }
