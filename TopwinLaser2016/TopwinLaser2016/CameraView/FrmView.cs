@@ -62,6 +62,7 @@ namespace CameraView
         #region 相机操作
         private void OpenSnap()
         {
+            
             m_Camera.Initialize();
             System.Diagnostics.Debug.Assert(m_Camera.GetHandle() != IntPtr.Zero);
 
@@ -246,8 +247,7 @@ namespace CameraView
             switch (item.Text)
             {
                 case "打开摄像机":
-                    OpenSnap();
-                    StartSnap();
+                    
                     break;
                 case "关闭摄像机":
                     StopSnap();
@@ -318,6 +318,13 @@ namespace CameraView
 
                     break;
             }
+        }
+
+        private void OpenCamera()
+        {
+            
+            OpenSnap();
+            StartSnap();
         }
 
 

@@ -28,7 +28,7 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -56,7 +56,7 @@
       <HintPath>lib\ESI.SymphonyAPI.dll</HintPath>
     </Reference>
     <Reference Include="halcondotnet">
-      <HintPath>Camera\halcondotnet.dll</HintPath>
+      <HintPath>CameraView\halcondotnet.dll</HintPath>
     </Reference>
     <Reference Include="NPlot">
       <HintPath>lib\NPlot.dll</HintPath>
@@ -77,6 +77,9 @@
     <Compile Include="CameraView\CameraDevice.cs" />
     <Compile Include="CameraView\CameraView.cs">
       <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="CameraView\CameraView.Designer.cs">
+      <DependentUpon>CameraView.cs</DependentUpon>
     </Compile>
     <Compile Include="CameraView\doNetHalcon.cs" />
     <Compile Include="CameraView\FrmAutoLocationParam.cs">
