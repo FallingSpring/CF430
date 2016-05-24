@@ -244,7 +244,7 @@ namespace CameraView
             switch (item.Text)
             {
                 case "打开摄像机":
-                    
+                    OpenCamera();
                     break;
                 case "关闭摄像机":
                     StopSnap();
@@ -888,6 +888,14 @@ namespace CameraView
                 DrawRuler();
                 System.Threading.Thread.Sleep(20);
             }
+        }
+
+        private void 振镜校正ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FrmGalvoCalibrate frm = new FrmGalvoCalibrate(this);
+            frm.ShowDialog();
+
+
         }
     }
 

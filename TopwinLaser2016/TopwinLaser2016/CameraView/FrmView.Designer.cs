@@ -51,6 +51,7 @@
             this.设置自动定位起点ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.显示定位ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.振镜校正ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -68,9 +69,10 @@
             this.自动定位ToolStripMenuItem,
             this.设置自动定位起点ToolStripMenuItem,
             this.toolStripSeparator3,
-            this.显示定位ToolStripMenuItem});
+            this.显示定位ToolStripMenuItem,
+            this.振镜校正ToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(221, 242);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(221, 264);
             // 
             // 打开摄像机ToolStripMenuItem
             // 
@@ -221,11 +223,18 @@
             this.显示定位ToolStripMenuItem.Text = "显示定位点";
             this.显示定位ToolStripMenuItem.Click += new System.EventHandler(this.显示定位ToolStripMenuItem_Click);
             // 
+            // 振镜校正ToolStripMenuItem
+            // 
+            this.振镜校正ToolStripMenuItem.Name = "振镜校正ToolStripMenuItem";
+            this.振镜校正ToolStripMenuItem.Size = new System.Drawing.Size(220, 22);
+            this.振镜校正ToolStripMenuItem.Text = "振镜校正";
+            this.振镜校正ToolStripMenuItem.Click += new System.EventHandler(this.振镜校正ToolStripMenuItem_Click);
+            // 
             // FrmView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1280, 1024);
+            this.ClientSize = new System.Drawing.Size(1280, 939);
             this.ContextMenuStrip = this.contextMenuStrip1;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "FrmView";
@@ -260,5 +269,6 @@
         private System.Windows.Forms.ToolStripMenuItem 匹配当前Mark点ToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripMenuItem 下一个Mark点ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 振镜校正ToolStripMenuItem;
     }
 }

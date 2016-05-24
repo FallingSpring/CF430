@@ -94,6 +94,12 @@
     <Compile Include="CameraView\FrmCameraParam.Designer.cs">
       <DependentUpon>FrmCameraParam.cs</DependentUpon>
     </Compile>
+    <Compile Include="CameraView\FrmGalvoCalibrate.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CameraView\FrmGalvoCalibrate.Designer.cs">
+      <DependentUpon>FrmGalvoCalibrate.cs</DependentUpon>
+    </Compile>
     <Compile Include="CameraView\FrmMarkAndLocation.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -196,6 +202,9 @@
     <Compile Include="UserControlZMover.Designer.cs">
       <DependentUpon>UserControlZMover.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="CameraView\FrmGalvoCalibrate.resx">
+      <DependentUpon>FrmGalvoCalibrate.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormMainWindow.resx">
       <DependentUpon>FormMainWindow.cs</DependentUpon>
       <SubType>Designer</SubType>

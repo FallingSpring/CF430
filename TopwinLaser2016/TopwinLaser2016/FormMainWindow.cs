@@ -89,8 +89,8 @@ namespace TopwinLaser2016
         }
         private void InitializeTopwinLaser2016()
         {
-            //Symphoney = new Symphony(true);
-            Symphoney = new Symphony(false);
+            Symphoney = new Symphony(true);
+            //Symphoney = new Symphony(false);
             
             ReadInitialData();
             SetControlsEnabled(true);

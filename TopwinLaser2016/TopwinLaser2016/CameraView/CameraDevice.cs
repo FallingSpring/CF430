@@ -186,9 +186,10 @@ namespace CameraView
                                         m_kConvertType, m_LutR, m_LutG, m_LutB, false, m_kBayerType);
 
             BitmapData bmpData = m_bmpCurrent.LockBits(new Rectangle(m_OutPutWindow.X, m_OutPutWindow.Y,
-                                                                            m_OutPutWindow.Width, m_OutPutWindow.Height),
+                                                            m_OutPutWindow.Width, m_OutPutWindow.Height),
                                                             m_kLockMode, m_kBMPFormat);
-            Marshal.Copy(m_ImageBuffer, 0, bmpData.Scan0, m_OutPutWindow.Width * m_OutPutWindow.Height * 3);
+            Marshal.Copy(m_ImageBuffer, 0, bmpData.Scan0, m_OutPutWindow.Width * m_OutPutWindow.Height);
+
             m_bmpCurrent.UnlockBits(bmpData);
         }
 
