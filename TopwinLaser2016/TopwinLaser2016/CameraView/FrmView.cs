@@ -139,15 +139,12 @@ namespace CameraView
             m_Camera.SaveImage();
             Graphics gc = this.CreateGraphics();
             gc.DrawImage(m_Camera.GetCurrentBMP(), this.ClientRectangle);
-            gc.DrawImage(m_Ruler, 0, 0, width, height);
+            DrawRuler();
         }
 
-        Bitmap m_Ruler = null;
         private void DrawRuler()
         {
-            m_Ruler = new Bitmap(width, height);
-
-            Graphics gc = Graphics.FromImage(m_Ruler);
+            Graphics gc = this.CreateGraphics();
             Pen pen = new Pen(Color.Blue, 2);
             //x轴
             gc.DrawLine(pen, ptXLeft, ptXRight);
