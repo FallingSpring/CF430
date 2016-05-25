@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using ESI.SymphonyAPI;
+using Topwin.SymphonyAPI;
 
 namespace TopwinLaser2016
 {
@@ -237,7 +237,8 @@ namespace TopwinLaser2016
         private void buttonInit_Click(object sender, EventArgs e)
         {
             StageID stageId = (StageID)comboBoxStage.SelectedIndex;
-            FormMainWindow.Symphoney.StageInit(stageId);
+            //FormMainWindow.Symphoney.StageInit(stageId);
+            FormMainWindow.Symphoney.FindLimits(stageId, 5000);
         }
 
         private void comboBoxStage_SelectedIndexChanged(object sender, EventArgs e)

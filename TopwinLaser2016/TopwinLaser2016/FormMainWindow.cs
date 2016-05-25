@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-using ESI.SymphonyAPI;
+using Topwin.SymphonyAPI;
 using NPlot;
 using System.Reflection;
 using System.IO;
@@ -89,8 +89,9 @@ namespace TopwinLaser2016
         }
         private void InitializeTopwinLaser2016()
         {
-            Symphoney = new Symphony(true);
+            //Symphoney = new Symphony(true);
             //Symphoney = new Symphony(false);
+            Symphoney = Topwin.SymphonyAPI.Symphony.GetInstance();
             
             ReadInitialData();
             SetControlsEnabled(true);
