@@ -84,32 +84,33 @@
             this.toolStripSeparator10 = new System.Windows.Forms.ToolStripSeparator();
             this.IDM_POINT_LOCATION = new System.Windows.Forms.ToolStripButton();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.userControlZMover1 = new TopwinLaser2016.UserControlZMover();
+            this.userControlStageXY = new TopwinLaser2016.UserControlStageXY();
+            this.userControlMachining = new TopwinLaser2016.UserControlMachining();
             this.toolStrip2 = new System.Windows.Forms.ToolStrip();
             this.IDM_PANE_OBJECT_PROPERTY = new System.Windows.Forms.ToolStripButton();
             this.IDM_MOVETO_ORIGIN = new System.Windows.Forms.ToolStripButton();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage_view = new System.Windows.Forms.TabPage();
+            this.userControlGraphpaper = new TopwinLaser2016.UserControlGraphpaper();
             this.tabPage_ccd = new System.Windows.Forms.TabPage();
+            this.cameraView1 = new CameraView.CameraView();
             this.tabPage_laser = new System.Windows.Forms.TabPage();
             this.tabControl2 = new System.Windows.Forms.TabControl();
             this.tabPage_ESI = new System.Windows.Forms.TabPage();
+            this.userControlLaser = new TopwinLaser2016.UserControlLaser();
             this.tabPage_SP = new System.Windows.Forms.TabPage();
             this.tabPage_Optowave = new System.Windows.Forms.TabPage();
             this.tabPage_Vgen = new System.Windows.Forms.TabPage();
             this.tabPage_stage = new System.Windows.Forms.TabPage();
-            this.tabPage_io = new System.Windows.Forms.TabPage();
-            this.tabPage_axis = new System.Windows.Forms.TabPage();
-            this.tabPage_galvo = new System.Windows.Forms.TabPage();
-            this.userControlGraphpaper = new TopwinLaser2016.UserControlGraphpaper();
-            this.cameraView1 = new CameraView.CameraView();
-            this.userControlLaser = new TopwinLaser2016.UserControlLaser();
             this.userControlStage = new TopwinLaser2016.UserControlStage();
+            this.tabPage_io = new System.Windows.Forms.TabPage();
             this.userControlIO = new TopwinLaser2016.UserControlIO();
+            this.tabPage_axis = new System.Windows.Forms.TabPage();
             this.userControlAxis = new TopwinLaser2016.UserControlAxis();
+            this.tabPage_galvo = new System.Windows.Forms.TabPage();
             this.userControlGalvo = new TopwinLaser2016.UserControlGalvo();
-            this.userControlStageXY = new TopwinLaser2016.UserControlStageXY();
-            this.userControlMachining = new TopwinLaser2016.UserControlMachining();
-            this.userControlZMover1 = new TopwinLaser2016.UserControlZMover();
+            this.IDM_POWER_CTRL = new System.Windows.Forms.ToolStripButton();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -356,7 +357,8 @@
             this.IDM_HANDLOCATION_CAMERA_START,
             this.IDM_AUTOLOCATION,
             this.toolStripSeparator10,
-            this.IDM_POINT_LOCATION});
+            this.IDM_POINT_LOCATION,
+            this.IDM_POWER_CTRL});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(1008, 25);
@@ -589,6 +591,27 @@
             this.panel1.Size = new System.Drawing.Size(255, 582);
             this.panel1.TabIndex = 3;
             // 
+            // userControlZMover1
+            // 
+            this.userControlZMover1.Location = new System.Drawing.Point(3, 203);
+            this.userControlZMover1.Name = "userControlZMover1";
+            this.userControlZMover1.Size = new System.Drawing.Size(250, 110);
+            this.userControlZMover1.TabIndex = 1;
+            // 
+            // userControlStageXY
+            // 
+            this.userControlStageXY.Location = new System.Drawing.Point(3, 3);
+            this.userControlStageXY.Name = "userControlStageXY";
+            this.userControlStageXY.Size = new System.Drawing.Size(250, 194);
+            this.userControlStageXY.TabIndex = 1;
+            // 
+            // userControlMachining
+            // 
+            this.userControlMachining.Location = new System.Drawing.Point(-1, 319);
+            this.userControlMachining.Name = "userControlMachining";
+            this.userControlMachining.Size = new System.Drawing.Size(250, 120);
+            this.userControlMachining.TabIndex = 0;
+            // 
             // toolStrip2
             // 
             this.toolStrip2.Dock = System.Windows.Forms.DockStyle.None;
@@ -646,6 +669,13 @@
             this.tabPage_view.Text = "图纸";
             this.tabPage_view.UseVisualStyleBackColor = true;
             // 
+            // userControlGraphpaper
+            // 
+            this.userControlGraphpaper.Location = new System.Drawing.Point(3, 3);
+            this.userControlGraphpaper.Name = "userControlGraphpaper";
+            this.userControlGraphpaper.Size = new System.Drawing.Size(694, 540);
+            this.userControlGraphpaper.TabIndex = 0;
+            // 
             // tabPage_ccd
             // 
             this.tabPage_ccd.Controls.Add(this.cameraView1);
@@ -656,6 +686,15 @@
             this.tabPage_ccd.TabIndex = 1;
             this.tabPage_ccd.Text = "相机";
             this.tabPage_ccd.UseVisualStyleBackColor = true;
+            // 
+            // cameraView1
+            // 
+            this.cameraView1.AutoScroll = true;
+            this.cameraView1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.cameraView1.Location = new System.Drawing.Point(3, 3);
+            this.cameraView1.Name = "cameraView1";
+            this.cameraView1.Size = new System.Drawing.Size(739, 550);
+            this.cameraView1.TabIndex = 0;
             // 
             // tabPage_laser
             // 
@@ -688,6 +727,13 @@
             this.tabPage_ESI.TabIndex = 3;
             this.tabPage_ESI.Text = "ESI";
             this.tabPage_ESI.UseVisualStyleBackColor = true;
+            // 
+            // userControlLaser
+            // 
+            this.userControlLaser.Location = new System.Drawing.Point(3, 3);
+            this.userControlLaser.Name = "userControlLaser";
+            this.userControlLaser.Size = new System.Drawing.Size(366, 388);
+            this.userControlLaser.TabIndex = 0;
             // 
             // tabPage_SP
             // 
@@ -728,6 +774,13 @@
             this.tabPage_stage.Text = "平台";
             this.tabPage_stage.UseVisualStyleBackColor = true;
             // 
+            // userControlStage
+            // 
+            this.userControlStage.Location = new System.Drawing.Point(3, 3);
+            this.userControlStage.Name = "userControlStage";
+            this.userControlStage.Size = new System.Drawing.Size(639, 379);
+            this.userControlStage.TabIndex = 0;
+            // 
             // tabPage_io
             // 
             this.tabPage_io.Controls.Add(this.userControlIO);
@@ -737,6 +790,13 @@
             this.tabPage_io.TabIndex = 3;
             this.tabPage_io.Text = "IO端口";
             this.tabPage_io.UseVisualStyleBackColor = true;
+            // 
+            // userControlIO
+            // 
+            this.userControlIO.Location = new System.Drawing.Point(3, 3);
+            this.userControlIO.Name = "userControlIO";
+            this.userControlIO.Size = new System.Drawing.Size(539, 550);
+            this.userControlIO.TabIndex = 0;
             // 
             // tabPage_axis
             // 
@@ -748,6 +808,13 @@
             this.tabPage_axis.Text = "轴";
             this.tabPage_axis.UseVisualStyleBackColor = true;
             // 
+            // userControlAxis
+            // 
+            this.userControlAxis.Location = new System.Drawing.Point(3, 3);
+            this.userControlAxis.Name = "userControlAxis";
+            this.userControlAxis.Size = new System.Drawing.Size(328, 332);
+            this.userControlAxis.TabIndex = 0;
+            // 
             // tabPage_galvo
             // 
             this.tabPage_galvo.Controls.Add(this.userControlGalvo);
@@ -758,50 +825,6 @@
             this.tabPage_galvo.Text = "振镜";
             this.tabPage_galvo.UseVisualStyleBackColor = true;
             // 
-            // userControlGraphpaper
-            // 
-            this.userControlGraphpaper.Location = new System.Drawing.Point(3, 3);
-            this.userControlGraphpaper.Name = "userControlGraphpaper";
-            this.userControlGraphpaper.Size = new System.Drawing.Size(694, 540);
-            this.userControlGraphpaper.TabIndex = 0;
-            // 
-            // cameraView1
-            // 
-            this.cameraView1.AutoScroll = true;
-            this.cameraView1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.cameraView1.Location = new System.Drawing.Point(3, 3);
-            this.cameraView1.Name = "cameraView1";
-            this.cameraView1.Size = new System.Drawing.Size(739, 550);
-            this.cameraView1.TabIndex = 0;
-            // 
-            // userControlLaser
-            // 
-            this.userControlLaser.Location = new System.Drawing.Point(3, 3);
-            this.userControlLaser.Name = "userControlLaser";
-            this.userControlLaser.Size = new System.Drawing.Size(366, 388);
-            this.userControlLaser.TabIndex = 0;
-            // 
-            // userControlStage
-            // 
-            this.userControlStage.Location = new System.Drawing.Point(3, 3);
-            this.userControlStage.Name = "userControlStage";
-            this.userControlStage.Size = new System.Drawing.Size(639, 379);
-            this.userControlStage.TabIndex = 0;
-            // 
-            // userControlIO
-            // 
-            this.userControlIO.Location = new System.Drawing.Point(3, 3);
-            this.userControlIO.Name = "userControlIO";
-            this.userControlIO.Size = new System.Drawing.Size(539, 550);
-            this.userControlIO.TabIndex = 0;
-            // 
-            // userControlAxis
-            // 
-            this.userControlAxis.Location = new System.Drawing.Point(3, 3);
-            this.userControlAxis.Name = "userControlAxis";
-            this.userControlAxis.Size = new System.Drawing.Size(308, 314);
-            this.userControlAxis.TabIndex = 0;
-            // 
             // userControlGalvo
             // 
             this.userControlGalvo.Location = new System.Drawing.Point(3, 3);
@@ -809,26 +832,15 @@
             this.userControlGalvo.Size = new System.Drawing.Size(496, 289);
             this.userControlGalvo.TabIndex = 0;
             // 
-            // userControlStageXY
+            // IDM_POWER_CTRL
             // 
-            this.userControlStageXY.Location = new System.Drawing.Point(3, 3);
-            this.userControlStageXY.Name = "userControlStageXY";
-            this.userControlStageXY.Size = new System.Drawing.Size(250, 194);
-            this.userControlStageXY.TabIndex = 1;
-            // 
-            // userControlMachining
-            // 
-            this.userControlMachining.Location = new System.Drawing.Point(-1, 319);
-            this.userControlMachining.Name = "userControlMachining";
-            this.userControlMachining.Size = new System.Drawing.Size(250, 120);
-            this.userControlMachining.TabIndex = 0;
-            // 
-            // userControlZMover1
-            // 
-            this.userControlZMover1.Location = new System.Drawing.Point(3, 203);
-            this.userControlZMover1.Name = "userControlZMover1";
-            this.userControlZMover1.Size = new System.Drawing.Size(250, 110);
-            this.userControlZMover1.TabIndex = 1;
+            this.IDM_POWER_CTRL.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.IDM_POWER_CTRL.Image = ((System.Drawing.Image)(resources.GetObject("IDM_POWER_CTRL.Image")));
+            this.IDM_POWER_CTRL.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.IDM_POWER_CTRL.Name = "IDM_POWER_CTRL";
+            this.IDM_POWER_CTRL.Size = new System.Drawing.Size(23, 22);
+            this.IDM_POWER_CTRL.Text = "权限";
+            this.IDM_POWER_CTRL.Click += new System.EventHandler(this.IDM_POWER_CTRL_Click);
             // 
             // FormMainWindow
             // 
@@ -955,6 +967,7 @@
         private UserControlStageXY userControlStageXY;
         private CameraView.CameraView cameraView1;
         private UserControlZMover userControlZMover1;
+        private System.Windows.Forms.ToolStripButton IDM_POWER_CTRL;
     }
 }
 

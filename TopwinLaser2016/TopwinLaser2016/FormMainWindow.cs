@@ -235,5 +235,11 @@ namespace TopwinLaser2016
         {
             SaveCurrentSettings();
         }
+
+        private void IDM_POWER_CTRL_Click(object sender, EventArgs e)
+        {
+            Power.FrmLogin frm = new Power.FrmLogin();
+            frm.ShowDialog();
+        }
     }
 }
