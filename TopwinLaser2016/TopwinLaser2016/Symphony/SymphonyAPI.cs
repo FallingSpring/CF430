@@ -35,7 +35,7 @@ namespace Topwin.SymphonyAPI
 
         private static Symphony instance = new Symphony();
 
-        public bool bSimulate { get; }
+        public bool bSimulate { get; set; }
 
         private bool bRet { get; set; }
 

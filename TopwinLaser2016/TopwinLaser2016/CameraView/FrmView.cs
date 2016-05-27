@@ -40,7 +40,9 @@ namespace CameraView
         private bool m_bFlagTypeLocation = true;                                          ///< 手动定位标识
         private List<Point> m_ListPoint = new List<Point>();                        ///< 手动定位点缓存  
         private int m_nDetected = 0;                                                /// 匹配点个数
-        
+
+
+        private Bitmap m_ImgCache = null;
         
         #endregion
 
@@ -49,8 +51,14 @@ namespace CameraView
 
         {
             InitializeComponent();
-            DrawRuler();
+        }
 
+        private void FrmView_Load(object sender, EventArgs e)
+        {
+            this.SetStyle(ControlStyles.OptimizedDoubleBuffer |
+                    ControlStyles.ResizeRedraw |
+                    ControlStyles.AllPaintingInWmPaint, true);
+            m_ImgCache = new Bitmap(this.ClientRectangle.Width, this.ClientRectangle.Height);
         }
 
         ~FrmView()
@@ -137,14 +145,17 @@ namespace CameraView
         private void ShowImage()
         {
             m_Camera.SaveImage();
-            Graphics gc = this.CreateGraphics();
+            Graphics gc = Graphics.FromImage(m_ImgCache);
             gc.DrawImage(m_Camera.GetCurrentBMP(), this.ClientRectangle);
-            DrawRuler();
+            DrawRuler(gc);
+
+            Graphics g = this.CreateGraphics();
+
+            g.DrawImage(m_ImgCache, this.ClientRectangle);
         }
 
-        private void DrawRuler()
+        private void DrawRuler(Graphics gc)
         {
-            Graphics gc = this.CreateGraphics();
             Pen pen = new Pen(Color.Blue, 2);
             //x轴
             gc.DrawLine(pen, ptXLeft, ptXRight);
@@ -866,7 +877,7 @@ namespace CameraView
                     if (count + 1 == m_nMatchCount)
                     {
                         MessageBox.Show("没有找到Mark点，请调整参数再次捕捉");
-                        m_rcMarkCircle = new Rectangle(0,0,0,0);
+                        m_rcMarkCircle = new Rectangle(0, 0, 0, 0);
                         break;
                     }
                     else
@@ -880,15 +891,7 @@ namespace CameraView
             }
             return curPoint;
         }
-
-        private void thread_ruluer()
-        {
-            while (m_bIsSnap)
-            {
-                DrawRuler();
-                System.Threading.Thread.Sleep(20);
-            }
-        }
+       
 
         private void 振镜校正ToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -897,6 +900,8 @@ namespace CameraView
 
 
         }
+
+
     }
 
 }
