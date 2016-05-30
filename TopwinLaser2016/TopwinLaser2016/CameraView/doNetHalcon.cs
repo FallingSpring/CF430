@@ -12,7 +12,6 @@ namespace CameraView
     {
 
         private static HObject m_image;
-        private HTuple m_WindowHander;
         private static HObject m_CircleCon;
         private static HTuple m_ModelID;
 

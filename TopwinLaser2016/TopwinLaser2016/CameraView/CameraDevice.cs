@@ -176,6 +176,7 @@ namespace CameraView
             {
                 HVSTATUS status = USBCameraAPI.EndHVDevice(m_pHandle);
                 USBCameraAPI.HV_VERIFY(status);
+                m_pHandle = IntPtr.Zero;
             }
         }
 

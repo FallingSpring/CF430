@@ -34,8 +34,7 @@ namespace CameraView
         
 
         private HV_SNAP_PROC snapCallback = new HV_SNAP_PROC(SnapCallBack);         ///< 回调函数
-        private bool m_bIsSnap = false;                                             ///< 是否正在采集
-        private bool m_bIfCameraOpen = false;                                             ///< 是否打开设备
+        private bool m_bIfCameraOpen = false;                                       ///< 是否打开设备
                                                                                     ///
         private bool m_bFlagTypeLocation = true;                                          ///< 手动定位标识
         private List<Point> m_ListPoint = new List<Point>();                        ///< 手动定位点缓存  
@@ -43,6 +42,9 @@ namespace CameraView
 
 
         private Bitmap m_ImgCache = null;
+
+
+        private bool bDrawMark = false;
         
         #endregion
 
@@ -68,64 +70,97 @@ namespace CameraView
 
         
         #region 相机操作
-        private void OpenSnap()
+        private bool OpenSnap()
         {
-            
-            m_Camera.Initialize();
-            System.Diagnostics.Debug.Assert(m_Camera.GetHandle() != IntPtr.Zero);
-
-            HVSTATUS status = USBCameraAPI.HVOpenSnap(m_Camera.GetHandle(), snapCallback, this.Handle);
-            USBCameraAPI.HV_VERIFY(status);
-            if (USBCameraAPI.HV_SUCCESS(status))
+            bool bOpen = false;
+            try
             {
-                m_bIfCameraOpen = true;
+                m_Camera.Initialize();
+                System.Diagnostics.Debug.Assert(m_Camera.GetHandle() != IntPtr.Zero);
+
+                HVSTATUS status = USBCameraAPI.HVOpenSnap(m_Camera.GetHandle(), snapCallback, this.Handle);
+                USBCameraAPI.HV_VERIFY(status);
+                if (USBCameraAPI.HV_SUCCESS(status))
+                {
+                    bOpen = true;
+                }
             }
+            catch
+            {
+                bOpen = false;
+            }
+
+            return bOpen;
         }
 
-        private void StartSnap()
+        private bool StartSnap()
         {
-            System.Diagnostics.Debug.Assert(m_Camera.GetHandle() != IntPtr.Zero);
-
-            IntPtr[] pBuffers = new IntPtr[1];
-            pBuffers[0] = m_Camera.GetRawBuffer();
-
-            HVSTATUS status = USBCameraAPI.HVStartSnap(m_Camera.GetHandle(), pBuffers, 1);
-            USBCameraAPI.HV_VERIFY(status);
-            if (USBCameraAPI.HV_SUCCESS(status))
+            bool bSnap = false;
+            try
             {
-                m_bIsSnap = true;
+                System.Diagnostics.Debug.Assert(m_Camera.GetHandle() != IntPtr.Zero);
+
+                IntPtr[] pBuffers = new IntPtr[1];
+                pBuffers[0] = m_Camera.GetRawBuffer();
+
+                HVSTATUS status = USBCameraAPI.HVStartSnap(m_Camera.GetHandle(), pBuffers, 1);
+                USBCameraAPI.HV_VERIFY(status);
+                if (USBCameraAPI.HV_SUCCESS(status))
+                {
+                    bSnap = true;
+                }
             }
+            catch
+            {
+                bSnap = false;
+            }
+
+            return bSnap;
+            
         }
 
         private void StopSnap()
         {
-            if (m_bIsSnap)
-            {
                 System.Diagnostics.Debug.Assert(m_Camera.GetHandle() != IntPtr.Zero);
                 HVSTATUS status = USBCameraAPI.HVStopSnap(m_Camera.GetHandle());
                 USBCameraAPI.HV_VERIFY(status);
-                if (USBCameraAPI.HV_SUCCESS(status))
-                {
-                    m_bIsSnap = false;
-                }
-            }
+                USBCameraAPI.HV_SUCCESS(status);
         }
 
         private void CloseSnap()
         {
-            if (m_bIsSnap)
+            System.Diagnostics.Debug.Assert(m_Camera.GetHandle() != IntPtr.Zero);
+            HVSTATUS status = USBCameraAPI.HVCloseSnap(m_Camera.GetHandle());
+            USBCameraAPI.HV_VERIFY(status);
+            if (USBCameraAPI.HV_SUCCESS(status))
             {
-                System.Diagnostics.Debug.Assert(m_Camera.GetHandle() != IntPtr.Zero);
-
-                StopSnap();
-                HVSTATUS status = USBCameraAPI.HVCloseSnap(m_Camera.GetHandle());
-                USBCameraAPI.HV_VERIFY(status);
-                if (USBCameraAPI.HV_SUCCESS(status))
-                {
-                    m_bIfCameraOpen = false;
-                }
-                m_Camera.Release();
+                m_bIfCameraOpen = false;
             }
+            m_Camera.Release();
+            
+        }
+
+        private void OpenCamera()
+        {
+            if (!m_bIfCameraOpen)
+            {
+                OpenSnap();
+                StartSnap();
+                m_bIfCameraOpen = true;
+            }
+
+        }
+
+        private void CloseCamera()
+        {
+            if (m_bIfCameraOpen)
+            {
+                m_bIfCameraOpen = false;
+                StopSnap();
+                CloseSnap();
+            }
+
+            this.Invalidate();
         }
 
         private static bool SnapCallBack(ref HV_SNAP_INFO pInfo)
@@ -144,14 +179,24 @@ namespace CameraView
         #region 显示
         private void ShowImage()
         {
-            m_Camera.SaveImage();
-            Graphics gc = Graphics.FromImage(m_ImgCache);
-            gc.DrawImage(m_Camera.GetCurrentBMP(), this.ClientRectangle);
-            DrawRuler(gc);
+            try
+            {
+                m_Camera.SaveImage();
+                Graphics gc = Graphics.FromImage(m_ImgCache);
+                gc.DrawImage(m_Camera.GetCurrentBMP(), this.ClientRectangle);
+                DrawRuler(gc);
+                if (bDrawMark)
+                {
+                    DrawMark(m_ListPoint, gc);
+                }
+                Graphics g = this.CreateGraphics();
 
-            Graphics g = this.CreateGraphics();
-
-            g.DrawImage(m_ImgCache, this.ClientRectangle);
+                g.DrawImage(m_ImgCache, this.ClientRectangle);
+            }
+            catch
+            {
+                
+            }
         }
 
         private void DrawRuler(Graphics gc)
@@ -177,8 +222,13 @@ namespace CameraView
             }
         }
 
-        private void DrawMark(List<Point> circle)
+        private void DrawMark(List<Point> circle, Graphics gc)
         {
+            if (!bDrawMark)
+            {
+                return;
+            }
+
             if (circle.Count < 3)
             {
                 MessageBox.Show("三点确定一个圆");
@@ -188,7 +238,6 @@ namespace CameraView
             Point Center = new Point(0, 0);
             double raduis = 0;
             GetCircle(circle[0], circle[1], circle[2], ref Center, ref raduis); 
-            Graphics gc = this.CreateGraphics();
             Pen pen = new Pen(Color.Red, 1);
             try
             {
@@ -258,7 +307,7 @@ namespace CameraView
                     OpenCamera();
                     break;
                 case "关闭摄像机":
-                    StopSnap();
+                    CloseCamera();
                     break;
                 case "设置相机参数":
                     FrmCameraParam frmCP = new FrmCameraParam();
@@ -328,12 +377,7 @@ namespace CameraView
             }
         }
 
-        private void OpenCamera()
-        {
-            
-            OpenSnap();
-            StartSnap();
-        }
+
 
 
         private Rectangle m_rcMarkCircle = new Rectangle();
@@ -557,6 +601,7 @@ namespace CameraView
         private void FrmView_Click(object sender, EventArgs e)
         {
             //手动定位
+            bDrawMark = false;
             if (!m_bFlagTypeLocation)
             {
                 MouseEventArgs me = (MouseEventArgs)e;
@@ -568,7 +613,8 @@ namespace CameraView
 
                 if (m_ListPoint.Count == 3)
                 {
-                    DrawMark(m_ListPoint);
+                    bDrawMark = true;
+                    
                 }
             }
         }
@@ -692,7 +738,7 @@ namespace CameraView
         public PointF m_ptFirstLocatePoint = new PointF(0, 0);
         public void DoAutoLocation()
         {
-            if (m_bIsSnap == false)
+            if (m_bIfCameraOpen == false)
             {
                 OpenSnap();
                 StartSnap();
