@@ -254,14 +254,24 @@ namespace CameraView
             }      
         }
 
+        /// <summary>
+        /// 三点确定一个圆
+        /// </summary>
+        /// <param name="point1"></param>
+        /// <param name="point2"></param>
+        /// <param name="point3"></param>
+        /// <param name="center">圆心</param>
+        /// <param name="raduis">半径</param>
         private void GetCircle(Point point1, Point point2, Point point3, ref Point center, ref double raduis)
         {
             double mat1, mat2, mat3;
-            mat1 = ((point2.X*point2.X +point2.Y*point2.Y)-(point1.X*point1.X +point1.Y*point1.Y))*(2*(point3.Y-point1.Y))-  
-            ((point3.X*point3.X +point3.Y*point3.Y)-(point1.X*point1.X +point1.Y*point1.Y))*(2*(point2.Y-point1.Y));  
-            mat2 = (2*(point2.X-point1.X))*((point3.X*point3.X+point3.Y*point3.Y)-(point1.X*point1.X +point1.Y*point1.Y))-  
-                (2*(point3.X-point1.X))*((point2.X*point2.X+point2.Y*point2.Y)-(point1.X*point1.X +point1.Y*point1.Y));  
-            mat3 = 4*((point2.X-point1.X)*(point3.Y-point1.Y) - (point3.X-point1.X)*(point2.Y-point1.Y));
+            mat1 = ((point2.X * point2.X + point2.Y * point2.Y) - (point1.X * point1.X + point1.Y * point1.Y)) * (2 * (point3.Y - point1.Y)) 
+                - ((point3.X * point3.X + point3.Y * point3.Y) - (point1.X * point1.X + point1.Y * point1.Y)) * (2 * (point2.Y - point1.Y));
+            
+            mat2 = (2 * (point2.X - point1.X)) * ((point3.X * point3.X + point3.Y * point3.Y) - (point1.X * point1.X + point1.Y * point1.Y)) 
+                - (2 * (point3.X - point1.X)) * ((point2.X * point2.X + point2.Y * point2.Y) - (point1.X * point1.X + point1.Y * point1.Y));
+            
+            mat3 = 4 * ((point2.X - point1.X) * (point3.Y - point1.Y) - (point3.X - point1.X) * (point2.Y - point1.Y));
 
             center.X = (int)(mat1 / mat3);
             center.Y = (int)(mat2 / mat3);
@@ -310,66 +320,13 @@ namespace CameraView
                     CloseCamera();
                     break;
                 case "设置相机参数":
-                    FrmCameraParam frmCP = new FrmCameraParam();
-                    if (frmCP.ShowDialog() == DialogResult.OK)
-                    {
-                        //设置相机参数
-                        //m_nExposureValue = frmCP.m_nDlgCameraExposure;
-                        //m_nRedValue = frmCP.m_nDlgCameraBalanceRed;
-                        //m_nBlueValue = frmCP.m_nDlgCameraBalanceBlue;
-                        //m_nGreenValue = frmCP.m_nDlgCameraBalanceGreen;
-
-                        //SetExposureTime(m_hHV, m_sizeImg.cx, m_nExposureValue, 1000);
-                        m_Camera.SetExposureTime(frmCP.m_Light, 1000);
-                    }
-
+                    SetCameraParam();
                     break;
                 case "设置相机分辨率与偏置参数":
-                    FrmThickCut frmTC = new FrmThickCut();
-                    frmTC.m_fDlgMarkCoordinateX = m_ptMarkCenterPiexl.X;
-                    frmTC.m_fDlgMarkCoordinateY = m_ptMarkCenterPiexl.Y;
-                    frmTC.m_fDlgMarkDiameterPiexl = m_fMarkDiameterPiexl;
-
-                    if (frmTC.ShowDialog() == DialogResult.OK/* && pCNCMC3*/)
-                    {
-                        /*
-                        pCNCMC3->m_fResolution = frmTC.m_fDlgCameraResolution;
-	                    pCNCMC3->m_fOffsetX = frmTC.m_fDlgCameraOffsetX;
-	                    pCNCMC3->m_fOffsetY = frmTC.m_fDlgCameraOffsetY;
-                         */
-                        m_fCameraViewRulerUnit = frmTC.m_fDlgViewRulerUnit;
-                    }
+                    SetCameraResolution();
                     break;
                 case "设置自动定位参数":
-                    FrmAutoLocationParam frmALP = new FrmAutoLocationParam();
-                    if (frmALP.ShowDialog() == DialogResult.OK)
-                    {
-                        m_nContourRadium = frmALP.m_nDlgContourRadium;
-                        m_nContourContrast = frmALP.m_nDlgContourContrast;
-                        m_fContourMaxRatio = frmALP.m_fDlgContourMaxRatio;
-                        m_fContourMinRatio = frmALP.m_fDlgContourMinRatio;
-                        m_fContourMinScore = frmALP.m_fDlgContourMinScore;
-                        m_nFindNum = frmALP.m_nDlgFindNum;
-                        m_fFindGredness = frmALP.m_fDlgFindGredness;
-                        m_bTypeModel = frmALP.m_bDlgTypeModel;
-                        m_nMatchCount = frmALP.m_nDlgMatchCount;
-
-                        m_bFirstPointOffset = frmALP.m_bFirstPointOffset;
-                        m_dFirstPointOffsetX = frmALP.m_fFirstPoint_OffsetX;
-                        m_dFirstPointOffsetY = frmALP.m_fFirstPoint_OffsetY;
-
-                        doNetHalcon.CreateModelxld(m_nContourRadium, m_fContourMinRatio, m_fContourMaxRatio, m_nContourContrast);
-                        /**
-                        //
-                        #ifdef XT_USE_HALCON
-		                        int nRet = gen_circle_contour_xld(&m_ContCircle, m_nContourRadium, m_nContourRadium,
-			                        m_nContourRadium, 0, 6.28318, "positive", 1);
-		                        nRet = create_scaled_shape_model_xld(m_ContCircle, "auto", -0.39, 0.79, "auto",
-			                        m_fContourMinRatio, m_fContourMaxRatio, "auto", "auto", "ignore_local_polarity",
-			                        m_nContourContrast, &m_ModelID);
-                        #endif
-                        **/
-                    }
+                    SetAutoLocateParam();
                     break;
                 default:
 
@@ -378,7 +335,72 @@ namespace CameraView
         }
 
 
+        private void SetCameraParam()
+        {
+            FrmCameraParam frmCP = new FrmCameraParam();
+            if (frmCP.ShowDialog() == DialogResult.OK)
+            {
+                //设置相机参数
+                //m_nExposureValue = frmCP.m_nDlgCameraExposure;
+                //m_nRedValue = frmCP.m_nDlgCameraBalanceRed;
+                //m_nBlueValue = frmCP.m_nDlgCameraBalanceBlue;
+                //m_nGreenValue = frmCP.m_nDlgCameraBalanceGreen;
 
+                //SetExposureTime(m_hHV, m_sizeImg.cx, m_nExposureValue, 1000);
+                m_Camera.SetExposureTime(frmCP.m_Light, 1000);
+            }
+        }
+
+        private void SetCameraResolution()
+        {
+            FrmThickCut frmTC = new FrmThickCut();
+            frmTC.m_fDlgMarkCoordinateX = m_ptMarkCenterPiexl.X;
+            frmTC.m_fDlgMarkCoordinateY = m_ptMarkCenterPiexl.Y;
+            frmTC.m_fDlgMarkDiameterPiexl = m_fMarkDiameterPiexl;
+
+            if (frmTC.ShowDialog() == DialogResult.OK/* && pCNCMC3*/)
+            {
+                /*
+                pCNCMC3->m_fResolution = frmTC.m_fDlgCameraResolution;
+                pCNCMC3->m_fOffsetX = frmTC.m_fDlgCameraOffsetX;
+                pCNCMC3->m_fOffsetY = frmTC.m_fDlgCameraOffsetY;
+                 */
+                m_fCameraViewRulerUnit = frmTC.m_fDlgViewRulerUnit;
+            }
+        }
+
+        private void SetAutoLocateParam()
+        {
+            FrmAutoLocationParam frmALP = new FrmAutoLocationParam();
+            if (frmALP.ShowDialog() == DialogResult.OK)
+            {
+                m_nContourRadium = frmALP.m_nDlgContourRadium;
+                m_nContourContrast = frmALP.m_nDlgContourContrast;
+                m_fContourMaxRatio = frmALP.m_fDlgContourMaxRatio;
+                m_fContourMinRatio = frmALP.m_fDlgContourMinRatio;
+                m_fContourMinScore = frmALP.m_fDlgContourMinScore;
+                m_nFindNum = frmALP.m_nDlgFindNum;
+                m_fFindGredness = frmALP.m_fDlgFindGredness;
+                m_bTypeModel = frmALP.m_bDlgTypeModel;
+                m_nMatchCount = frmALP.m_nDlgMatchCount;
+
+                m_bFirstPointOffset = frmALP.m_bFirstPointOffset;
+                m_dFirstPointOffsetX = frmALP.m_fFirstPoint_OffsetX;
+                m_dFirstPointOffsetY = frmALP.m_fFirstPoint_OffsetY;
+
+                doNetHalcon.CreateModelxld(m_nContourRadium, m_fContourMinRatio, m_fContourMaxRatio, m_nContourContrast);
+                /**
+                //
+                #ifdef XT_USE_HALCON
+                        int nRet = gen_circle_contour_xld(&m_ContCircle, m_nContourRadium, m_nContourRadium,
+                            m_nContourRadium, 0, 6.28318, "positive", 1);
+                        nRet = create_scaled_shape_model_xld(m_ContCircle, "auto", -0.39, 0.79, "auto",
+                            m_fContourMinRatio, m_fContourMaxRatio, "auto", "auto", "ignore_local_polarity",
+                            m_nContourContrast, &m_ModelID);
+                #endif
+                **/
+            }
+        }
 
         private Rectangle m_rcMarkCircle = new Rectangle();
         private int m_nCountAutoIndex = 0;
@@ -528,7 +550,7 @@ namespace CameraView
 
         private void OnFirstLocatePoint() 
         {
-            //if( pCNCMC3 )
+            //if( pCNCMC3 )      
             //{
             //    pCNCMC3->GetAxisPos(AXIS_X, &m_ptFirstLocatePoint.x);
             //    pCNCMC3->GetAxisPos(AXIS_Y, &m_ptFirstLocatePoint.y);

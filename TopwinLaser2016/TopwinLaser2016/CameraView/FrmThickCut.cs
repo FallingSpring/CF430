@@ -15,8 +15,8 @@ namespace CameraView
         #region 成员变量
         public double m_fDlgMarkCoordinateX;
         public double m_fDlgMarkCoordinateY;
-        public double m_fDlgCameraResolution;
-        public double m_fDlgMarkDiameter;
+        public double m_fDlgCameraResolution;           //相机分辨率
+        public double m_fDlgMarkDiameter;               //标准圆直径
         public double m_fDlgCameraOffsetX;
         public double m_fDlgCameraOffsetY;
         public double m_fDlgMarkDiameterPiexl;
