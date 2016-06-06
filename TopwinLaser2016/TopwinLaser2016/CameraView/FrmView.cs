@@ -758,7 +758,7 @@ namespace CameraView
         }
 
         public PointF m_ptFirstLocatePoint = new PointF(0, 0);
-        public void DoAutoLocation()
+        public int DoAutoLocate(uint wParam = 0, long lParam = 0)
         {
             if (m_bIfCameraOpen == false)
             {
@@ -769,7 +769,7 @@ namespace CameraView
             if (m_ptFirstLocatePoint.X == 0 && m_ptFirstLocatePoint.Y == 0)
             {
                 MessageBox.Show("请正确设定自动定位起始点！");
-                return ;
+                return -1;
             }
 
             //CLaser_CNCDoc* pDoc = NULL;
@@ -779,7 +779,6 @@ namespace CameraView
             //CDocTemplate* pDocTemp = pApp->GetNextDocTemplate(postem);
             //POSITION posdoc = pDocTemp->GetFirstDocPosition();
             //pDoc = (CLaser_CNCDoc*)pDocTemp->GetNextDoc(posdoc);
-            //pView = (CLaser_CNCView*)pDoc->GetLaser_CNCView();
 
             //if (pView->m_lTotalCountTransform < 2)
             //{
@@ -835,7 +834,7 @@ namespace CameraView
                         //}
 
                         //curPoint.X = centerAtlPoint.X + relPoint.X;
-                        //curPoint.Y = centerAtlPoint.Y - relPoint.Y;
+                        //curPoint.Y = centerAtlPoint.Y - relPoint.Y;s
 
                         //if (pCNCMC3)
                         //{
@@ -925,11 +924,11 @@ namespace CameraView
 
                 if (!nAutoLocation)
                 {
-                    return ;
+                    return -3;
                 }
             }
 
-            return;
+            return 0;
         }
 
         private PointF DoLocateGridPoint(int nGridType, int nHor, int nVer)
