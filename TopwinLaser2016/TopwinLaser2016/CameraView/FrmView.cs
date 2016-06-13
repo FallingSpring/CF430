@@ -48,6 +48,8 @@ namespace CameraView
         
         #endregion
 
+        private Topwin.SymphonyAPI.Symphony symphony = Topwin.SymphonyAPI.Symphony.GetInstance();
+
         public FrmView()
 
 
@@ -707,7 +709,6 @@ namespace CameraView
             return true;
 
         }
-
         public int m_nCountDetectIndex;
         public int m_nCountDetect;
         private void OnAutolocationSelectNextMark()
@@ -966,6 +967,50 @@ namespace CameraView
             frm.ShowDialog();
 
 
+        }
+
+
+        private void FrmView_KeyDown(object sender, KeyEventArgs e)
+        {
+            double PosX = symphony.GetStagePosition(Topwin.SymphonyAPI.StageID.X);
+            double PosY = symphony.GetStagePosition(Topwin.SymphonyAPI.StageID.Y);
+            double delta = 10;
+            switch (e.KeyCode)
+            {
+                case Keys.Up:
+                    PosX += delta;
+                    break;
+                case Keys.Down:
+                    PosX -= delta;
+                    break;
+                case Keys.Left:
+                    PosY += delta;
+                    break;
+                case Keys.Right:
+                    PosY -= delta;
+                    break;
+            }          
+            symphony.StageMove(PosX, PosY);
+        }
+
+        private void FrmView_KeyUp(object sender, KeyEventArgs e)
+        {
+            switch (e.KeyCode)
+            { 
+                case Keys.A:
+                    OnAutolocation();
+                    break;
+                case Keys.Up:
+                case Keys.Down:
+                case Keys.Left:
+                case Keys.Right:
+                    double PosX = symphony.GetStagePosition(Topwin.SymphonyAPI.StageID.X);
+                    double PosY = symphony.GetStagePosition(Topwin.SymphonyAPI.StageID.Y);
+                    symphony.StageMove(PosX, PosY);
+                    break;
+                default:
+                    break;
+            }
         }
 
 
