@@ -72,7 +72,7 @@
             this.显示定位ToolStripMenuItem,
             this.振镜校正ToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(221, 264);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(221, 242);
             // 
             // 打开摄像机ToolStripMenuItem
             // 
@@ -241,6 +241,8 @@
             this.Text = "FrmView";
             this.Load += new System.EventHandler(this.FrmView_Load);
             this.Click += new System.EventHandler(this.FrmView_Click);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FrmView_KeyDown);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.FrmView_KeyUp);
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
 
